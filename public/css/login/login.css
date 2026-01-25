@@ -1,0 +1,123 @@
+    body {
+        font-family: 'Poppins', sans-serif;
+    }
+
+    /* BACKGROUND */
+    .login-page {
+        height: 100vh;
+        background: url("/images/login/bg-login.jpg") center / cover no-repeat;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* CARD */
+    .login-card {
+        background: #fff;
+        width: 100%;
+        max-width: 671px;
+        border-radius: 16px;
+        padding: 32px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    /* LOGO */
+    .login-logo {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 16px;
+    }
+
+    .login-logo img {
+        width: 300px;
+        /* ukuran logo */
+        height: auto;
+        /* jaga proporsi */
+        max-width: 100%;
+    }
+
+
+    /* TITLE */
+    .login-title {
+        font-weight: 600;
+        font-size: 30px;
+        margin-bottom: 24px;
+        color: #191C1F;
+    }
+
+    /* FORM */
+    .form-label {
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+    .form-control {
+        height: 48px;
+        border-radius: 10px;
+        font-size: 14px;
+
+    }
+
+    /* PASSWORD FIELD */
+    .password-wrapper {
+        position: relative;
+    }
+
+    .password-toggle {
+        position: absolute;
+        top: 50%;
+        right: 14px;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #aaa;
+        font-size: 14px;
+    }
+
+    /* FORGOT */
+    .forgot-link {
+        font-size: 13px;
+        text-decoration: none;
+    }
+
+    /* BUTTON */
+    .btn-login {
+        height: 48px;
+        border-radius: 12px;
+        background: #6ea88a;
+        border: none;
+        font-weight: 600;
+        letter-spacing: 1px;
+    }
+
+    .btn-login:hover {
+        background: #5c9477;
+    }
+
+    /* REGISTER */
+    .register-text {
+        font-size: 14px;
+    }
+
+    .register-text a {
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .password-wrapper {
+        position: relative;
+    }
+
+    .password-toggle {
+        position: absolute;
+        top: 50%;
+        right: 16px;
+        transform: translateY(-50%);
+        cursor: pointer;
+        font-size: 20px;
+        color: #6c757d;
+    }
+
+    .password-toggle:hover {
+        color: #198754;
+        /* hijau */
+    }

@@ -75,4 +75,25 @@
     --netral-700: #a3a3a3;
     --netral-800: #7f7f7f;
     --netral-900: #616161;
+
+    --text-black: #191C1F;
+    --text-muted: #B8B9BA;
+    --text-green: #1F7D53;
+    --text-blue: #4481B5;
+    --text-red: #FF0000;
+
+    --bg-black: #191C1F;
+    --bg-muted: #B8B9BA;
+    --bg-green: #1F7D53;
+    --bg-blue: #4481B5;
+    --bg-red: #FF0000;
+
+    --button-green: #1F7D53;
+    --button-green-hover: #69a88c;
+    --button-light: #ffffff;
+    --button-light-hover: #f0f0f0;
+    --button-blue: #4481B5;
+    --button-red: #FF0000;
+    --button-gray: #f4f4f4;
+    --button-gray-hover: #d1d1d1;
 }

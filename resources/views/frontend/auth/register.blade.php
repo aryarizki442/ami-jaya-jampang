@@ -1,8 +1,8 @@
-@extends('app')
+@extends('frontend.auth.auth')
 
-@section('title', 'Register')
+@section('title', 'Daftar')
 
-@section('content')
+@section('auth')
     <div class="login-page">
         <div class="login-card text-center">
 
@@ -25,31 +25,26 @@
                 </div>
                 <!-- Email / Phone -->
                 <div class="mb-3 text-start">
-                    <label class="form-label">Email/No. Telepon</label>
-                    <input type="text" class="form-control" placeholder="Masukan Email/Nomor Telepon Anda">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" placeholder="Masukan Email Anda">
                 </div>
 
-                <!-- PASSWORD -->
-                <div class="mb-2 text-start">
-                    <label class="form-label">Kata Sandi</label>
-
-                    <div class="password-wrapper">
-                        <input type="password" class="form-control" placeholder="Masukan Kata Sandi Anda" id="password">
-
-                        <i class="bi bi-eye-slash password-toggle" id="togglePassword"></i>
-                    </div>
+                <div class="mb-3 text-start">
+                    <label class="form-label">No Telepon</label>
+                    <input type="text" class="form-control" placeholder="Masukan Nomor Telepon Anda">
                 </div>
 
                 <!-- BUTTON -->
-                <button type="submit" class="btn btn-login w-100 text-white">
+                <a href="{{ route('register-password') }}" class="btn btn-login w-100 text-white mt-4">
                     BERIKUTNYA
-                </button>
+                </a>
             </form>
 
             <!-- REGISTER -->
             <div class="mt-4 register-text">
-                Belum Punya Akun?
-                <a href="#">Daftar</a>
+                Sudah Punya Akun?
+                <a href="{{ route('login') }}">Masuk</a>
+
             </div>
 
         </div>

@@ -1,8 +1,8 @@
-@extends('app')
+@extends('frontend.auth.auth')
 
-@section('title', 'Forgot Password')
+@section('title', 'Lupa Kata Sandi')
 
-@section('content')
+@section('auth')
     <div class="login-page">
         <div class="login-card text-center">
 
@@ -30,17 +30,12 @@
                 </div>
 
                 <!-- BUTTON -->
-                <button type="submit" class="btn btn-login w-100 text-white">
+                <a href="{{ route('verification') }}"
+                    class="btn btn-login w-100 text-white d-flex align-items-center justify-content-center mb-5 mt-5">
                     BERIKUTNYA
-                </button>
+                </a>
+
             </form>
-
-
-            <!-- REGISTER -->
-            <div class="mt-4 register-text">
-                Belum Punya Akun?
-                <a href="#">Daftar</a>
-            </div>
 
         </div>
     </div>

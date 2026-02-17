@@ -1,8 +1,8 @@
-@extends('app')
+@extends('frontend.auth.auth')
 
-@section('title', 'Verification')
+@section('title', 'Verifikasi')
 
-@section('content')
+@section('auth')
     <div class="login-page">
         <div class="login-card text-center">
 
@@ -15,7 +15,7 @@
             <h2 class="login-title mt-4">Kode Verifikasi</h2>
 
             <!-- DESCRIPTION -->
-            <p class="text-muted">Masukkan Kode Verifikasi yang kami kirimkan
+            <p class="text-muted">Masukkan Kode Verifikasi yang kami kirimkan <br>
                 ke alamat email atau No.Telepon Anda.</p>
 
             <!-- FORM -->
@@ -27,19 +27,17 @@
                     <label class="form-label">Kode Verifikasi</label>
                     <input type="text" class="form-control" placeholder="Masukan Kode Verifikasi Anda">
                 </div>
+                <div class="text-muted">
+                    Belum menerima kode?
+                    <a href="#" class="forgot-link">Kirim Kode</a>
+                </div>
 
                 <!-- BUTTON -->
-                <button type="submit" class="btn btn-login w-100 text-white">
+                <a href="{{ route('confirm') }}"
+                    class="btn btn-login w-100 text-white d-flex align-items-center justify-content-center mt-4 mb-5">
                     BERIKUTNYA
-                </button>
+                </a>
             </form>
-
-
-            <!-- REGISTER -->
-            <div class="mt-4 register-text">
-                Belum Menerima Kode?
-                <a href="#">Kirim Kode</a>
-            </div>
 
         </div>
     </div>

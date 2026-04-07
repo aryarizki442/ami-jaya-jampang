@@ -22,6 +22,10 @@ class User extends Authenticatable implements JWTSubject
         'email',
         'phone',
         'password',
+        'gender',
+        'birth_date',
+        'avatar',
+        'email_verified_at',
     ];
 
     /**
@@ -40,6 +44,7 @@ class User extends Authenticatable implements JWTSubject
      * @var array<string, string>
      */
     protected $casts = [
+        'birth_date'        => 'date',
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
@@ -63,4 +68,33 @@ class User extends Authenticatable implements JWTSubject
     {
         return [];
     }
+    public function addresses()
+    {
+        return $this->hasMany(UserAddress::class);
+    }
+
+    public function primaryAddress()
+    {
+        return $this->hasOne(UserAddress::class)->where('is_primary', 1);
+    }
+
+    public function cart()
+    {
+        return $this->hasOne(Cart::class);
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    // public function notifications()
+    // {
+    //     return $this->hasMany(Notification::class);
+    // }
+
+    // public function reviews()
+    // {
+    //     return $this->hasMany(ProductReview::class);
+    // }
 }

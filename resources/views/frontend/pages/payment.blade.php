@@ -6,7 +6,6 @@
     <style>
         .section-payment {
             min-height: 100vh;
-            background-color: var(--secondary-50);
             display: flex;
             justify-content: center;
             align-items: flex-start;

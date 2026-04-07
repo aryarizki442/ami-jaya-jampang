@@ -129,21 +129,53 @@
 
             <div class="small mb-2">
                 <div class="d-flex mb-1">
-                    <div class="text-muted" style="width: 140px;">Berat</div>
-                    <div class="text-dark fw-medium">: 50 Kg</div>
+                    <div class="text-muted" style="width: 130px;">Berat Per Karung</div>
+                    <div class="text-muted" style="width: 10px;">:</div>
+                    <div class="text-dark fw-medium"> 50 Kg</div>
                 </div>
 
-                <div class="d-flex">
-                    <div class="text-muted" style="width: 140px;">Min. Pengiriman</div>
-                    <div class="text-dark fw-medium">: 15 Karung</div>
+                <div>
+                    <div class="text-muted" style="width: 140px;">Pengiriman <span style="margin-left: 46px;">:</span>
+                    </div>
+
+
+                    <br>
+                    <div class="text-dark fw-medium">*Pembelian <span style="color: #22C55E">Lebih</span> dari 15 karung
+                        <br>
+                        <div>(<span class="text-muted">Di antar ke alamat Pembeli dan Pick Up</span>)</div>
+                    </div>
+                    <br>
+                    <div class="text-dark fw-medium mb-3">*Pembelian <span style="color: #F59E0B">Kurang</span> dari 15
+                        karung
+                        <br>
+                        <div>(<span class="text-muted"> Pick Up ( Pembeli ambil beras ke Toko ) </span>)</div>
+                    </div>
                 </div>
             </div>
 
 
-            <p class="small text-dark fw-medium mb-0 pb-3 custom-border mb-5">
-                Lorem ipsum beras merah Lorem ipsum beras merah <br>
-                Lorem ipsum beras merah Lorem ipsum beras merah <br>
-                Lorem ipsum beras merah Lorem ipsum beras merah
+            <p class="small text-dark fw-medium mb-0">
+
+                <span class="fw-bold">Beras Putih Premium</span> <br>
+
+                Beras putih premium merupakan pilihan beras berkualitas
+                tinggi yang dihasilkan dari padi terbaik dengan proses
+                pengolahan modern dan higienis. Memiliki butiran yang
+                utuh, bersih, dan berwarna putih cerah, beras ini
+                menghasilkan nasi yang pulen, harum, dan lezat.
+                Cocok untuk kebutuhan sehari-hari maupun hidangan
+                spesial keluarga, beras putih premium juga kaya akan
+                karbohidrat sebagai sumber energi utama. Teksturnya
+                yang lembut dan rasa yang nikmat menjadikannya favorit
+                untuk berbagai jenis masakan.
+                <br> <span class="fw-bold"> Keunggulan:</span> <br>
+            <ul class="custom-border pb-3 small text-dark fw-medium" style="font-size: 14px;">
+                <li>Butiran utuh dan minim patah</li>
+                <li>Nasi pulen, harum, dan tidak mudah basi</li>
+                <li>Bersih dan bebas kotoran</li>
+                <li>Diproses secara higienis</li>
+                <li>Cocok untuk konsumsi harian hingga acara spesial</li>
+            </ul>
             </p>
 
 
@@ -151,7 +183,7 @@
 
         {{-- ATUR JUMLAH --}}
         <div class="col-lg-3">
-            <div class="border rounded p-3">
+            <div class=" rounded p-3 bg-white">
                 <h6 class="fw-bold mb-3">Atur Jumlah Dan Catatan</h6>
 
                 <!-- JUMLAH + STOK -->

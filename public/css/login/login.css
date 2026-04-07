@@ -15,10 +15,9 @@
     .login-card {
         background: #fff;
         width: 100%;
-        max-width: 671px;
-        min-height: 560px;
+        max-width: 600px;
         border-radius: 16px;
-        padding: 32px;
+        padding: 24px;
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
     }
 
@@ -26,7 +25,6 @@
     .login-logo {
         display: flex;
         justify-content: center;
-        margin-bottom: 16px;
     }
 
     .login-logo img {
@@ -55,42 +53,15 @@
     .form-label {
         font-weight: 500;
         font-size: 14px;
+        margin-left: 5px;
+        margin-bottom: -10px;
     }
 
     .form-control {
-        height: 48px;
-        border-radius: 10px;
-        font-size: 14px;
+        height: 38px;
+        border-radius: 4px;
+        font-size: 13px;
 
-    }
-
-    /* PASSWORD FIELD */
-    .password-wrapper {
-        position: relative;
-    }
-
-    .password-toggle {
-        position: absolute;
-        top: 50%;
-        right: 14px;
-        transform: translateY(-50%);
-        cursor: pointer;
-        color: #aaa;
-        font-size: 14px;
-    }
-
-    /* BUTTON */
-    .btn-login {
-        height: 48px;
-        border-radius: 12px;
-        background: var(--primary-500);
-        border: none;
-        font-weight: 600;
-        letter-spacing: 1px;
-    }
-
-    .btn-login:hover {
-        background: var(--primary-300);
     }
 
     /* REGISTER */
@@ -123,21 +94,31 @@
         position: relative;
     }
 
-    .password-wrapper input {
+    .password-wrapper input,
+    .password-wrapper input.is-invalid {
         padding-right: 45px;
-        /* ruang untuk icon */
+        /* ruang untuk icon mata */
+        height: 40px;
+        box-sizing: border-box;
     }
 
-    .password-toggle {
+    .password-wrapper .password-toggle {
         position: absolute;
         top: 50%;
         right: 12px;
         transform: translateY(-50%);
         cursor: pointer;
         font-size: 1.3rem;
+        color: #6c757d;
+        z-index: 5;
+    }
+
+    .password-wrapper .password-toggle:hover {
         color: #000;
     }
 
-    .password-toggle:hover {
-        color: #6c757d;
+    .form-control.is-invalid {
+        padding-right: 45px;
+        /* tetap sama dengan input normal */
+        background-image: none;
     }

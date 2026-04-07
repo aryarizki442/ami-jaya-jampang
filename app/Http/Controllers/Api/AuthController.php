@@ -20,7 +20,7 @@ class AuthController extends Controller
 
     /**
      * Register a new user
-     * 
+     *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
@@ -90,7 +90,7 @@ class AuthController extends Controller
 
     /**
      * Login user
-     * 
+     *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
@@ -113,9 +113,33 @@ class AuthController extends Controller
         }
 
         // Check if input is email or phone
-        $loginField = filter_var($request->email_or_phone, FILTER_VALIDATE_EMAIL) 
-            ? 'email' 
+        $loginField = filter_var($request->email_or_phone, FILTER_VALIDATE_EMAIL)
+            ? 'email'
             : 'phone';
+
+             $user = \App\Models\User::where($loginField, $request->email_or_phone)->first();
+
+    if (!$user) {
+        // Email/Phone tidak ditemukan
+        return response()->json([
+            'success' => false,
+            'message' => 'Email/No. Telepon Anda salah',
+            'errors' => [
+                'email_or_phone' => ['Email/No. Telepon Anda salah']
+            ]
+        ], 401);
+    }
+
+    // cek password
+    if (!\Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Kata Sandi Anda Salah',
+            'errors' => [
+                'password' => ['Kata Sandi Anda Salah']
+            ]
+        ], 401);
+    }
 
         $credentials = [
             $loginField => $request->email_or_phone,
@@ -160,7 +184,7 @@ class AuthController extends Controller
 
     /**
      * Get authenticated user
-     * 
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function me()
@@ -168,14 +192,14 @@ class AuthController extends Controller
         try {
             // Dapatkan user dari token JWT
             $user = JWTAuth::parseToken()->authenticate();
-            
+
             if (!$user) {
                 return response()->json([
                     'success' => false,
                     'message' => 'User tidak ditemukan',
                 ], 404);
             }
-            
+
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -205,7 +229,7 @@ class AuthController extends Controller
 
     /**
      * Logout user (Invalidate token)
-     * 
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function logout()
@@ -229,7 +253,7 @@ class AuthController extends Controller
 
     /**
      * Refresh a token (OPTIONAL - bisa dihapus jika tidak ingin ada refresh token)
-     * 
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     /*

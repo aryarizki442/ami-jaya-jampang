@@ -1,0 +1,189 @@
+/* ===================== */
+/* BUTTON LOGIN*/
+/* ===================== */
+.btn-login {
+    height: 38px;
+    border-radius: 5px;
+    background: var(--primary-300);
+    border: none;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: #fff;
+    transition: background 0.3s;
+}
+
+.btn-login:hover {
+    background: var(--primary-500);
+}
+
+.btn-login.active {
+    background-color: var(--primary-500);
+}
+
+.btn-login.active:hover {
+    background-color: #16593B;
+    color: #fff;
+}
+
+.btn-login:active,
+.btn-login:focus {
+    background: var(--primary-200) !important;
+    color: #fff !important;
+    box-shadow: none !important;
+}
+
+/* ===================== */
+/* BUTTON MAIN */
+/* ===================== */
+.btn-main {
+    height: 38px;
+    border-radius: 5px;
+    background: var(--primary-500);
+    border: none;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: #fff;
+    transition: all 0.3s;
+}
+
+.btn-main:hover {
+    background: var(--primary-700);
+}
+
+.btn-main:active,
+.btn-main:focus {
+    background: var(--primary-200) !important;
+    color: #fff !important;
+    box-shadow: none !important;
+}
+
+.btn-main.active {
+    background-color: var(--primary-200) !important;
+    color: #fff !important;
+}
+
+
+/* ===================== */
+/* BUTTON Secondary One */
+/* ===================== */
+
+.btn-second {
+    background-color: #fff;
+    color: var(--primary-500) !important;
+    border: 1px solid var(--primary-500);
+}
+
+.btn-second:hover {
+    background: var(--primary-500);
+    color: #fff !important;
+}
+
+
+.btn-second:active,
+.btn-second:focus {
+    background: var(--primary-700) !important;
+    color: #fff !important;
+
+}
+
+.btn-secondary:disabled {
+    background-color: #BCBCBC;
+    color: #7D7C7C;
+    border: none;
+    cursor: not-allowed;
+}
+
+
+/* Base Button */
+.btn-custom {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 500;
+    border: none;
+    transition: 0.2s;
+    cursor: pointer;
+}
+
+/* ===================== */
+/* BUTTON GREEN */
+/* ===================== */
+
+.btn-green {
+    background-color: #1F7D53;
+    color: #fff;
+}
+
+.btn-green:hover {
+    background-color: #16593B;
+    color: #fff;
+}
+
+.btn-green:active {
+    background-color: #98C3B0;
+    color: #fff;
+}
+
+.btn-green:disabled {
+    background-color: #BCBCBC;
+    color: #7D7C7C;
+    cursor: not-allowed;
+}
+
+/* ===================== */
+/* BUTTON WHITE */
+/* ===================== */
+
+.btn-white {
+    background-color: #fff;
+    color: #1F7D53 !important;
+    border: 1px solid #1F7D53;
+}
+
+.btn-white:hover {
+    background-color: #1F7D53;
+    color: #fff !important;
+}
+
+.btn-white:active {
+    background-color: #16593B !important;
+    color: #fff !important;
+}
+
+.btn-white:disabled {
+    background-color: #BCBCBC;
+    color: #7D7C7C;
+    border: none;
+    cursor: not-allowed;
+}
+
+/* //FIGMA */
+
+.btn-main {
+    height: 38px;
+    border-radius: 5px;
+    background: var(--primary-500);
+    border: none;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: #fff;
+    transition: all 0.3s;
+}
+
+/* hover */
+.btn-main:hover {
+    background: var(--primary-700);
+}
+
+/* active (klik) */
+.btn-main:active,
+.btn-main:focus {
+    background: var(--primary-200) !important;
+    color: #fff !important;
+    box-shadow: none !important;
+}
+
+/* active custom (kalau pakai class active) */
+.btn-main.active {
+    background-color: var(--primary-200) !important;
+    color: #fff !important;
+}

@@ -16,11 +16,16 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->string('phone')->unique();
+            $table->enum('role', ['admin', 'customer'])->default('customer');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->enum('gender', ['male', 'female'])->nullable();
+            $table->date('birth_date')->nullable();
+            $table->string('avatar')->nullable();
             $table->rememberToken();
+            $table->timestamp('deleted_at')->nullable();
             $table->timestamps();
-            $table->softDeletes();
+            
             
             // Indexes for better performance
             $table->index('email');

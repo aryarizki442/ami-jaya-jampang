@@ -15,9 +15,8 @@
             <h2 class="login-title mt-4">Lupa Kata Sandi</h2>
 
             <!-- DESCRIPTION -->
-            <p class="text-muted">Masukan Email dan No.Telepon <br>anda yang sudah terdaftar
-                kemudian ikuti <br>langkah pada Email dan No.Telepon yang
-                kami kirimkan</p>
+            <p class="text-muted">Masukan Email anda yang sudah terdaftar, kemudian <br>
+                ikuti langkah pada Email yang kami kirimkan</p>
 
             <!-- FORM -->
             <form action="#" method="POST">
@@ -26,8 +25,7 @@
                 <!-- EMAIL / PHONE -->
                 <div class="mb-3 text-start">
                     <label class="form-label">Email</label>
-                    <input id="email" type="text" class="form-control"
-                        placeholder="Masukan Email/Nomor Telepon Anda">
+                    <input id="email" type="text" class="form-control" placeholder="Masukan Email">
                 </div>
 
                 <!-- BUTTON -->

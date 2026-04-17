@@ -60,30 +60,43 @@ Route::get('/order-done', function () {
 Route::get('/order-canceled', function () {
     return view('frontend.pages.profile.order-canceled');
 })->name('order-canceled');
+Route::get('/invoice', function () {
+    return view('frontend.pages.profile.invoice');
+})->name('invoice');
 
 // Authentication Routes
 Route::get('/login', function () {
     return view('auth.login');
 })->name('login');
+
 Route::get('/register', function () {
-    return view('auth.register');
+    return view('auth.register.register');
 })->name('register');
-Route::get('/new-password', function () {
-    return view('auth.new-password');
-})->name('new-password');
+
+Route::get('/register-password', function () {
+    return view('auth.register.register-password');
+})->name('register-password');
+Route::get('/send-email', function () {
+    return view('auth.register.send-email');
+})->name('send-email');
+Route::get('/send-otp', function () {
+    return view('auth.register.send-otp');
+})->name('send-otp');
+
 
 //Forgot Password Routes
 Route::get('/forgot-password', function () {
-    return view('auth.forgot-password');
+    return view('auth.forgot-password.forgot-password');
 })->name('forgot-password');
 
 Route::get('/verification', function () {
-    return view('auth.verification');
+    return view('auth.forgot-password.verification');
 })->name('verification');
 
-Route::get('/register-password', function () {
-    return view('auth.register-password');
-})->name('register-password');
+Route::get('/new-password', function () {
+    return view('auth.forgot-password.new-password');
+})->name('new-password');
+
 
 //Admin Routes
 Route::get('/admin/dashboard', function () {

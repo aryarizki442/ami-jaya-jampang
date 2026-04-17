@@ -100,6 +100,12 @@
             /* input akan menyesuaikan sisa ruang */
         }
 
+        .cart-scroll {
+            max-height: 650px;
+            /* ± 5 card */
+            overflow-y: auto;
+            padding-right: 5px;
+        }
 
 
         /* OPTIONAL: Ukuran lebih kecil di layar mobile */
@@ -126,36 +132,43 @@
         <div class="row d-flex align-items-start g-4">
             <!-- List Keranjang -->
             <div class="col-md-8">
+
+                <!-- INI TETAP (TIDAK IKUT SCROLL) -->
                 <div class="form-check mb-2 mt-2">
                     <label class="form-check-label" for="selectAll">
                         <input class="form-check-input" type="checkbox" id="selectAll">
-                        Pilih Semua </label>
+                        Pilih Semua
+                    </label>
                 </div>
 
-                @for ($i = 0; $i < 6; $i++)
-                    <div class="card mb-2 p-4 d-flex flex-row align-items-center cart-item">
-                        <input class="form-check-input me-3" type="checkbox">
-                        <img src="{{ asset('images/home/category/beras-putih.png') }}" alt="Beras"
-                            class="rounded-circle me-3" width="100" height="100">
-                        <div class="flex-grow-1">
-                            <p class="mb-0">Beras Merah Rojo Lele</p>
-                        </div>
-                        <div class="text-end">
-                            <h5 class="mb-4 fw-semibold">Rp.100.000</h5>
-                            <div class="d-flex align-items-center justify-content-end">
-                                <button class="btn btn-lg me-2">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                                <div class="input-group input-group-sm qty-group">
-                                    <button class="btn qty-btn fw-bold" data-action="minus">-</button>
-                                    <input type="text" class="form-control text-center fw-semibold qty-input"
-                                        value="1">
-                                    <button class="btn qty-btn fw-bold" data-action="plus">+</button>
+                <!-- YANG DI SCROLL HANYA INI -->
+                <div class="cart-scroll">
+                    @for ($i = 0; $i < 8; $i++)
+                        <div class="card mb-2 p-4 d-flex flex-row align-items-center cart-item">
+                            <input class="form-check-input me-3" type="checkbox">
+                            <img src="{{ asset('images/home/category/beras-putih.png') }}" alt="Beras"
+                                class="rounded-circle me-3" width="100" height="100">
+                            <div class="flex-grow-1">
+                                <p class="mb-0">Beras Merah Rojo Lele</p>
+                            </div>
+                            <div class="text-end">
+                                <h5 class="mb-4 fw-semibold">Rp.100.000</h5>
+                                <div class="d-flex align-items-center justify-content-end">
+                                    <button class="btn btn-lg me-2">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                    <div class="input-group input-group-sm qty-group">
+                                        <button class="btn qty-btn fw-bold" data-action="minus">-</button>
+                                        <input type="text" class="form-control text-center fw-semibold qty-input"
+                                            value="1">
+                                        <button class="btn qty-btn fw-bold" data-action="plus">+</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                @endfor
+                    @endfor
+                </div>
+
             </div>
 
             <!-- Ringkasan Belanja -->
@@ -191,8 +204,9 @@
                                     </p>
 
                                     <div class="produk-footer">
-                                        <span class="harga">Rp. 30.000</span>
-                                        <span class="terjual">Tersedia 100</span>
+                                        <button class="btn btn-second w-100 mb-2">
+                                            + Keranjang
+                                        </button>
                                     </div>
                                 </div>
 

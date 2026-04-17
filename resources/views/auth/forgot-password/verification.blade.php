@@ -15,8 +15,8 @@
             <h2 class="login-title mt-4">Kode Verifikasi</h2>
 
             <!-- DESCRIPTION -->
-            <p class="text-muted">Masukkan Kode Verifikasi yang kami kirimkan <br>
-                ke alamat email atau No.Telepon Anda.</p>
+            <p class="text-muted">Masukkan Kode Verifikasi yang kami <br> kirimkan
+                ke alamat email anda.</p>
 
             <!-- FORM -->
             <form action="#" method="POST">

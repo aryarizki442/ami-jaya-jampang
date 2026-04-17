@@ -2,48 +2,50 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Symfony\Component\Mime\Email;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PasswordResetToken extends Model
 {
-    use HasFactory;
+    public $timestamps = false; // Kita pakai created_at manual (useCurrent)
 
-    protected $table = 'password_reset_tokens';
-    
     protected $fillable = [
         'user_id',
+        'token_key',
         'token',
-       'new_email',
         'type',
         'expired_at',
-        'used_at'
+        'used_at',
     ];
 
     protected $casts = [
         'expired_at' => 'datetime',
-        'used_at' => 'datetime',
-        'created_at' => 'datetime'
+        'used_at'    => 'datetime',
+        'created_at' => 'datetime',
     ];
 
-    public $timestamps = false; 
+    // -------------------------------------------------------------------------
+    // Relations
+    // -------------------------------------------------------------------------
 
-    // Relasi ke User
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    // Cek apakah token masih valid
-    public function isValid()
+    // -------------------------------------------------------------------------
+    // Scopes — bisa dipakai untuk query lebih bersih
+    // -------------------------------------------------------------------------
+
+    /** Hanya OTP yang belum expired */
+    public function scopeValid($query)
     {
-        return !$this->used_at && $this->expired_at->isFuture();
+        return $query->whereNull('used_at')->where('expired_at', '>', now());
     }
 
-    // Cek apakah token sudah dipakai
-    public function isUsed()
+    /** Filter by type */
+    public function scopeOfType($query, string $type)
     {
-        return !is_null($this->used_at);
+        return $query->where('type', $type);
     }
 }

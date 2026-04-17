@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\UserAddressController;
 use App\Http\Controllers\Api\Admin\AdminProductController;
+use App\Http\Controllers\Api\OrderController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -42,7 +44,8 @@ Route::middleware(['jwt.auth'])->group(function () {
     Route::post('update-phone/verify',  [AuthController::class, 'verifyUpdatePhone']);
 
 });
-
+    
+Route::middleware(['jwt.auth'])->group(function () {
     Route::get('/cart', [CartController::class, 'index']);
 
     Route::post('/cart/items', [CartController::class, 'addItem']);
@@ -54,7 +57,7 @@ Route::middleware(['jwt.auth'])->group(function () {
     Route::post('/cart/select-all', [CartController::class, 'selectAll']);
 
     Route::delete('/cart/clear', [CartController::class, 'clear']);
-
+});
 
 Route::prefix('admin')->group(function () {
 
@@ -81,6 +84,32 @@ Route::prefix('admin')->group(function () {
 });
 
 
+Route::middleware('auth:api')->group(function () {
+
+    // 📦 List order user
+    Route::get('/orders', [OrderController::class, 'index']);
+
+    // 🔍 Detail order
+    Route::get('/orders/{order}', [OrderController::class, 'show']);
+
+    // 🚚 Hitung ongkir sebelum checkout
+    Route::get('/orders/shipping-calculate', [OrderController::class, 'calculateShipping']);
+
+    // 🛒 Buat order (checkout)
+    Route::post('/orders', [OrderController::class, 'store']);
+
+    // ❌ Cancel order
+    Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel']);
+
+
+    Route::post('/orders/{order}/reorder', [OrderController::class, 'reorder']);
+
+   
+    Route::get('/orders/{order}/invoice', [OrderController::class, 'invoice']);
+
+});
+
+
 Route::prefix('admin')->group(function () {
 
         // ── CRUD Produk ─────────────────────────────
@@ -88,6 +117,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/products/{product}', [AdminProductController::class, 'show']);
         Route::post('/products', [AdminProductController::class, 'store']);
         Route::put('/products/{product}', [AdminProductController::class, 'update']);
+        Route::post('/products/{product}', [AdminProductController::class, 'update']); 
         Route::delete('/products/{product}', [AdminProductController::class, 'destroy']);
 
         // ── Toggle Active ───────────────────────────
@@ -125,7 +155,7 @@ Route::middleware(['auth:api'])->group(function () {
     Route::post('/orders/{order}/payment/snap-token', [PaymentController::class, 'getSnapToken']);
 
     // ── Upload Bukti Transfer ────────────────
-    Route::post('/orders/{order}/payment/upload-proof', [PaymentController::class, 'uploadProof']);
+    Route::post('/orders/{order}/payment/upload-proof', [PaymentController::class, 'upload Proof']);
 });
 
 //product

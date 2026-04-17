@@ -17,15 +17,43 @@ return Application::configure(basePath: dirname(__DIR__))
               'jwt.auth' => \App\Http\Middleware\JwtMiddleware::class, 
     ]);
   })
- ->withExceptions(function (Exceptions $exceptions) {
-        // Ubah semua exception jadi JSON simple
-        $exceptions->renderable(function (\Throwable $e, $request) {
-            if ($request->is('api/*') || $request->expectsJson()) {
+->withExceptions(function (Exceptions $exceptions) {
+    $exceptions->renderable(function (\Throwable $e, $request) {
+        if ($request->is('api/*') || $request->expectsJson()) {
+            
+            // Validation error (422)
+            if ($e instanceof \Illuminate\Validation\ValidationException) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Terjadi kesalahan'
-                ], 500);
+                    'message' => 'Validasi gagal',
+                    'errors'  => $e->errors(),
+                ], 422);
             }
-        });
-    })
+
+            // Not found (404)
+            if ($e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data tidak ditemukan',
+                ], 404);
+            }
+
+            // Unauthorized (401)
+            if ($e instanceof \Illuminate\Auth\AuthenticationException) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized',
+                ], 401);
+            }
+
+            // Error lainnya — tampilkan detail saat development
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'line'    => $e->getLine(),
+                'file'    => $e->getFile(),
+            ], 500);
+        }
+    });
+})
     ->create();

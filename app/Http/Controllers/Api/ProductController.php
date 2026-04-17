@@ -57,8 +57,8 @@ class ProductController extends Controller
 
         $product->load([
             'images',
-            'category',
-            'reviews' => fn($q) => $q->with('user:id,name,avatar')->latest('created_at')->take(5),
+            'category'
+            //'reviews' => fn($q) => $q->with('user:id,name,avatar')->latest('created_at')->take(5),
         ]);
 
         return response()->json([
@@ -80,30 +80,30 @@ class ProductController extends Controller
     // GET /api/products/{product}/reviews
     // Query params: rating, per_page
   
-    public function reviews(Product $product, Request $request)
-    {
-        $reviews = $product->reviews()
-            ->with('user:id,name,avatar')
-            ->when($request->filled('rating'), fn($q) => $q->where('rating', $request->rating))
-            ->latest('created_at')
-            ->paginate(10);
+    // public function reviews(Product $product, Request $request)
+    // {
+    //     $reviews = $product->reviews()
+    //         ->with('user:id,name,avatar')
+    //         ->when($request->filled('rating'), fn($q) => $q->where('rating', $request->rating))
+    //         ->latest('created_at')
+    //         ->paginate(10);
 
-        $summary = [
-            'avg_rating'    => $product->avg_rating,
-            'total_reviews' => $product->reviews()->count(),
-            'rating_counts' => $product->reviews()
-                ->selectRaw('rating, count(*) as count')
-                ->groupBy('rating')
-                ->orderByDesc('rating')
-                ->pluck('count', 'rating'),
-        ];
+    //     $summary = [
+    //         'avg_rating'    => $product->avg_rating,
+    //         'total_reviews' => $product->reviews()->count(),
+    //         'rating_counts' => $product->reviews()
+    //             ->selectRaw('rating, count(*) as count')
+    //             ->groupBy('rating')
+    //             ->orderByDesc('rating')
+    //             ->pluck('count', 'rating'),
+    //     ];
 
-        return response()->json([
-            'success' => true,
-            'data'    => [
-                'summary' => $summary,
-                'reviews' => $reviews,
-            ],
-        ]);
-    }
+    //     return response()->json([
+    //         'success' => true,
+    //         'data'    => [
+    //             'summary' => $summary,
+    //             'reviews' => $reviews,
+    //         ],
+    //     ]);
+    // }
 }

@@ -13,9 +13,29 @@ return new class extends Migration
     {
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->string('token', 10);
-            $table->enum('type', ['otp', 'link']);
+
+            // Nullable karena register & forgot password belum punya user_id
+            $table->foreignId('user_id')
+                  ->nullable()
+                  ->constrained()
+                  ->cascadeOnDelete();
+
+            // Untuk flow yang belum login (register, forgot password)
+            // isinya = email user
+            $table->string('token_key')->nullable()->index();
+
+            // OTP 6 digit atau token panjang (register_token / reset_token)
+            $table->string('token', 100);
+
+            $table->enum('type', [
+                'otp_register',            
+                'register_verified',      
+                'otp_forgot_password',    
+                'password_reset_verified', 
+                'otp_update_email',        
+                'otp_update_phone',        
+            ]);
+
             $table->dateTime('expired_at');
             $table->dateTime('used_at')->nullable();
             $table->dateTime('created_at')->useCurrent();

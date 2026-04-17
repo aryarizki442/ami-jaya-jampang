@@ -26,7 +26,7 @@ class AdminCategoryController extends Controller
     // ──────────────────────────────────────────────────────────────
     // POST /api/admin/categories
     // ──────────────────────────────────────────────────────────────
-    public function store(Request $request)
+      public function store(Request $request)
     {
         $request->validate([
             'name'        => 'required|string|max:100|unique:categories,name',
@@ -47,14 +47,14 @@ class AdminCategoryController extends Controller
             'name'        => $request->name,
             'slug'        => $this->generateUniqueSlug($request->name),
             'description' => $request->description,
-            'image'       => $imagePath,
+            'image'       => $imagePath, // Simpan path relatif di database
             'is_active'   => $request->boolean('is_active', true),
         ]);
 
         return response()->json([
             'success' => true,
             'message' => 'Kategori berhasil ditambahkan',
-            'data'    => $category,
+            'data'    => $category, // Otomatis image jadi URL lengkap karena accessor
         ], 201);
     }
 

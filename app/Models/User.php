@@ -5,18 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use HasFactory, Notifiable, SoftDeletes;
+    use HasFactory, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'name',
         'email',
@@ -28,46 +22,29 @@ class User extends Authenticatable implements JWTSubject
         'email_verified_at',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'birth_date'        => 'date',
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'password'          => 'hashed',
     ];
 
-    /**
-     * Get the identifier that will be stored in the subject claim of the JWT.
-     *
-     * @return mixed
-     */
+    // JWT
     public function getJWTIdentifier()
     {
         return $this->getKey();
     }
 
-    /**
-     * Return a key value array, containing any custom claims to be added to the JWT.
-     *
-     * @return array
-     */
     public function getJWTCustomClaims()
     {
         return [];
     }
+
+    // Relations
     public function addresses()
     {
         return $this->hasMany(UserAddress::class);
@@ -88,13 +65,25 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(Order::class);
     }
 
-    // public function notifications()
-    // {
-    //     return $this->hasMany(Notification::class);
-    // }
+    // Custom Notifications (tanpa konflik karena tidak pakai trait Notifiable)
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
 
-    // public function reviews()
-    // {
-    //     return $this->hasMany(ProductReview::class);
-    // }
+    public function unreadNotifications()
+    {
+        return $this->hasMany(Notification::class)->where('is_read', false);
+    }
+
+    public function sendNotification($type, $title, $message, $refType = null, $refId = null)
+    {
+        return $this->notifications()->create([
+            'type'     => $type,
+            'title'    => $title,
+            'message'  => $message,
+            'ref_type' => $refType,
+            'ref_id'   => $refId,
+        ]);
+    }
 }

@@ -93,160 +93,211 @@ class AdminProductController extends Controller
     }
 
     
-    public function store(Request $request)
-    {
-        $request->validate([
-            'name'        => 'required|string|max:200|unique:products,name',
-            'description' => 'nullable|string',
-            'price'       => 'required|numeric|min:0',
-            'category_id' => 'required|exists:categories,id',
-            'weight_kg'   => 'nullable|numeric|min:0',
-            'unit'        => 'nullable|in:kg,sack,liter',
-            'stock'       => 'nullable|integer|min:0',
-            'min_order'   => 'nullable|integer|min:1',
-            'max_order'   => 'nullable|integer|min:1',
-            'is_active'   => 'boolean',
-            // Gambar produk (bisa multiple)
-            'images'      => 'nullable|array|max:5',
-            'images.*'    => 'image|mimes:jpg,jpeg,png|max:2048',
-        ], [
-            'name.required'        => 'Nama produk wajib diisi',
-            'name.unique'          => 'Nama produk sudah digunakan',
-            'price.required'       => 'Harga produk wajib diisi',
-            'price.min'            => 'Harga tidak boleh minus',
-            'category_id.required' => 'Kategori produk wajib dipilih',
-            'category_id.exists'   => 'Kategori tidak ditemukan',
-            'images.*.image'       => 'File harus berupa gambar',
-            'images.*.mimes'       => 'Format gambar harus JPG atau PNG',
-            'images.*.max'         => 'Ukuran gambar maksimal 2MB',
+  public function store(Request $request)
+{
+    Log::info($request->all());
+
+    $validated = $request->validate([
+        'name'        => 'required|string|max:200|unique:products,name',
+        'description' => 'nullable|string',
+        'price'       => 'required|numeric|min:0',
+        'category_id' => 'required|exists:categories,id',
+        'weight_kg'   => 'nullable|numeric|min:0',
+        'stock'       => 'nullable|integer|min:0',
+        'min_order'   => 'nullable|integer|min:1',
+        'max_order'   => 'nullable|integer|gte:min_order',
+        'is_active'   => 'nullable|boolean',
+        'images'      => 'nullable|array|max:5',
+        'images.*'    => 'image|mimes:jpg,jpeg,png|max:2048',
+    ]);
+
+    DB::beginTransaction();
+
+    try {
+        $product = Product::create([
+            'category_id' => $validated['category_id'],
+            'name'        => $validated['name'],
+            'slug'        => Str::slug($validated['name']) . '-' . time(),
+            'description' => $validated['description'] ?? null,
+            'price'       => $validated['price'],
+            'weight_kg'   => $validated['weight_kg'] ?? 0,
+            'stock'       => $validated['stock'] ?? 0,
+            'min_order'   => $validated['min_order'] ?? 1,
+            'max_order'   => $validated['max_order'] ?? null,
+            'is_active'   => filter_var($request->input('is_active', true), FILTER_VALIDATE_BOOLEAN),
         ]);
 
-        DB::beginTransaction();
-        try {
-            $product = Product::create([
-                'category_id' => $request->category_id,
-                'name'        => $request->name,
-                'slug'        => $this->generateUniqueSlug($request->name),
-                'description' => $request->description,
-                'price'       => $request->price,
-                'weight_kg'   => $request->weight_kg,
-                'unit'        => $request->unit ?? 'sack',
-                'stock'       => $request->stock ?? 0,
-                'min_order'   => $request->min_order ?? 1,
-                'max_order'   => $request->max_order,
-                'is_active'   => $request->boolean('is_active', true),
-            ]);
-
-            // Upload gambar jika ada
-            if ($request->hasFile('images')) {
-                foreach ($request->file('images') as $index => $image) {
-                    $path = $image->store('products', 'public');
-
-                    ProductImage::create([
-                        'product_id' => $product->id,
-                        'image_url'  => $path,
-                        'is_primary' => $index === 0 ? 1 : 0, // Gambar pertama jadi primary
-                        'sort_order' => $index,
-                    ]);
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $index => $image) {
+                if (!$image->isValid()) {
+                    throw new \Exception('File image tidak valid pada index ' . $index);
                 }
+
+                $path = $image->store('products', 'public');
+
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'image_url'  => $path,
+                    'is_primary' => $index === 0,
+                    'sort_order' => $index,
+                ]);
             }
-
-            DB::commit();
-
-            $product->load(['images', 'category']);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Produk berhasil ditambahkan',
-                'data'    => $product,
-            ], 201);
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Admin: Gagal tambah produk', ['error' => $e->getMessage()]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal menambahkan produk',
-            ], 500);
         }
-    }
 
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Produk berhasil ditambahkan',
+            'data'    => $product->load(['images', 'category']),
+        ], 201);
+
+    } catch (\Throwable $e) {
+        DB::rollBack();
+
+        Log::error('ERROR STORE PRODUCT', [
+            'error' => $e->getMessage(),
+            'line'  => $e->getLine(),
+            'file'  => $e->getFile(),
+            'trace' => $e->getTraceAsString(),
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'error'   => $e->getMessage(),
+            'line'    => $e->getLine(),
+        ], 500);
+    }
+}
     
-    public function update(Request $request, Product $product)
-    {
-        $request->validate([
-            'name'        => 'sometimes|string|max:200|unique:products,name,' . $product->id,
-            'description' => 'nullable|string',
-            'price'       => 'sometimes|numeric|min:0',
-            'category_id' => 'sometimes|exists:categories,id',
-            'weight_kg'   => 'nullable|numeric|min:0',
-            'unit'        => 'nullable|in:kg,sack,liter',
-            'stock'       => 'nullable|integer|min:0',
-            'min_order'   => 'nullable|integer|min:1',
-            'max_order'   => 'nullable|integer|min:1',
-            'is_active'   => 'boolean',
-            'images'      => 'nullable|array|max:5',
-            'images.*'    => 'image|mimes:jpg,jpeg,png|max:2048',
-        ], [
-            'name.unique'    => 'Nama produk sudah digunakan',
-            'price.min'      => 'Harga tidak boleh minus',
-            'images.*.image' => 'File harus berupa gambar',
-            'images.*.mimes' => 'Format gambar harus JPG atau PNG',
-            'images.*.max'   => 'Ukuran gambar maksimal 2MB',
+public function update(Request $request, Product $product)
+{
+    // Method spoofing akan otomatis dihandle Laravel
+    // $request->method() akan mengembalikan 'PUT'
+    
+    Log::info('UPDATE PRODUCT', [
+        'method' => $request->method(), // Akan jadi 'PUT'
+        'product_id' => $product->id,
+        'data' => $request->all()
+    ]);
+
+    // Validasi tetap sama
+    $validated = $request->validate([
+        'name'        => 'sometimes|required|string|max:200|unique:products,name,' . $product->id,
+        'description' => 'nullable|string',
+        'price'       => 'sometimes|required|numeric|min:0',
+        'category_id' => 'sometimes|required|exists:categories,id',
+        'weight_kg'   => 'nullable|numeric|min:0',
+        'unit'        => 'nullable|string|max:50',
+        'stock'       => 'nullable|integer|min:0',
+        'min_order'   => 'nullable|integer|min:1',
+        'max_order'   => 'nullable|integer|gte:min_order',
+        'is_active'   => 'nullable|boolean',
+        'images'      => 'nullable|array|max:5',
+        'images.*'    => 'image|mimes:jpg,jpeg,png|max:2048',
+        'delete_images' => 'nullable|array',
+        'delete_images.*' => 'integer|exists:product_images,id'
+    ]);
+
+    DB::beginTransaction();
+
+    try {
+        // Update product data
+        $updateData = [];
+        
+        if ($request->has('name')) {
+            $updateData['name'] = $validated['name'];
+            $updateData['slug'] = Str::slug($validated['name']) . '-' . time();
+        }
+        if ($request->has('description')) $updateData['description'] = $validated['description'];
+        if ($request->has('price')) $updateData['price'] = $validated['price'];
+        if ($request->has('category_id')) $updateData['category_id'] = $validated['category_id'];
+        if ($request->has('weight_kg')) $updateData['weight_kg'] = $validated['weight_kg'];
+        if ($request->has('unit')) $updateData['unit'] = $validated['unit'];
+        if ($request->has('stock')) $updateData['stock'] = $validated['stock'];
+        if ($request->has('min_order')) $updateData['min_order'] = $validated['min_order'];
+        if ($request->has('max_order')) $updateData['max_order'] = $validated['max_order'];
+        if ($request->has('is_active')) {
+            $updateData['is_active'] = filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN);
+        }
+        
+        $product->update($updateData);
+
+        // Handle delete images
+        if ($request->has('delete_images')) {
+            $deleteIds = is_array($request->delete_images) 
+                ? $request->delete_images 
+                : explode(',', $request->delete_images);
+            
+            $imagesToDelete = ProductImage::where('product_id', $product->id)
+                ->whereIn('id', $deleteIds)
+                ->get();
+            
+            foreach ($imagesToDelete as $image) {
+                Storage::disk('public')->delete($image->image_url);
+                $image->delete();
+            }
+        }
+
+        // Handle upload new images
+        if ($request->hasFile('images')) {
+            $maxSortOrder = ProductImage::where('product_id', $product->id)
+                ->max('sort_order') ?? -1;
+            
+            foreach ($request->file('images') as $index => $image) {
+                if (!$image->isValid()) {
+                    throw new \Exception('File image tidak valid pada index ' . $index);
+                }
+
+                $path = $image->store('products', 'public');
+                
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'image_url'  => $path,
+                    'is_primary' => false,
+                    'sort_order' => $maxSortOrder + $index + 1,
+                ]);
+            }
+        }
+
+        // Set primary image if none exists
+        $hasPrimary = ProductImage::where('product_id', $product->id)
+            ->where('is_primary', true)
+            ->exists();
+            
+        if (!$hasPrimary) {
+            $firstImage = ProductImage::where('product_id', $product->id)
+                ->orderBy('sort_order')
+                ->first();
+                
+            if ($firstImage) {
+                $firstImage->update(['is_primary' => true]);
+            }
+        }
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Produk berhasil diperbarui',
+            'data'    => $product->load(['images', 'category']),
+        ], 200);
+
+    } catch (\Throwable $e) {
+        DB::rollBack();
+
+        Log::error('ERROR UPDATE PRODUCT', [
+            'product_id' => $product->id,
+            'error' => $e->getMessage(),
+            'line'  => $e->getLine(),
         ]);
 
-        DB::beginTransaction();
-        try {
-            // Update slug jika nama berubah
-            $data = $request->only([
-                'name', 'description', 'price', 'category_id',
-                'weight_kg', 'unit', 'stock', 'min_order', 'max_order',
-            ]);
-
-            if ($request->filled('name') && $request->name !== $product->name) {
-                $data['slug'] = $this->generateUniqueSlug($request->name, $product->id);
-            }
-
-            if ($request->has('is_active')) {
-                $data['is_active'] = $request->boolean('is_active');
-            }
-
-            $product->update($data);
-
-            // Upload gambar baru jika ada
-            if ($request->hasFile('images')) {
-                $currentCount = $product->images()->count();
-                foreach ($request->file('images') as $index => $image) {
-                    $path = $image->store('products', 'public');
-
-                    ProductImage::create([
-                        'product_id' => $product->id,
-                        'image_url'  => $path,
-                        'is_primary' => $currentCount === 0 && $index === 0 ? 1 : 0,
-                        'sort_order' => $currentCount + $index,
-                    ]);
-                }
-            }
-
-            DB::commit();
-
-            $product->load(['images', 'category']);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Produk berhasil diperbarui',
-                'data'    => $product,
-            ]);
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Admin: Gagal update produk', ['error' => $e->getMessage(), 'product_id' => $product->id]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal memperbarui produk',
-            ], 500);
-        }
+        return response()->json([
+            'success' => false,
+            'message' => 'Gagal memperbarui produk: ' . $e->getMessage(),
+        ], 500);
     }
+}
 
     // ──────────────────────────────────────────────────────────────
     // PATCH /api/admin/products/{product}/toggle-active

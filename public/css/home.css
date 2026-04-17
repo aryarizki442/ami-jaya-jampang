@@ -128,6 +128,7 @@
     margin-bottom: 0;
     color: #fff;
     background-color: #1F7D53;
+    /* background: linear-gradient(90deg, #0D3523, #1F7D53); */
     padding: 30px 0;
     font-size: 24px;
     font-weight: 600;
@@ -140,15 +141,11 @@
 .kategori .item {
     padding: 25px 10px;
     background-color: #fff;
-    transition: background-color 0.3s ease;
-    border-radius: 0;
-    /* atau sesuaikan dengan bentuk item */
+    transition: box-shadow 0.3s ease;
 }
 
-/* Hover penuh area item */
 .kategori .item:hover {
-    background-color: #1F7D53;
-    /* hijau penuh */
+    box-shadow: inset 0 0 0 2px #1F7D53;
 }
 
 /* Tombol tetap full width & vertikal */
@@ -167,11 +164,6 @@
     cursor: pointer;
 }
 
-.kategori .item:hover .btn-category {
-    color: #fff;
-    /* teks putih saat hover item */
-}
-
 .kategori .btn-category img {
     width: 140px;
     height: 126px;
@@ -179,7 +171,8 @@
     transition: transform 0.3s ease;
 }
 
-.kategori .item:hover .btn-category img {
+.kategori .item:hover .btn-category img,
+.kategori .item:hover .btn-category {
     transform: scale(1.05);
     /* zoom ringan saat hover */
 }
@@ -211,6 +204,19 @@
 
 
 /* ================= Best Seller ================= */
+/* ===== Slider Area ===== */
+.best-slider {
+    overflow: hidden;
+    width: 100%;
+}
+
+/* Track geser */
+.best-track {
+    display: flex;
+    transition: transform 0.6s ease-in-out;
+}
+
+/* ================= Best Seller ================= */
 .best h2 {
     text-align: center;
     color: #1F7D53;
@@ -219,11 +225,10 @@
     font-size: 24px;
     font-weight: 600;
     border-bottom: 5px solid #1F7D53;
-
 }
 
 .best-card {
-    border: 1px solid #eee;
+    border: 2px solid #eee;
     padding: 10px;
     height: 100%;
     transition: 0.3s;
@@ -232,7 +237,7 @@
 
 .best-card:hover {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    transform: translateY(-3px);
+    border-color: #1F7D53;
 }
 
 .best-card img {
@@ -257,33 +262,24 @@
     align-items: center;
 }
 
-/* Desktop: 5 kolom */
+/* Desktop: SELALU 5 card */
 .best-col {
-    width: 20%;
+    flex: 0 0 20%;
     padding: 0 6px;
 }
 
-/* Tablet */
-@media (max-width: 991px) {
-    .best-col {
-        width: 25%;
-        /* 4 */
-    }
+.best-slider {
+    cursor: grab;
 }
 
-/* Tablet kecil */
+.best-slider:active {
+    cursor: grabbing;
+}
+
+/* Responsive (opsional, kalau mau tetap 5 hapus ini) */
 @media (max-width: 768px) {
     .best-col {
-        width: 33.333%;
-        /* 3 */
-    }
-}
-
-/* Mobile */
-@media (max-width: 576px) {
-    .best-col {
-        width: 50%;
-        /* 2 */
+        flex: 0 0 50%;
     }
 }
 
@@ -300,54 +296,78 @@
 }
 
 .produk-card {
-    border: 1px solid #eee;
-    padding: 10px;
+    position: relative;
+    border: 2px solid #fff;
+    background-color: #fff;
     height: 100%;
-    transition: 0.3s;
-    background: #fff;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .produk-card:hover {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
     transform: translateY(-3px);
+    border-color: #1F7D53;
+    /* 🔥 INI KUNCINYA */
 }
 
+/* IMAGE */
 .produk-card img {
     width: 100%;
-    aspect-ratio: 1/1;
-    object-fit: cover;
-    margin-bottom: 8px;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    background-color: #f8f9fa;
+    display: block;
+    /* 🔥 hilangkan gap img */
+    border: 0;
+    outline: 0;
 }
 
+/* BODY */
 .produk-body {
     font-size: 12px;
+    padding: 10px;
+    flex: 1;
+    /* lebih clean dari flex-grow */
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+    /* pastikan nyatu */
 }
 
+/* RATING */
 .rating {
     color: #FFD41D;
     font-size: 12px;
     margin-bottom: 4px;
+    line-height: 1;
 }
 
+/* TITLE */
 .produk-title {
     margin-bottom: 6px;
     line-height: 1.3;
 }
 
+/* FOOTER */
 .produk-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: auto;
 }
 
+/* HARGA */
 .harga {
-    color: #198754;
     font-weight: 600;
 }
 
+/* TERJUAL */
 .terjual {
     font-size: 11px;
-    color: #888;
+    font-weight: 500;
 }
 
 /* Desktop: 5 kolom */
@@ -356,6 +376,7 @@
     padding: 0 6px;
 }
 
+/* BUTTON */
 .produk-kami .btn-outline-success {
     border-width: 2px;
     font-weight: 500;
@@ -365,7 +386,6 @@
     background-color: #1F7D53;
     color: #fff;
 }
-
 
 /* Tablet */
 @media (max-width: 991px) {

@@ -24,8 +24,8 @@ use App\Http\Controllers\Api\OrderController;
 */
 
 
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login'])->name('api.login');
+Route::post('/register', [AuthController::class, 'register'])->name('api.register');
 
 Route::middleware(['jwt.auth'])->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
@@ -34,11 +34,11 @@ Route::middleware(['jwt.auth'])->group(function () {
     Route::put('change-password',[AuthController::class, 'changePassword']);
     Route::post('/avatar', [AuthController::class, 'uploadAvatar']);
     Route::delete('avatar/delete', [AuthController::class, 'deleteAvatar']);
-    
+
     // Update email dengan OTP
     Route::post('update-email/request', [AuthController::class, 'requestUpdateEmail']);
     Route::post('update-email/verify',  [AuthController::class, 'verifyUpdateEmail']);
-    
+
     // Update phone dengan OTP
     Route::post('update-phone/request', [AuthController::class, 'requestUpdatePhone']);
     Route::post('update-phone/verify',  [AuthController::class, 'verifyUpdatePhone']);
@@ -71,14 +71,14 @@ Route::prefix('admin')->group(function () {
 
 Route::prefix('admin')->group(function () {
 
-    // ── Orders 
+    // ── Orders
     Route::get('/orders', [AdminOrderController::class, 'index']);
     Route::get('/orders/stats', [AdminOrderController::class, 'stats']);
     Route::get('/orders/{order}', [AdminOrderController::class, 'show']);
-    
-    // ── Update status 
+
+    // ── Update status
     Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus']);
-    // ── Refund 
+    // ── Refund
     Route::post('/orders/{order}/refund', [AdminOrderController::class, 'refund']);
     Route::post('/orders/{order}/refund-manual', [AdminOrderController::class, 'refundManual']);
 });

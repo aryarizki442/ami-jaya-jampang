@@ -44,7 +44,7 @@
                 <!-- Beras Putih Medium -->
                 <div class="col-md-4 col-12 item mb-3">
                     <button class="btn-category w-100" data-filter="beras-putih-medium">
-                        <img src="{{ asset('images/home/category/beras-putih.png') }}"
+                        <img src="{{ asset('images/home/category/beras-medium.png') }}"
                             class="img-fluid rounded-circle mb-2">
                         <p class="mb-0">Beras Putih Medium</p>
                     </button>
@@ -62,7 +62,7 @@
                 <!-- Beras Ketan -->
                 <div class="col-md-4 col-12 item mb-3">
                     <button class="btn-category w-100" data-filter="beras-ketan">
-                        <img src="{{ asset('images/home/category/beras-putih.png') }}"
+                        <img src="{{ asset('images/home/category/beras-ketan.png') }}"
                             class="img-fluid rounded-circle mb-2">
                         <p class="mb-0">Beras Ketan</p>
                     </button>
@@ -72,36 +72,38 @@
         </section>
 
 
-
         <section class="best mb-4">
-            <h2 class="text-center mb-4">Beras Terlaris</h2>
+            <h2>Beras Terlaris</h2>
 
-            <!-- Grid Produk -->
-            <div class="row g-3 best-row">
+            <div class="best-slider">
+                <div class="best-track">
 
-                @for ($i = 0; $i < 5; $i++)
-                    <div class="best-col">
-                        <div class="best-card rounded">
+                    @for ($i = 0; $i < 8; $i++)
+                        <div class="best-col">
+                            <div class="best-card rounded">
 
-                            <img src="{{ asset('images/home/category/beras-putih.png') }}" class="img-fluid">
+                                <img src="{{ asset('images/home/category/beras-putih.png') }}">
 
-                            <div class="best-body">
-                                <div class="rating">★★★★★</div>
+                                <div class="best-body">
+                                    <div class="rating mb-3">★★★★★</div>
 
-                                <p class="best-title">
-                                    1 Liter Beras Premium<br>
-                                    Beras Merah Premium Rojolele
-                                </p>
+                                    <p class="best-title mb-3">
+                                        1 Liter Beras Premium<br>
+                                        Beras Merah Premium Rojolele
+                                    </p>
 
-                                <div class="best-footer">
-                                    <span class="harga">Rp. 30.000</span>
-                                    <span class="terjual">Tersedia 100</span>
+                                    <div class="best-footer">
+                                        <span class="harga">Rp. 30.000</span>
+                                        <span class="terjual">Tersedia 100</span>
+                                    </div>
                                 </div>
-                            </div>
 
+                            </div>
                         </div>
-                    </div>
-                @endfor
+                    @endfor
+
+                </div>
+            </div>
         </section>
 
         <section class="produk-kami mb-4">
@@ -115,10 +117,10 @@
 
                             <img src="{{ asset('images/home/category/beras-putih.png') }}" class="img-fluid">
 
-                            <div class="produk-body">
-                                <div class="rating">★★★★★</div>
+                            <div class="produk-body ">
+                                <div class="rating mb-3">★★★★★</div>
 
-                                <p class="produk-title">
+                                <p class="produk-title mb-3">
                                     1 Liter Beras Premium<br>
                                     Beras Merah Premium Rojolele
                                 </p>
@@ -144,5 +146,54 @@
 
     </div>
 
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const slider = document.querySelector(".best-slider");
+            const track = document.querySelector(".best-track");
+            const cards = document.querySelectorAll(".best-col");
 
+            const cardCount = cards.length; // 15
+            const speed = 0.5; // kecepatan (1 = standar)
+
+            // Clone card agar infinite
+            cards.forEach(card => {
+                track.appendChild(card.cloneNode(true));
+            });
+
+            let position = 0;
+            let isPaused = false;
+            let cardWidth = cards[0].offsetWidth;
+
+            function animate() {
+                if (!isPaused) {
+                    position += speed;
+                    track.style.transform = `translateX(-${position}px)`;
+
+                    // Reset halus setelah card ke-15
+                    if (position >= cardWidth * cardCount) {
+                        track.style.transition = "none";
+                        position = 0;
+                        track.style.transform = "translateX(0)";
+                        track.offsetHeight; // force repaint
+                        track.style.transition = "transform 0.1s linear";
+                    }
+                }
+
+                requestAnimationFrame(animate);
+            }
+
+            // Hover → pause
+            slider.addEventListener("mouseenter", () => {
+                isPaused = true;
+            });
+
+            // Keluar hover → jalan lagi
+            slider.addEventListener("mouseleave", () => {
+                isPaused = false;
+            });
+
+            track.style.transition = "transform 0.1s linear";
+            animate();
+        });
+    </script>
 @endsection

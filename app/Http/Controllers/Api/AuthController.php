@@ -23,13 +23,10 @@ class AuthController extends Controller
     // =========================================================================
 
     /**
-     * REGISTER - Step 1
-     * User memasukkan email.
-     * Jika email BELUM terdaftar → kirim OTP ke email tersebut.
-     * Jika email SUDAH terdaftar → return error.
+     * Register a new user
      *
-     * POST /api/auth/register/request-otp
-     * Body: { email }
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function registerRequestOtp(Request $request)
     {
@@ -267,10 +264,10 @@ class AuthController extends Controller
     // =========================================================================
 
     /**
-     * Login menggunakan email ATAU nomor telepon + password.
+     * Login user
      *
-     * POST /api/auth/login
-     * Body: { email_or_phone, password }
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function login(Request $request)
     {
@@ -290,9 +287,39 @@ class AuthController extends Controller
             ], 422);
         }
 
-        // Tentukan field login: email atau phone
-        $loginField  = filter_var($request->email_or_phone, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
-        $credentials = [$loginField => $request->email_or_phone, 'password' => $request->password];
+        // Check if input is email or phone
+        $loginField = filter_var($request->email_or_phone, FILTER_VALIDATE_EMAIL)
+            ? 'email'
+            : 'phone';
+
+             $user = \App\Models\User::where($loginField, $request->email_or_phone)->first();
+
+    if (!$user) {
+        // Email/Phone tidak ditemukan
+        return response()->json([
+            'success' => false,
+            'message' => 'Email/No. Telepon Anda salah',
+            'errors' => [
+                'email_or_phone' => ['Email/No. Telepon Anda salah']
+            ]
+        ], 401);
+    }
+
+    // cek password
+    if (!\Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Kata Sandi Anda Salah',
+            'errors' => [
+                'password' => ['Kata Sandi Anda Salah']
+            ]
+        ], 401);
+    }
+
+        $credentials = [
+            $loginField => $request->email_or_phone,
+            'password' => $request->password
+        ];
 
         try {
             if (!$token = JWTAuth::attempt($credentials)) {
@@ -328,7 +355,9 @@ class AuthController extends Controller
     // =========================================================================
 
     /**
-     * GET /api/auth/me
+     * Get authenticated user
+     *
+     * @return \Illuminate\Http\JsonResponse
      */
     public function me()
     {
@@ -371,8 +400,9 @@ class AuthController extends Controller
     }
 
     /**
-     * Update profil dasar (nama, gender, birth_date).
-     * PUT /api/auth/profile
+     * Logout user (Invalidate token)
+     *
+     * @return \Illuminate\Http\JsonResponse
      */
     public function update(Request $request)
     {
@@ -1000,7 +1030,9 @@ class AuthController extends Controller
     }
 
     /**
-     * Response internal server error.
+     * Refresh a token (OPTIONAL - bisa dihapus jika tidak ingin ada refresh token)
+     *
+     * @return \Illuminate\Http\JsonResponse
      */
     private function serverError(\Exception $e)
     {

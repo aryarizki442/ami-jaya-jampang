@@ -5,10 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+
 class Category extends Model
 {
     use HasFactory;
 
+    protected $table = 'categories';
+
+    // ✅ WAJIB biar tidak error 500 (mass assignment)
     protected $fillable = [
         'name',
         'slug',
@@ -17,28 +21,24 @@ class Category extends Model
         'is_active'
     ];
 
+    // ✅ Default value (optional tapi bagus)
     protected $casts = [
         'is_active' => 'boolean',
     ];
 
+    // 🔗 Relasi ke Product
     public function products()
     {
         return $this->hasMany(Product::class);
     }
 
-    // Accessor dengan asset() - lebih simpel dan pasti jalan
-    public function getImageAttribute($value)
+    // 🔗 Accessor untuk URL gambar (biar langsung bisa dipakai di frontend)
+    public function getImageUrlAttribute()
     {
-        if (!$value) {
+        if (!$this->image) {
             return null;
         }
-        
-        // Cek apakah sudah URL penuh
-        if (filter_var($value, FILTER_VALIDATE_URL)) {
-            return $value;
-        }
-        
-        // Gunakan asset() helper Laravel
-        return asset('storage/' . $value);
+
+        return asset('storage/' . $this->image);
     }
 }

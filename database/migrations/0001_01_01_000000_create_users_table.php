@@ -25,8 +25,6 @@ return new class extends Migration
             $table->rememberToken();
             $table->timestamp('deleted_at')->nullable();
             $table->timestamps();
-            
-            
             // Indexes for better performance
             $table->index('email');
             $table->index('phone');

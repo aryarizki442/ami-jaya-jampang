@@ -18,6 +18,14 @@ body {
         border-color 0.2s ease;
 }
 
+.navbar-bg {
+    background: linear-gradient(90deg, #0D3523, #1F7D53);
+}
+
+.footer {
+    background: linear-gradient(90deg, #0D3523, #1F7D53);
+}
+
 /* TEXT */
 .text-custom-green {
     color: var(--text-green) !important;

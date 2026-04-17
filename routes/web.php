@@ -2,10 +2,13 @@
 
 use Illuminate\Support\Facades\Route;
 
-// Frontend Routes
+// Users Routes
 Route::get('/', function () {
     return view('frontend.pages.home');
 })->name('/home');
+// Route::get('/home', function () {
+//     return view('frontend.pages.home');
+// })->name('/home');
 Route::get('/detail-product', function () {
     return view('frontend.pages.detail-product');
 })->name('detail-product');
@@ -18,28 +21,92 @@ Route::get('/checkout', function () {
 Route::get('/payment', function () {
     return view('frontend.pages.payment');
 })->name('payment');
+Route::get('/detail-payment', function () {
+    return view('frontend.pages.detail-payment');
+})->name('detail-payment');
+
+// profile routes
+Route::get('/profile', function () {
+    return view('frontend.pages.profile.profile');
+})->name('profile');
+Route::get('/verify-email', function () {
+    return view('frontend.pages.profile.account-security.verify-email');
+})->name('verify-email');
+Route::get('/verify-otp', function () {
+    return view('frontend.pages.profile.account-security.verify-otp');
+})->name('verify-otp');
+Route::get('/change-email', function () {
+    return view('frontend.pages.profile.account-security.change-email');
+})->name('change-email');
+Route::get('/change-phone', function () {
+    return view('frontend.pages.profile.account-security.change-phone');
+})->name('change-phone');
+Route::get('/change-password', function () {
+    return view('frontend.pages.profile.account-security.change-password');
+})->name('change-password');
+
+Route::get('/address', function () {
+    return view('frontend.pages.profile.address');
+})->name('address');
+Route::get('/order-all', function () {
+    return view('frontend.pages.profile.order-all');
+})->name('order-all');
+Route::get('/order-sent', function () {
+    return view('frontend.pages.profile.order-sent');
+})->name('order-sent');
+Route::get('/order-done', function () {
+    return view('frontend.pages.profile.order-done');
+})->name('order-done');
+Route::get('/order-canceled', function () {
+    return view('frontend.pages.profile.order-canceled');
+})->name('order-canceled');
+Route::get('/invoice', function () {
+    return view('frontend.pages.profile.invoice');
+})->name('invoice');
 
 // Authentication Routes
 Route::get('/login', function () {
-    return view('frontend.auth.login');
+    return view('auth.login');
 })->name('login');
+
 Route::get('/register', function () {
-    return view('frontend.auth.register');
+    return view('auth.register.register');
 })->name('register');
-Route::get('/confirm', function () {
-    return view('frontend.auth.confirm');
-})->name('confirm');
+
+Route::get('/register-password', function () {
+    return view('auth.register.register-password');
+})->name('register-password');
+Route::get('/send-email', function () {
+    return view('auth.register.send-email');
+})->name('send-email');
+Route::get('/send-otp', function () {
+    return view('auth.register.send-otp');
+})->name('send-otp');
+
 
 //Forgot Password Routes
 Route::get('/forgot-password', function () {
-    return view('frontend.auth.forgot-password');
+    return view('auth.forgot-password.forgot-password');
 })->name('forgot-password');
 
 Route::get('/verification', function () {
-    return view('frontend.auth.verification');
+    return view('auth.forgot-password.verification');
 })->name('verification');
 
-Route::get('/register-password', function () {
-    return view('frontend.auth.register-password');
-})->name('register-password');
+Route::get('/new-password', function () {
+    return view('auth.forgot-password.new-password');
+})->name('new-password');
+
+
+//Admin Routes
+Route::get('/admin/dashboard', function () {
+    return view('backend.pages.dashboard');
+})->name('admin.dashboard');
+
+Route::get('/admin/product', function () {
+    return view('backend.pages.product');
+})->name('admin.product');
+Route::get('/admin/order', function () {
+    return view('backend.pages.order');
+})->name('admin.order');
 

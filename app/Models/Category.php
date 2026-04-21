@@ -33,12 +33,14 @@ class Category extends Model
     }
 
     // 🔗 Accessor untuk URL gambar (biar langsung bisa dipakai di frontend)
-    public function getImageUrlAttribute()
-    {
-        if (!$this->image) {
-            return null;
-        }
-
-        return asset('storage/' . $this->image);
+    
+    public function getImageAttribute($value)
+{
+    if (!$value) {
+        return null;
     }
+
+    return asset('storage/' . $value);
+}
+
 }

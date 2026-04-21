@@ -47,7 +47,7 @@ class AdminCategoryController extends Controller
             'name'        => $request->name,
             'slug'        => $this->generateUniqueSlug($request->name),
             'description' => $request->description,
-            'image'       => $imagePath, // Simpan path relatif di database
+            'image'       => $imagePath, 
             'is_active'   => $request->boolean('is_active', true),
         ]);
 

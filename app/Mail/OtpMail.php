@@ -30,8 +30,15 @@ class OtpMail extends Mailable
         return new Envelope(subject: $subject);
     }
 
-    public function content(): Content
+    // public function content(): Content
+    // {
+    //     return new Content(view: 'emails.otp');
+    // }
+
+     public function build()
     {
-        return new Content(view: 'emails.otp');
+        // Cukup untuk testing, OTP tetap terkirim
+        return $this->subject('Kode OTP Verifikasi')
+                    ->html("<h1>Kode OTP: {$this->otp}</h1><p>Berlaku 5 menit</p>");
     }
 }

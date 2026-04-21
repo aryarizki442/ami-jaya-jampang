@@ -6,34 +6,34 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->id();
 
-            // Nullable karena register & forgot password belum punya user_id
+            // Nullable: belum ada user saat register / forgot password
             $table->foreignId('user_id')
                   ->nullable()
                   ->constrained()
                   ->cascadeOnDelete();
 
-            // Untuk flow yang belum login (register, forgot password)
-            // isinya = email user
+            // Menyimpan email sementara untuk flow tanpa user_id
             $table->string('token_key')->nullable()->index();
 
-            // OTP 6 digit atau token panjang (register_token / reset_token)
+            // OTP 6 digit (di-hash) atau token panjang (register_token / reset_token / update_token)
             $table->string('token', 100);
 
             $table->enum('type', [
-                'otp_register',            
-                'register_verified',      
-                'otp_forgot_password',    
-                'password_reset_verified', 
-                'otp_update_email',        
-                'otp_update_phone',        
+                // OTP flow
+                'otp_register',
+                'otp_forgot_password',
+                'otp_update_email',
+                'otp_update_phone',
+                // Token sementara setelah OTP verified
+                'register_verified',
+                'password_reset_verified',
+                'update_email_verified',
+                'update_phone_verified',
             ]);
 
             $table->dateTime('expired_at');
@@ -42,9 +42,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('password_reset_tokens');

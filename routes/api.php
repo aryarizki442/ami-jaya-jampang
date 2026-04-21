@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\UserAddressController;
 use App\Http\Controllers\Api\Admin\AdminProductController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\OtpController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,25 +25,51 @@ use App\Http\Controllers\Api\OrderController;
 */
 
 
-Route::post('/login', [AuthController::class, 'login'])->name('api.login');
-Route::post('/register', [AuthController::class, 'register'])->name('api.register');
 
-Route::middleware(['jwt.auth'])->group(function () {
-    Route::get('/me', [AuthController::class, 'me']);
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::put('/profil', [AuthController::class, 'update']);
-    Route::put('change-password',[AuthController::class, 'changePassword']);
-    Route::post('/avatar', [AuthController::class, 'uploadAvatar']);
-    Route::delete('avatar/delete', [AuthController::class, 'deleteAvatar']);
 
-    // Update email dengan OTP
-    Route::post('update-email/request', [AuthController::class, 'requestUpdateEmail']);
-    Route::post('update-email/verify',  [AuthController::class, 'verifyUpdateEmail']);
 
-    // Update phone dengan OTP
-    Route::post('update-phone/request', [AuthController::class, 'requestUpdatePhone']);
-    Route::post('update-phone/verify',  [AuthController::class, 'verifyUpdatePhone']);
+Route::post('/auth/register/complete', [AuthController::class, 'registerComplete']);
 
+  Route::post('/login', [AuthController::class, 'login']);
+
+   Route::post('/forgot-password/reset', [AuthController::class, 'forgotPasswordReset']);
+
+    Route::middleware('auth:api')->group(function () {
+
+            // Register step 3 (step 1 & 2 via /otp)
+
+    // Login
+
+
+    // Lupa password step 3 — reset password (step 1 & 2 via /otp)
+
+
+        Route::get('/me',      [AuthController::class, 'me']);
+        Route::post('/logout', [AuthController::class, 'logout']);
+
+        // Update profil dasar
+        Route::put('/profile', [AuthController::class, 'update']);
+
+        // Ganti email (step 1 & 2 via /otp, step 3 di sini)
+        Route::post('/update-email', [AuthController::class, 'updateEmail']);
+
+        // Ganti no. telepon (step 1 & 2 via /otp, step 3 di sini)
+        Route::post('/update-phone', [AuthController::class, 'updatePhone']);
+
+        // Ganti password (sudah login, tidak butuh OTP)
+        Route::post('/change-password', [AuthController::class, 'changePassword']);
+
+        // Avatar
+        Route::post('/avatar',   [AuthController::class, 'uploadAvatar']);
+        Route::delete('/avatar', [AuthController::class, 'deleteAvatar']);
+    });
+
+
+
+
+Route::prefix('otp')->group(function () {
+    Route::post('/request', [OtpController::class, 'request']);  // Kirim OTP
+    Route::post('/verify',  [OtpController::class, 'verify']);   // Verifikasi OTP
 });
 
 Route::middleware(['jwt.auth'])->group(function () {

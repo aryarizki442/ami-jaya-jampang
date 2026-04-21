@@ -96,6 +96,22 @@ class AdminCategoryController extends Controller
             'data'    => $category->fresh(),
         ]);
     }
+ public function show($id)
+{
+    $category = Category::find($id);
+
+    if (!$category) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Kategori tidak ditemukan'
+        ], 404);
+    }
+
+    return response()->json([
+        'success' => true,
+        'data' => $category
+    ]);
+}
 
     // ──────────────────────────────────────────────────────────────
     // DELETE /api/admin/categories/{category}
@@ -139,4 +155,39 @@ class AdminCategoryController extends Controller
         if ($excludeId) $query->where('id', '!=', $excludeId);
         return $query->exists() ? $slug . '-' . time() : $slug;
     }
+
+    public function bulkDelete(Request $request)
+{
+    $ids = $request->input('ids');
+
+    if (!$ids || !is_array($ids)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Data ID tidak valid'
+        ], 422);
+    }
+
+    $categories = Category::whereIn('id', $ids)->get();
+
+    foreach ($categories as $category) {
+
+        if ($category->products()->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => "Kategori {$category->name} masih punya produk"
+            ], 422);
+        }
+
+        if ($category->image) {
+            Storage::disk('public')->delete($category->image);
+        }
+
+        $category->delete();
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Kategori berhasil dihapus'
+    ]);
+}
 }

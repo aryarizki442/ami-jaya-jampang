@@ -44,7 +44,7 @@ Route::middleware(['jwt.auth'])->group(function () {
     Route::post('update-phone/verify',  [AuthController::class, 'verifyUpdatePhone']);
 
 });
-    
+
 Route::middleware(['jwt.auth'])->group(function () {
     Route::get('/cart', [CartController::class, 'index']);
 
@@ -64,8 +64,12 @@ Route::prefix('admin')->group(function () {
     Route::get('/categories', [AdminCategoryController::class, 'index']);
     Route::post('/categories', [AdminCategoryController::class, 'store']);
     Route::put('/categories/{category}', [AdminCategoryController::class, 'update']);
+Route::get('/categories/{id}', [AdminCategoryController::class, 'show']);
     Route::delete('/categories/{category}', [AdminCategoryController::class, 'destroy']);
     Route::patch('/categories/{category}/toggle-active', [AdminCategoryController::class, 'toggleActive']);
+
+   Route::post('/categories/bulk-delete', [AdminCategoryController::class, 'bulkDelete']);
+
 });
 
 
@@ -104,7 +108,7 @@ Route::middleware('auth:api')->group(function () {
 
     Route::post('/orders/{order}/reorder', [OrderController::class, 'reorder']);
 
-   
+
     Route::get('/orders/{order}/invoice', [OrderController::class, 'invoice']);
 
 });
@@ -117,7 +121,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/products/{product}', [AdminProductController::class, 'show']);
         Route::post('/products', [AdminProductController::class, 'store']);
         Route::put('/products/{product}', [AdminProductController::class, 'update']);
-        Route::post('/products/{product}', [AdminProductController::class, 'update']); 
+        Route::post('/products/{product}', [AdminProductController::class, 'update']);
         Route::delete('/products/{product}', [AdminProductController::class, 'destroy']);
 
         // ── Toggle Active ───────────────────────────

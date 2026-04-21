@@ -65,6 +65,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+
             const form = document.getElementById('loginForm');
 
             const adjustIconPosition = (input) => {
@@ -76,8 +77,8 @@
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
 
-                const emailInput = form.querySelector('input[name="email_or_phone"]');
-                const passwordInput = form.querySelector('input[name="password"]');
+                const emailInput = form.querySelector('[name="email_or_phone"]');
+                const passwordInput = form.querySelector('[name="password"]');
 
                 // reset error
                 [emailInput, passwordInput].forEach(input => {
@@ -88,30 +89,28 @@
 
                 const email_or_phone = emailInput.value.trim();
                 const password = passwordInput.value.trim();
-                let hasError = false;
 
-                // FRONTEND VALIDASI INLINE
-                if (!email_or_phone) {
-                    emailInput.classList.add('is-invalid');
-                    emailInput.nextElementSibling.textContent = 'Email atau nomor telepon wajib diisi';
-                    adjustIconPosition(emailInput);
-                    hasError = true;
+                if (!email_or_phone || !password) {
+                    if (!email_or_phone) {
+                        emailInput.classList.add('is-invalid');
+                        emailInput.nextElementSibling.textContent =
+                            'Email atau nomor telepon wajib diisi';
+                        adjustIconPosition(emailInput);
+                    }
+                    if (!password) {
+                        passwordInput.classList.add('is-invalid');
+                        passwordInput.nextElementSibling.textContent = 'Kata sandi wajib diisi';
+                        adjustIconPosition(passwordInput);
+                    }
+                    return;
                 }
-                if (!password) {
-                    passwordInput.classList.add('is-invalid');
-                    passwordInput.nextElementSibling.textContent = 'Kata sandi wajib diisi';
-                    adjustIconPosition(passwordInput);
-                    hasError = true;
-                }
-                if (hasError) return;
 
                 try {
-                    const response = await fetch('{{ url('/api/login') }}', {
+                    const response = await fetch('/api/login', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            'Accept': 'application/json'
                         },
                         body: JSON.stringify({
                             email_or_phone,
@@ -121,8 +120,8 @@
 
                     const data = await response.json();
 
-                    // backend error inline
-                    if (!response.ok && data.errors) {
+                    // VALIDASI BACKEND
+                    if (response.status === 422) {
                         Object.keys(data.errors).forEach(key => {
                             const input = form.querySelector(`[name="${key}"]`);
                             if (input) {
@@ -131,27 +130,39 @@
                                 adjustIconPosition(input);
                             }
                         });
+                        return;
                     }
-                    // sukses
-                    else if (response.ok) {
-                        localStorage.setItem('access_token', data.data.access_token);
-                        window.location.href = "{{ route('/home') }}";
-                    }
-                    // fallback message
-                    else if (data.message) {
+
+                    // LOGIN GAGAL
+                    if (!response.ok) {
                         passwordInput.classList.add('is-invalid');
-                        passwordInput.nextElementSibling.textContent = data.message;
+                        passwordInput.nextElementSibling.textContent = data.message || 'Login gagal';
                         adjustIconPosition(passwordInput);
+                        return;
+                    }
+
+                    // SUCCESS
+                    const token = data.data.access_token;
+                    const user = data.data.user;
+
+                    // simpan token (INI YANG PENTING)
+                    localStorage.setItem('access_token', token);
+
+                    // redirect
+                    if (user.email === 'admin@gmail.com') {
+                        window.location.href = "{{ route('admin.dashboard') }}";
+                    } else {
+                        window.location.href = "{{ route('home') }}";
                     }
 
                 } catch (err) {
                     console.error(err);
                     passwordInput.classList.add('is-invalid');
-                    passwordInput.nextElementSibling.textContent =
-                        'Terjadi kesalahan. Silakan coba lagi.';
+                    passwordInput.nextElementSibling.textContent = 'Terjadi kesalahan server';
                     adjustIconPosition(passwordInput);
                 }
             });
+
         });
     </script>
     <script src="{{ asset('js/main.js') }}"></script>

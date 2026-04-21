@@ -153,21 +153,31 @@
             background-position: center;
             background-size: 14px;
         }
+
+        thead tr {
+            background: linear-gradient(90deg, #0D3523, #269B66);
+        }
+
+        thead th {
+            background: transparent !important;
+            color: white !important;
+            border: none;
+        }
     </style>
 
 
     <!-- Top Action -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <div class="position-relative" style="width:320px;">
-            <h5 class="fw-semibold">Produk</h5>
-        </div>
-
+        <button class="btn btn-custom-green btn-sm px-3 d-flex align-items-center gap-2">
+            <span class="iconify" data-icon="uil:calendar" style="font-size:20px;"></span>
+            <span id="currentMonth" class="fw-semibold"></span>
+        </button>
         <div class="d-flex gap-2">
 
             <!-- Kategori (1 Button) -->
             <div class="dropdown">
-                <button id="kategoriDropdown" class="btn btn-sm btn-success d-flex align-items-center p-0" type="button"
-                    data-bs-toggle="dropdown" aria-expanded="false">
+                <button id="kategoriDropdown" class="btn btn-sm btn-custom-green d-flex align-items-center p-0"
+                    type="button" data-bs-toggle="dropdown" aria-expanded="false">
 
                     <!-- Text -->
                     <span class="px-3 py-1">
@@ -191,7 +201,7 @@
             </div>
 
             <!-- Tambah Produk -->
-            <button class="btn btn-success btn-sm px-3 d-flex align-items-center gap-2">
+            <button class="btn btn-custom-green btn-sm px-3 d-flex align-items-center gap-2">
                 Tambah Produk
                 <i class="ri-add-line"></i>
             </button>
@@ -199,25 +209,31 @@
         </div>
     </div>
     <div class="card border-0 shadow-sm rounded-4 p-4">
-        <div class="d-flex align-items-center mb-4 gap-4">
+        <div class="d-flex align-items-center mb-4 gap-2">
 
-            <!-- Search -->
-            <div class="position-relative search-width">
+            <!-- Search (FULL WIDTH) -->
+            <div class="position-relative flex-grow-1">
                 <input type="text" class="form-control ps-4 pe-5" placeholder="Cari Produk disini">
                 <i class="ri-search-line position-absolute top-50 end-0 translate-middle-y me-3 text-muted"></i>
             </div>
 
-            <!-- Icon Trash -->
-            <a href="#" class="trash-icon">
+            <!-- Button Filter -->
+            <button class="btn btn-outline-secondary d-flex align-items-center gap-1">
+                <span class="iconify" data-icon="mingcute:filter-line"></span>
+                Filter
+            </button>
+
+            <!-- Button Delete -->
+            <button class="btn btn-outline-secondary">
                 <span class="iconify" data-icon="famicons:trash-outline"></span>
-            </a>
+            </button>
 
         </div>
         <!-- Table -->
         <div class="table-responsive">
             <table class="table align-middle custom-table">
                 <thead>
-                    <tr class="text-muted small">
+                    <tr class=" small">
 
                         <th style="width:40px;"><input type="checkbox" id="checkAll" class="custom-check"></th>
                         <th>Produk</th>
@@ -291,6 +307,19 @@
     </div>
 
     <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const monthEl = document.getElementById('currentMonth');
+
+            const now = new Date();
+            const options = {
+                month: 'long',
+                year: 'numeric'
+            };
+
+            monthEl.textContent = now.toLocaleDateString('id-ID', options);
+        });
+    </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 

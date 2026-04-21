@@ -3,12 +3,11 @@
 use Illuminate\Support\Facades\Route;
 
 // Users Routes
-Route::get('/', function () {
+Route::redirect('/', '/home');
+
+Route::get('/home', function () {
     return view('frontend.pages.home');
-})->name('/home');
-// Route::get('/home', function () {
-//     return view('frontend.pages.home');
-// })->name('/home');
+})->name('home');
 Route::get('/detail-product', function () {
     return view('frontend.pages.detail-product');
 })->name('detail-product');
@@ -103,10 +102,24 @@ Route::get('/admin/dashboard', function () {
     return view('backend.pages.dashboard');
 })->name('admin.dashboard');
 
+// Admin Product
 Route::get('/admin/product', function () {
-    return view('backend.pages.product');
+    return view('backend.pages.product.index');
 })->name('admin.product');
+
+// Admin Order
 Route::get('/admin/order', function () {
-    return view('backend.pages.order');
+    return view('backend.pages.order.index');
 })->name('admin.order');
+
+// Admin Category
+Route::get('/admin/category', function () {
+    return view('backend.pages.category.index');
+})->name('admin.category');
+Route::get('/admin/category/create', function () {
+    return view('backend.pages.category.create');
+})->name('admin.category.create');
+Route::get('/admin/category/edit/{id}', function ($id) {
+    return view('backend.pages.category.edit', compact('id'));
+})->name('admin.category.edit');
 

@@ -143,6 +143,9 @@ Route::middleware('auth:api')->group(function () {
 
 Route::prefix('admin')->group(function () {
 
+        // ── Bulk Delete ─────────────────────────────
+        Route::delete('/products/bulk-delete', [AdminProductController::class, 'bulkDelete']);
+
         // ── CRUD Produk ─────────────────────────────
         Route::get('/products', [AdminProductController::class, 'index']);
         Route::get('/products/{product}', [AdminProductController::class, 'show']);
@@ -154,8 +157,6 @@ Route::prefix('admin')->group(function () {
         // ── Toggle Active ───────────────────────────
         Route::patch('/products/{product}/toggle-active', [AdminProductController::class, 'toggleActive']);
 
-        // ── Bulk Delete ─────────────────────────────
-        Route::delete('/products/bulk-delete', [AdminProductController::class, 'bulkDelete']);
 
         // ── Image Handling ──────────────────────────
         Route::post('/products/{product}/images', [AdminProductController::class, 'uploadImages']);

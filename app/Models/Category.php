@@ -15,7 +15,7 @@ class Category extends Model
     // ✅ WAJIB biar tidak error 500 (mass assignment)
     protected $fillable = [
         'name',
-        'slug',
+        // 'slug',
         'description',
         'image',
         'is_active'

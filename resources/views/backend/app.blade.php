@@ -9,23 +9,11 @@
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Icons (cukup 1 saja) -->
+    <!-- Icons -->
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 
-    <!-- Google Font -->
+    <!-- Font -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-
-    <!-- BOOTSTRAP -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-
-
-
-    <!-- GOOGLE FONT -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"rel="stylesheet">
 
     <!-- CUSTOM CSS -->
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
@@ -33,6 +21,7 @@
     <link rel="stylesheet" href="{{ asset('css/login/login.css') }}">
     <link rel="stylesheet" href="{{ asset('css/home.css') }}">
     <link rel="stylesheet" href="{{ asset('css/button.css') }}">
+
     <style>
         * {
             margin: 0;
@@ -43,16 +32,8 @@
 
         body {
             display: flex;
-            height: 100vh;
-            overflow: hidden;
-            background: #f4f6f9;
-        }
-
-        /* Page Title */
-        .search-width {
-            width: 40%;
-            min-width: 250px;
-            max-width: 500px;
+            min-height: 100vh;
+            background: #F5F6FA;
         }
 
         /* ===== SIDEBAR ===== */
@@ -63,19 +44,22 @@
             display: flex;
             flex-direction: column;
             padding: 25px 20px;
+            transition: 0.3s;
         }
 
         .brand {
             display: flex;
             justify-content: center;
-            /* center horizontal */
-            align-items: center;
             margin-bottom: 40px;
+        }
+
+        .brand img {
+            width: 160px;
         }
 
         .menu {
             list-style: none;
-            padding-left: 0;
+            padding: 0;
         }
 
         .menu li {
@@ -90,12 +74,7 @@
             border-radius: 10px;
             color: #fff;
             text-decoration: none;
-            transition: .3s;
-            font-size: 14px;
-        }
-
-        .menu a i {
-            font-size: 22px;
+            transition: 0.2s;
         }
 
         .menu a:hover {
@@ -104,6 +83,10 @@
 
         .menu a.active {
             background: rgba(255, 255, 255, 0.25);
+        }
+
+        .menu i {
+            font-size: 20px;
         }
 
         /* ===== MAIN ===== */
@@ -119,14 +102,21 @@
             background: #fff;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 0 25px;
+            padding: 0 20px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            gap: 15px;
+        }
+
+        .hamburger {
+            font-size: 24px;
+            cursor: pointer;
+            display: none;
         }
 
         .logout {
             font-size: 20px;
             cursor: pointer;
+            margin-left: auto;
         }
 
         /* ===== CONTENT ===== */
@@ -136,15 +126,36 @@
             overflow-y: auto;
         }
 
-        /* Responsive */
+        /* ===== OVERLAY ===== */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            display: none;
+            z-index: 998;
+        }
+
+        /* ===== MOBILE ===== */
         @media(max-width:768px) {
-            .sidebar {
-                width: 70px;
+
+            .hamburger {
+                display: block;
             }
 
-            .sidebar .brand h2,
-            .menu a span {
-                display: none;
+            .sidebar {
+                position: fixed;
+                left: -260px;
+                top: 0;
+                height: 100%;
+                z-index: 999;
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .overlay.active {
+                display: block;
             }
         }
     </style>
@@ -152,12 +163,13 @@
 
 <body>
 
+    <!-- OVERLAY -->
+    <div class="overlay" id="overlay"></div>
+
     <!-- SIDEBAR -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="brand">
-            <a class="sidebar-brand fw-bold " href="#">
-                <img src="{{ asset('images/logo/logo-putih.png') }}" width="180">
-            </a>
+            <img src="{{ asset('images/logo/logo-putih.png') }}">
         </div>
 
         <ul class="menu">
@@ -176,16 +188,13 @@
                 </a>
             </li>
             <li>
-                <a href="#">
-                    <i class="ri-shopping-cart-2-line"></i>
+                <a href="{{ route('admin.order') }}" class="{{ request()->routeIs('admin.order') ? 'active' : '' }}">
+                    <i class="ri-list-check"></i>
                     <span>Pesanan</span>
                 </a>
             </li>
             <li>
-                <a href="#">
-                    <i class="ri-wallet-3-line"></i>
-                    <span>Pembayaran</span>
-                </a>
+                <a href="#"><i class="ri-wallet-3-line"></i><span>Pembayaran</span></a>
             </li>
             <li>
                 <a href="{{ route('admin.category') }}"
@@ -195,22 +204,11 @@
                 </a>
             </li>
             <li>
-                <a href="#">
-                    <i class="ri-bar-chart-2-line"></i>
-                    <span>Laporan</span>
-                </a>
+                <a href="#"><i class="ri-bar-chart-2-line"></i><span>Laporan</span></a>
             </li>
+
             <li>
-                <a href="#">
-                    <i class="ri-file-list-3-line"></i>
-                    <span>Audit Log</span>
-                </a>
-            </li>
-            <li>
-                <a href="#">
-                    <i class="ri-settings-3-line"></i>
-                    <span>Pengaturan</span>
-                </a>
+                <a href="#"><i class="ri-settings-3-line"></i><span>Pengaturan</span></a>
             </li>
         </ul>
     </div>
@@ -219,17 +217,16 @@
     <div class="main">
 
         <!-- TOPBAR -->
-        <div class="topbar position-relative d-flex align-items-center">
+        <div class="topbar">
+            <i class="ri-menu-line hamburger" id="menuToggle"></i>
 
             <h5 class="mb-0 fw-semibold">
                 @yield('title')
             </h5>
 
-
-            <!-- LOGOUT ICON -->
-            <i class="ri-logout-box-r-line logout ms-auto"></i>
-
+            <i class="ri-logout-box-r-line logout"></i>
         </div>
+
         <!-- CONTENT -->
         <div class="content">
             @yield('content')
@@ -237,9 +234,23 @@
 
     </div>
 
+    <script>
+        const toggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+
+        toggle.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        });
+
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+        });
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
-    <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
 </body>
 
 </html>

@@ -1,6 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Admin\AdminCategoryController;
+use App\Http\Controllers\Api\Admin\AdminProductController;
+
 
 // Users Routes
 Route::redirect('/', '/home');
@@ -106,6 +109,12 @@ Route::get('/admin/dashboard', function () {
 Route::get('/admin/product', function () {
     return view('backend.pages.product.index');
 })->name('admin.product');
+Route::get('/admin/product/create', [AdminProductController::class, 'frontendProduct'])
+    ->name('admin.product.create');
+Route::get('/admin/product/edit/{product}', [AdminProductController::class, 'frontendProductEdit'])
+    ->name('admin.product.edit');
+    Route::get('/admin/product/detail/{product}', [AdminProductController::class, 'frontendProductDetail'])
+    ->name('admin.product.detail');
 
 // Admin Order
 Route::get('/admin/order', function () {
@@ -122,4 +131,13 @@ Route::get('/admin/category/create', function () {
 Route::get('/admin/category/edit/{id}', function ($id) {
     return view('backend.pages.category.edit', compact('id'));
 })->name('admin.category.edit');
+Route::get('/admin/category/detail/{id}', function ($id) {
+    return view('backend.pages.category.detail', compact('id'));
+})->name('admin.category.detail');
+
+// Admin Order
+Route::get('/admin/order', function () {
+    return view('backend.pages.order.index');
+})->name('admin.order');
+
 

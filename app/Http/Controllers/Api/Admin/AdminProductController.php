@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Models\Category;
+
 
 class AdminProductController extends Controller
 {
@@ -39,7 +41,7 @@ class AdminProductController extends Controller
         return [
             'id'           => $product->id,
             'name'         => $product->name,
-            'slug'         => $product->slug,
+            // 'slug'         => $product->slug,
             'category'     => [
                 'id'   => $product->category?->id,
                 'name' => $product->category?->name,
@@ -72,7 +74,7 @@ class AdminProductController extends Controller
             'data'    => [
                 'id'          => $product->id,
                 'name'        => $product->name,
-                'slug'        => $product->slug,
+                // 'slug'        => $product->slug,
                 'description' => $product->description,
                 'price'       => $product->price,
                 'weight_kg'   => $product->weight_kg,
@@ -92,7 +94,7 @@ class AdminProductController extends Controller
         ]);
     }
 
-    
+
   public function store(Request $request)
 {
     Log::info($request->all());
@@ -117,7 +119,7 @@ class AdminProductController extends Controller
         $product = Product::create([
             'category_id' => $validated['category_id'],
             'name'        => $validated['name'],
-            'slug'        => Str::slug($validated['name']) . '-' . time(),
+            // 'slug'        => Str::slug($validated['name']) . '-' . time(),
             'description' => $validated['description'] ?? null,
             'price'       => $validated['price'],
             'weight_kg'   => $validated['weight_kg'] ?? 0,
@@ -169,12 +171,12 @@ class AdminProductController extends Controller
         ], 500);
     }
 }
-    
+
 public function update(Request $request, Product $product)
 {
     // Method spoofing akan otomatis dihandle Laravel
     // $request->method() akan mengembalikan 'PUT'
-    
+
     Log::info('UPDATE PRODUCT', [
         'method' => $request->method(), // Akan jadi 'PUT'
         'product_id' => $product->id,
@@ -204,10 +206,10 @@ public function update(Request $request, Product $product)
     try {
         // Update product data
         $updateData = [];
-        
+
         if ($request->has('name')) {
             $updateData['name'] = $validated['name'];
-            $updateData['slug'] = Str::slug($validated['name']) . '-' . time();
+            // $updateData['slug'] = Str::slug($validated['name']) . '-' . time();
         }
         if ($request->has('description')) $updateData['description'] = $validated['description'];
         if ($request->has('price')) $updateData['price'] = $validated['price'];
@@ -220,19 +222,19 @@ public function update(Request $request, Product $product)
         if ($request->has('is_active')) {
             $updateData['is_active'] = filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN);
         }
-        
+
         $product->update($updateData);
 
         // Handle delete images
         if ($request->has('delete_images')) {
-            $deleteIds = is_array($request->delete_images) 
-                ? $request->delete_images 
+            $deleteIds = is_array($request->delete_images)
+                ? $request->delete_images
                 : explode(',', $request->delete_images);
-            
+
             $imagesToDelete = ProductImage::where('product_id', $product->id)
                 ->whereIn('id', $deleteIds)
                 ->get();
-            
+
             foreach ($imagesToDelete as $image) {
                 Storage::disk('public')->delete($image->image_url);
                 $image->delete();
@@ -243,14 +245,14 @@ public function update(Request $request, Product $product)
         if ($request->hasFile('images')) {
             $maxSortOrder = ProductImage::where('product_id', $product->id)
                 ->max('sort_order') ?? -1;
-            
+
             foreach ($request->file('images') as $index => $image) {
                 if (!$image->isValid()) {
                     throw new \Exception('File image tidak valid pada index ' . $index);
                 }
 
                 $path = $image->store('products', 'public');
-                
+
                 ProductImage::create([
                     'product_id' => $product->id,
                     'image_url'  => $path,
@@ -264,12 +266,12 @@ public function update(Request $request, Product $product)
         $hasPrimary = ProductImage::where('product_id', $product->id)
             ->where('is_primary', true)
             ->exists();
-            
+
         if (!$hasPrimary) {
             $firstImage = ProductImage::where('product_id', $product->id)
                 ->orderBy('sort_order')
                 ->first();
-                
+
             if ($firstImage) {
                 $firstImage->update(['is_primary' => true]);
             }
@@ -459,19 +461,38 @@ public function update(Request $request, Product $product)
     // ──────────────────────────────────────────────────────────────
     // Helper: generate slug unik
     // ──────────────────────────────────────────────────────────────
-    private function generateUniqueSlug(string $name, ?int $excludeId = null): string
-    {
-        $slug  = Str::slug($name);
-        $query = Product::where('slug', $slug);
+    // private function generateUniqueSlug(string $name, ?int $excludeId = null): string
+    // {
+    //     $slug  = Str::slug($name);
+    //     $query = Product::where('slug', $slug);
 
-        if ($excludeId) {
-            $query->where('id', '!=', $excludeId);
-        }
+    //     if ($excludeId) {
+    //         $query->where('id', '!=', $excludeId);
+    //     }
 
-        if ($query->exists()) {
-            $slug = $slug . '-' . time();
-        }
+    //     if ($query->exists()) {
+    //         $slug = $slug . '-' . time();
+    //     }
 
-        return $slug;
-    }
+    //     return $slug;
+    // }
+
+    public function frontendProduct()
+{
+    return view('backend.pages.product.create', [
+        'categories' => Category::all()
+    ]);
+}
+public function frontendProductEdit(\App\Models\Product $product)
+{
+    $categories = Category::all();
+
+    return view('backend.pages.product.edit', compact('product', 'categories'));
+}
+public function frontendProductDetail(\App\Models\Product $product)
+{
+    $categories = Category::all();
+
+    return view('backend.pages.product.detail', compact('product', 'categories'));
+}
 }

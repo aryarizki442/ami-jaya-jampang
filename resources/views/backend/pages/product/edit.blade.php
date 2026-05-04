@@ -1,0 +1,388 @@
+@extends('backend.app')
+
+@section('title', 'Produk')
+
+@section('content')
+
+    <style>
+        #dropArea.border-primary {
+            background: #f8f9fa;
+            border: 2px dashed #0d6efd !important;
+        }
+    </style>
+
+    <form id="formProduk" enctype="multipart/form-data">
+
+        <div class="row g-2 align-items-start">
+            <!-- HEADER -->
+            <div class="d-flex align-items-center mt-0">
+                <a href="{{ route('admin.product') }}" class="d-flex align-items-center text-decoration-none text-dark">
+                    <i class="ri-arrow-left-line fs-5 me-2"></i>
+                    <span class="fw-medium">Kembali</span>
+                </a>
+            </div>
+
+            <h5 class="fw-semibold">Edit Produk</h5>
+
+            <!-- LEFT -->
+            <div class="col-md-8 d-flex">
+                <div class="card p-4 border-0 shadow-sm w-100 h-100">
+
+                    <!-- NAMA -->
+                    <h6 class="mb-2">Nama Produk</h6>
+                    <input type="text" name="name" id="name" class="form-control mb-2"
+                        placeholder="Masukan Nama Produk">
+                    <small class="text-danger error-name"></small>
+
+                    <!-- DESKRIPSI -->
+                    <h6 class="mb-2 mt-3">Deskripsi Produk</h6>
+                    <textarea name="description" id="description" class="form-control mb-2" placeholder="Masukan Deskripsi Kategori"
+                        style="height:50px; resize:none;"></textarea>
+                    <small class="text-danger error-description"></small>
+
+                    <!-- HARGA -->
+                    <h6 class="mb-2 mt-3 border-top pt-3">Harga Produk</h6>
+                    <input type="number" name="price" id="price" class="form-control"
+                        placeholder="Masukan Harga Produk">
+                    <small class="text-danger error-price"></small>
+
+                    <!-- ROW -->
+                    <div class="row mt-3 border-top pt-3">
+                        <div class="col-md-6 ">
+                            <h6 class="mb-2 ">Stok</h6>
+                            <input type="number" name="stock" id="stock" class="form-control"
+                                placeholder="Masukan Stok Produk" min="0" step="1">
+                        </div>
+
+                        <div class="col-md-6">
+                            <h6 class="mb-2">Berat Produk</h6>
+                            <input type="number" name="weight_kg" id="weight_kg" class="form-control"
+                                placeholder="Masukan Berat Produk Kg/Liter" min="0" step="0.01">
+                        </div>
+                    </div>
+                    <div class="row mt-3 border-top pt-3">
+
+                        <div class="col-md-3">
+                            <select name="category_id" id="category_id" class="form-select text-muted">
+                                <option value="">Pilih Kategori</option>
+                                @foreach ($categories as $category)
+                                    <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                @endforeach
+                            </select>
+                            <small class="text-danger error-category_id"></small>
+                        </div>
+                    </div>
+
+
+                    {{-- <div class="form-check form-switch mt-4">
+                        <input class="form-check-input" type="checkbox" id="isActive" checked>
+                        <label class="form-check-label">Tampilkan ke Produk Terlaris</label>
+                    </div> --}}
+
+                    <!-- STATUS -->
+                    <div class="form-check form-switch mt-4">
+                        <input class="form-check-input" type="checkbox" id="isActive" checked>
+                        <label class="form-check-label">Tampilkan Produk</label>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- RIGHT -->
+            <div class="col-md-4 d-flex">
+                <div class="card p-4 border-0 shadow-sm w-100 h-100 d-flex flex-column">
+
+                    <h6 class="mb-3">Gambar Produk</h6>
+
+                    <!-- PREVIEW AREA -->
+                    <div id="imagePreview"
+                        class="border rounded w-100 flex-grow-1 d-flex justify-content-center align-items-center text-center"
+                        style="min-height:220px; overflow:hidden; position:relative; cursor:pointer;">
+
+                        <div id="uploadContent">
+                            <div class="btn-image-admin fw-medium">Masukan Gambar</div>
+                            <div class="text-muted small">Seret dan Taruh Gambar</div>
+                        </div>
+
+                    </div>
+
+                    <input type="file" name="images[]" id="imageInput" class="d-none" accept="image/*" multiple>
+
+                    <small class="text-danger error-image mt-2 d-block text-center"></small>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- BUTTON -->
+        <div class="mt-3 border-top pt-3 d-flex justify-content-end gap-2">
+            <a href="/admin/product" class="btn btn-second">Batal</a>
+            <button type="submit" id="btnSubmit" class="btn btn-main">Simpan</button>
+        </div>
+    </form>
+
+
+    {{-- MODAL EROR --}}
+    <div class="modal fade" id="errorModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center p-4">
+                <h5 class="mb-2 text-danger">Gagal</h5>
+                <p id="errorMessage" class="mb-0"></p>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+
+            const form = document.getElementById('formProduk');
+            const input = document.getElementById('imageInput');
+            const dropArea = document.getElementById('imagePreview');
+            const uploadContent = document.getElementById('uploadContent');
+            const btnSubmit = document.getElementById('btnSubmit');
+
+            const productId = @json($product->id ?? null);
+            const token = localStorage.getItem('access_token');
+
+            if (!form || !input || !dropArea) return;
+
+            // =========================
+            // FALLBACK IMAGE
+            // =========================
+            const NO_IMAGE = "{{ asset('assets/img/no-image.png') }}";
+
+            // =========================
+            // SET VALUE HELPER
+            // =========================
+            function setValue(id, value) {
+                const el = document.getElementById(id);
+                if (el) el.value = value ?? '';
+            }
+
+            // =========================
+            // DRAG BLOCK
+            // =========================
+            function initDragBlock() {
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => {
+                    document.body.addEventListener(event, function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    });
+                });
+            }
+
+            // =========================
+            // IMAGE URL SAFE HANDLER
+            // =========================
+            function getImageUrl(img) {
+                if (!img) return NO_IMAGE;
+
+                let url = img;
+
+                // 1. kalau sudah full URL, langsung pakai
+                if (url.startsWith('http')) {
+                    return url;
+                }
+
+                // 2. bersihkan semua storage rusak
+                url = url
+                    .replace(/^\/?storage\//, '')
+                    .replace('http://127.0.0.1:8000/storage/', '')
+                    .replace('https://127.0.0.1:8000/storage/', '');
+
+                // 3. return format benar
+                return `/storage/${url}`;
+            }
+
+            // =========================
+            // RENDER IMAGE
+            // =========================
+            function renderImage(url) {
+                const preview = document.getElementById('imagePreview');
+                if (!preview) return;
+
+                uploadContent.style.display = 'none';
+
+                preview.innerHTML = `
+            <img src="${url}" class="img-fluid rounded"
+                 style="max-height:220px; object-fit:cover;">
+        `;
+            }
+
+            // =========================
+            // LOAD PRODUCT
+            // =========================
+            async function loadProduct() {
+                if (!productId) return;
+
+                try {
+                    const res = await fetch(`/api/admin/products/${productId}`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        }
+                    });
+
+                    const result = await res.json();
+                    if (!res.ok || !result?.success) return;
+
+                    const p = result.data;
+
+                    setValue('name', p.name);
+                    setValue('description', p.description);
+                    setValue('price', p.price);
+                    setValue('stock', p.stock);
+                    setValue('unit', p.unit);
+                    setValue('weight_kg', p.weight_kg);
+                    setValue('min_order', p.min_order);
+                    setValue('max_order', p.max_order);
+
+                    const categoryEl = document.getElementById('category_id');
+
+                    if (categoryEl) {
+                        const value = String(
+                            p.category_id ?? p.category?.id ?? ''
+                        );
+
+                        console.log('SET CATEGORY VALUE:', value);
+
+                        categoryEl.value = value;
+
+                        // fallback kalau select tidak berubah
+                        if (categoryEl.value !== value) {
+                            Array.from(categoryEl.options).forEach(opt => {
+                                opt.selected = String(opt.value) === value;
+                            });
+                        }
+                    }
+                    const activeEl = document.getElementById('isActive');
+                    if (activeEl) activeEl.checked = !!p.is_active;
+
+                    const primaryImage =
+                        p.images?.find(img => img?.is_primary) ||
+                        p.images?.[0];
+
+                    const imageUrl = getImageUrl(primaryImage?.image_url);
+
+                    renderImage(imageUrl);
+
+                } catch (err) {
+                    console.error('Error load product:', err);
+                }
+            }
+
+            // =========================
+            // PREVIEW NEW IMAGE
+            // =========================
+            input.addEventListener('change', function() {
+                const file = this.files[0];
+
+                if (!file) return;
+
+                renderImage(URL.createObjectURL(file));
+            });
+
+            dropArea.addEventListener('click', () => input.click());
+
+            dropArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                dropArea.classList.add('border-primary');
+            });
+
+            dropArea.addEventListener('dragleave', function() {
+                dropArea.classList.remove('border-primary');
+            });
+
+            dropArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                dropArea.classList.remove('border-primary');
+
+                const file = e.dataTransfer.files[0];
+                if (!file) return;
+
+                input.files = e.dataTransfer.files;
+                renderImage(URL.createObjectURL(file));
+            });
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                document.querySelectorAll('.text-danger')
+                    .forEach(el => el.innerText = '');
+
+                const formData = new FormData();
+
+                // ambil semua input text manual (biar kontrol jelas)
+                formData.append('name', document.getElementById('name').value);
+                formData.append('description', document.getElementById('description').value);
+                formData.append('price', document.getElementById('price').value);
+                formData.append('stock', document.getElementById('stock').value);
+                formData.append('weight_kg', document.getElementById('weight_kg').value);
+                formData.append('category_id', document.getElementById('category_id').value);
+
+                formData.append(
+                    'is_active',
+                    document.getElementById('isActive').checked ? 1 : 0
+                );
+
+                formData.append('_method', 'POST');
+
+                const file = input.files[0];
+
+                if (file) {
+                    formData.delete('images[]');
+                    formData.append('images[]', file);
+                    formData.append('replace_image', 1);
+                }
+
+                btnSubmit.disabled = true;
+                btnSubmit.innerText = 'Loading...';
+
+                try {
+                    const res = await fetch(`/api/admin/products/${productId}`, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        }
+                    });
+
+                    const result = await res.json();
+
+                    if (res.status === 422) {
+                        showErrorModal(result.message ?? 'Validation error');
+                        return;
+                    }
+
+                    if (result.success) {
+                        window.location.href =
+                            `/admin/product?updated=1&id=${productId}`;
+                    }
+
+                } catch (err) {
+                    console.error(err);
+                    showErrorModal('Terjadi kesalahan server');
+                } finally {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerText = 'Update';
+                }
+            });
+
+            function showErrorModal(message) {
+                document.getElementById('errorMessage').innerText = message;
+                new bootstrap.Modal(document.getElementById('errorModal')).show();
+            }
+
+            // =========================
+            // INIT
+            // =========================
+            initDragBlock();
+            loadProduct();
+
+        });
+    </script>
+@endsection

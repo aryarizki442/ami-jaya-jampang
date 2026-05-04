@@ -12,10 +12,18 @@
     </style>
 
     <form id="formKategori" enctype="multipart/form-data">
-        <div class="row g-4 align-items-stretch">
+        <div class="row g-2 align-items-stretch">
+            <!-- HEADER -->
+            <div class="d-flex align-items-center">
+                <a href="{{ route('admin.category') }}" class="d-flex align-items-center text-decoration-none text-dark">
+                    <i class="ri-arrow-left-line fs-5 me-2"></i>
+                    <span class="fw-medium">Kembali</span>
+                </a>
+            </div>
 
+            <h5 class="fw-semibold">Edit Kategori</h5>
             <!-- KIRI -->
-            <div class="col-md-8 d-flex">
+            <div class="col-md-8 d-flex mt-2">
                 <div class="card p-4 border-0 shadow-sm w-100 h-100">
 
                     <h6 class="mb-3">Nama Kategori</h6>
@@ -63,11 +71,20 @@
 
         <!-- BUTTON -->
         <div class="mt-3 border-top pt-3 d-flex justify-content-end gap-2">
-            <a href="{{ route('admin.category') }}" class="btn btn-outline-secondary">Batal</a>
-            <button type="submit" id="btnSubmit" class="btn btn-success">Simpan</button>
+            <a href="{{ route('admin.category') }}" class="btn btn-second">Batal</a>
+            <button type="submit" id="btnSubmit" class="btn btn-main">Simpan</button>
         </div>
     </form>
 
+    {{-- MODAL EROR --}}
+    <div class="modal fade" id="errorModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center p-4">
+                <h5 class="mb-2 text-danger">Gagal</h5>
+                <p id="errorMessage" class="mb-0"></p>
+            </div>
+        </div>
+    </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -140,7 +157,11 @@
                     document.getElementById('isActive').checked = c.is_active == 1;
 
                     if (c.image) {
-                        renderImage(`/storage/${c.image}`);
+                        renderImage(
+                            c.image.startsWith('http') ?
+                            c.image :
+                            `/storage/${c.image.replace(/^\/+/, '')}`
+                        );
                     }
 
                 } catch (err) {
@@ -192,29 +213,34 @@
 
                     if (res.status === 422) {
 
-                        if (result.errors?.name) {
-                            document.querySelector('.error-name').innerText = result.errors.name[0];
+                        const errors = result.errors;
+
+                        if (errors?.name) {
+                            showErrorModal(errors.name[0]);
+                            return;
                         }
 
-                        if (result.errors?.description) {
-                            document.querySelector('.error-description').innerText = result.errors
-                                .description[0];
+                        if (errors?.description) {
+                            showErrorModal(errors.description[0]);
+                            return;
                         }
 
-                        if (result.errors?.image) {
-                            document.querySelector('.error-image').innerText = result.errors.image[0];
+                        if (errors?.image) {
+                            showErrorModal('Ukuran gambar maksimal 1 MB');
+                            return;
                         }
 
                         return;
                     }
 
                     if (result.success) {
-                        window.location.href = "{{ route('admin.category') }}";
+                        window.location.href = "{{ route('admin.category') }}?updated=1&id=" +
+                            categoryId;
                     }
 
                 } catch (err) {
                     console.error(err);
-                    alert('Server error');
+                    showErrorModal('Terjadi kesalahan server');
                 } finally {
                     btnSubmit.disabled = false;
                     btnSubmit.innerText = 'Update';
@@ -222,5 +248,19 @@
             });
 
         });
+
+        function showErrorModal(message) {
+            const modalEl = document.getElementById('errorModal');
+            const messageEl = document.getElementById('errorMessage');
+
+            messageEl.innerText = message;
+
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+
+            setTimeout(() => {
+                modal.hide();
+            }, 2000);
+        }
     </script>
 @endsection

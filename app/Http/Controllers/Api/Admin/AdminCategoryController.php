@@ -45,9 +45,9 @@ class AdminCategoryController extends Controller
 
         $category = Category::create([
             'name'        => $request->name,
-            'slug'        => $this->generateUniqueSlug($request->name),
+            // 'slug'        => $this->generateUniqueSlug($request->name),
             'description' => $request->description,
-            'image'       => $imagePath, 
+            'image'       => $imagePath,
             'is_active'   => $request->boolean('is_active', true),
         ]);
 
@@ -72,9 +72,9 @@ class AdminCategoryController extends Controller
 
         $data = $request->only('name', 'description');
 
-        if ($request->filled('name') && $request->name !== $category->name) {
-            $data['slug'] = $this->generateUniqueSlug($request->name, $category->id);
-        }
+        // if ($request->filled('name') && $request->name !== $category->name) {
+        //     $data['slug'] = $this->generateUniqueSlug($request->name, $category->id);
+        // }
 
         if ($request->has('is_active')) {
             $data['is_active'] = $request->boolean('is_active');
@@ -148,13 +148,13 @@ class AdminCategoryController extends Controller
         ]);
     }
 
-    private function generateUniqueSlug(string $name, ?int $excludeId = null): string
-    {
-        $slug  = Str::slug($name);
-        $query = Category::where('slug', $slug);
-        if ($excludeId) $query->where('id', '!=', $excludeId);
-        return $query->exists() ? $slug . '-' . time() : $slug;
-    }
+    // private function generateUniqueSlug(string $name, ?int $excludeId = null): string
+    // {
+    //     $slug  = Str::slug($name);
+    //     $query = Category::where('slug', $slug);
+    //     if ($excludeId) $query->where('id', '!=', $excludeId);
+    //     return $query->exists() ? $slug . '-' . time() : $slug;
+    // }
 
     public function bulkDelete(Request $request)
 {

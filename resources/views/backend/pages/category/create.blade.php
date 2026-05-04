@@ -1,6 +1,6 @@
 @extends('backend.app')
 
-@section('title', 'Tambah Kategori')
+@section('title', 'Kategori')
 
 @section('content')
 
@@ -12,18 +12,25 @@
     </style>
 
     <form id="formKategori" enctype="multipart/form-data">
-        <div class="row g-4 align-items-stretch">
+        <div class="row g-2 align-items-stretch">
+            <div class="d-flex align-items-center mt-0">
+                <a href="{{ route('admin.category') }}" class="d-flex align-items-center text-decoration-none text-dark">
+                    <i class="ri-arrow-left-line fs-5 me-2"></i>
+                    <span class="fw-medium">Kembali</span>
+                </a>
+            </div>
+            <h5 class="fw-semibold">Tambah Kategori</h5>
 
-            <!-- KIRI -->
             <div class="col-md-8 d-flex">
-                <div class="card p-4 border-0 shadow-sm w-100 h-100">
+                <div class="card p-4 border-0 shadow-sm w-100 h-100 d-flex flex-column">
 
                     <h6 class="mb-3">Nama Kategori</h6>
-                    <input type="text" name="name" class="form-control mb-2">
+                    <input type="text" name="name" class="form-control mb-2" placeholder="Masukan Nama Kategori">
                     <small class="text-danger error-name"></small>
 
                     <h6 class="mb-2 mt-3">Deskripsi Kategori</h6>
-                    <textarea name="description" class="form-control mb-2" rows="4"></textarea>
+                    <textarea name="description" class="form-control mb-2" placeholder="Masukan Deskripsi Kategori"
+                        style="height:50px; resize:none;"></textarea>
                     <small class="text-danger error-description"></small>
 
                     <div class="form-check form-switch mt-3">
@@ -44,9 +51,8 @@
                         style="cursor:pointer; min-height:220px; overflow:hidden; position:relative;">
 
                         <div id="uploadContent">
-                            <i class="ri-upload-cloud-2-line fs-2 text-primary mb-2"></i>
                             <div class="text-primary fw-medium">Masukan Gambar</div>
-                            <div class="text-muted small">Klik atau seret gambar</div>
+                            <div class="text-muted small">Seret dan Taruh Gambar</div>
                         </div>
 
                     </label>
@@ -62,12 +68,21 @@
 
         <!-- BUTTON -->
         <div class="mt-3 border-top pt-3 d-flex justify-content-end gap-2">
-            <a href="{{ route('admin.category') }}" class="btn btn-outline-secondary">Batal</a>
-            <button type="submit" id="btnSubmit" class="btn btn-success">Simpan</button>
+            <a href="{{ route('admin.category') }}" class="btn btn-second">Batal</a>
+            <button type="submit" id="btnSubmit" class="btn btn-main">Simpan</button>
         </div>
     </form>
 
 
+    {{-- MODAL EROR --}}
+    <div class="modal fade" id="errorModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center p-4">
+                <h5 class="mb-2 text-danger">Gagal</h5>
+                <p id="errorMessage" class="mb-0"></p>
+            </div>
+        </div>
+    </div>
 
 
     <script>
@@ -178,6 +193,21 @@
                 document.querySelectorAll('.text-danger').forEach(el => el.innerText = '');
 
                 let formData = new FormData(form);
+
+                // ✅ VALIDASI FILE SIZE (1 MB)
+                let fileInput = form.querySelector('input[name="image"]');
+                let file = fileInput.files[0];
+
+                if (file) {
+                    let maxSize = 1 * 1024 * 1024;
+
+                    if (file.size > maxSize) {
+                        showErrorModal('Ukuran gambar maksimal 1 MB');
+                        fileInput.value = '';
+                        return;
+                    }
+                }
+
                 formData.set('is_active', document.getElementById('isActive').checked ? 1 : 0);
 
                 let token = localStorage.getItem('access_token');
@@ -206,19 +236,28 @@
                     if (response.status === 422) {
                         let errors = res.errors;
 
-                        if (errors.name) document.querySelector('.error-name').innerText = errors.name[
-                            0];
-                        if (errors.description) document.querySelector('.error-description').innerText =
-                            errors.description[0];
-                        if (errors.image) document.querySelector('.error-image').innerText = errors
-                            .image[0];
+                        // PRIORITAS: nama sudah ada
+                        if (errors.name) {
+                            showErrorModal(errors.name[0]); // otomatis: "nama sudah ada"
+                            return;
+                        }
+
+                        if (errors.description) {
+                            showErrorModal(errors.description[0]);
+                            return;
+                        }
+
+                        if (errors.image) {
+                            showErrorModal(errors.image[0]);
+                            return;
+                        }
 
                         return;
                     }
 
                     if (res.success) {
-                        alert(res.message);
-                        window.location.href = "{{ route('admin.category') }}";
+                        window.location.href = "{{ route('admin.category') }}" + "?created=1&id=" + res
+                            .data.id;
                     }
 
                 } catch (err) {
@@ -229,6 +268,12 @@
                     btnSubmit.innerText = 'Simpan';
                 }
             });
+
+            function showErrorModal(message) {
+                document.getElementById('errorMessage').innerText = message;
+                let modal = new bootstrap.Modal(document.getElementById('errorModal'));
+                modal.show();
+            }
 
         });
     </script>

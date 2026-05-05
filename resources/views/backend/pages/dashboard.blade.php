@@ -71,9 +71,9 @@
         }
 
         /* .table thead th {
-                                                        color: #D1D3D8 !important;
-                                                        font-weight: 500;
-                                                    } */
+                                                                color: #D1D3D8 !important;
+                                                                font-weight: 500;
+                                                            } */
     </style>
 
     <!-- CARD ATAS -->
@@ -132,14 +132,14 @@
         <div class="col-md-4">
             <div class="card card-custom shadow-sm border-0">
                 <div class="card-header d-flex justify-content-between">
-                    <span>Produk Terlaris</span>
+                    <span>Banyak Terjual</span>
                     <small>Lihat Semua</small>
                 </div>
                 <div class="card-body p-0 text-center">
                     <table class="table mb-0">
                         <thead>
                             <tr>
-                                <th>Nama Produk</th>
+                                <th class="text-start">Nama Produk</th>
                                 <th>Produk Terjual</th>
                                 <th>Kategori</th>
                             </tr>

@@ -5,9 +5,51 @@
 @section('content')
 
     <style>
-        #dropArea.border-primary {
-            background: #f8f9fa;
-            border: 2px dashed #0d6efd !important;
+        #imagePreview {
+            position: relative;
+        }
+
+        /* IMAGE BACKGROUND */
+        #previewImg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+            display: none;
+        }
+
+        /* EMPTY STATE */
+        #uploadContent {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* HOVER OVERLAY */
+        .hover-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+
+            opacity: 0;
+            transition: 0.2s ease;
+
+            pointer-events: none;
+        }
+
+        /* HOVER ACTIVE */
+        #imagePreview:hover .hover-overlay {
+            opacity: 1;
         }
     </style>
 
@@ -93,15 +135,23 @@
                 <div class="card p-4 border-0 shadow-sm w-100 h-100 d-flex flex-column">
 
                     <h6 class="mb-3">Gambar Produk</h6>
-
-                    <!-- PREVIEW AREA -->
-                    <div id="imagePreview"
-                        class="border rounded w-100 flex-grow-1 d-flex justify-content-center align-items-center text-center"
+                    <div id="imagePreview" class="border rounded w-100 text-center"
                         style="min-height:220px; overflow:hidden; position:relative; cursor:pointer;">
 
+                        <!-- IMAGE BACKGROUND -->
+                        <img id="previewImg">
+
+                        <!-- EMPTY STATE -->
                         <div id="uploadContent">
-                            <div class="btn-image-admin fw-medium">Masukan Gambar</div>
-                            <div class="text-muted small">Seret dan Taruh Gambar</div>
+                            <i class="ri-image-line fs-2 text-muted"></i>
+                        </div>
+
+                        <!-- HOVER OVERLAY -->
+                        <div class="hover-overlay">
+                            <button type="button" class="btn btn-image-edit-admin fw-medium mb-2">
+                                Masukan Gambar
+                            </button>
+                            <div class="small text-neutral-custom">Klik atau seret gambar</div>
                         </div>
 
                     </div>
@@ -200,15 +250,23 @@
             // RENDER IMAGE
             // =========================
             function renderImage(url) {
-                const preview = document.getElementById('imagePreview');
-                if (!preview) return;
+                const img = document.getElementById('previewImg');
+                const empty = document.getElementById('uploadContent');
 
-                uploadContent.style.display = 'none';
+                img.src = url;
+                img.style.display = 'block';
 
-                preview.innerHTML = `
-            <img src="${url}" class="img-fluid rounded"
-                 style="max-height:220px; object-fit:cover;">
-        `;
+                empty.style.display = 'none';
+            }
+
+            function resetImage() {
+                const img = document.getElementById('previewImg');
+                const empty = document.getElementById('uploadContent');
+
+                img.src = '';
+                img.style.display = 'none';
+
+                empty.style.display = 'block';
             }
 
             // =========================

@@ -331,9 +331,7 @@
         </div>
 
         {{-- PAGINATION --}}
-        <div class="custom-pagination">
-            <a href="#" class="active">1</a>
-        </div>
+        <div class="custom-pagination"></div>
     </div>
 
     <!-- MODAL DELETE -->
@@ -566,12 +564,42 @@
                     updateEyeIcon();
                 }
             });
+            // PAGINATION (NEXT & PREV)
+            document.addEventListener('click', function(e) {
+                const el = e.target.closest('.custom-pagination a');
+                if (!el) return;
+
+                const page = el.dataset.page;
+                if (!page) return;
+
+                e.preventDefault();
+
+                if (page === 'prev') {
+                    if (window.currentPage > 1) {
+                        fetchData(window.currentPage - 1);
+                    }
+                } else if (page === 'next') {
+                    if (window.currentPage < window.lastPage) {
+                        fetchData(window.currentPage + 1);
+                    }
+                } else {
+                    fetchData(Number(page));
+                }
+            });
+
+            console.log("IDS:", selectedIds);
+
+            if (selectedIds.some(id => !id)) {
+                showError("ID tidak valid");
+                return;
+            }
 
             /* =========================
                FETCH DATA
             ========================== */
-            function fetchData() {
-                fetch('/api/admin/categories', {
+            function fetchData(page = 1) {
+
+                fetch(`/api/admin/categories?page=${page}`, {
                         headers: {
                             'Accept': 'application/json'
                         }
@@ -579,28 +607,46 @@
                     .then(res => res.json())
                     .then(res => {
 
-                        tbody.innerHTML = '';
+                        const tbody = document.getElementById('tbody');
                         const catList = document.getElementById('catList');
 
-                        if (!res.data || res.data.length === 0) {
+                        const data = res.data ?? [];
+                        const meta = res.meta ?? {};
+
+                        // EMPTY STATE
+                        if (data.length === 0) {
                             tbody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="text-center text-muted">Data kosong</td>
-                    </tr>`;
-                            if (catList) catList.innerHTML =
-                                `<p class="text-center text-muted py-3" style="font-size:13px;">Data kosong</p>`;
+                <tr>
+                    <td colspan="6" class="text-center text-muted">Data kosong</td>
+                </tr>`;
+
+                            if (catList) {
+                                catList.innerHTML = `
+                    <p class="text-center text-muted py-3" style="font-size:13px;">
+                        Data kosong
+                    </p>`;
+                            }
+
                             return;
                         }
 
-                        allCategories = res.data; // simpan global untuk search
+                        // SAVE STATE GLOBAL
+                        allCategories = data;
 
-                        renderTableBody(res.data);
-                        renderCardList(res.data);
+                        window.currentPage = meta.current_page ?? page;
+                        window.lastPage = meta.last_page ?? page;
+
+                        // RENDER
+                        renderTableBody(data);
+                        renderCardList(data);
 
                         resetState();
                         updateEyeIcon();
+
+                        // pagination sync (IMPORTANT)
+                        renderPagination(meta);
                     })
-                    .catch(err => console.error(err));
+                    .catch(err => console.error('Fetch error:', err));
             }
 
             // Dekstop Tabel Body

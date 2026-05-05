@@ -113,8 +113,13 @@ Route::get('/admin/product/create', [AdminProductController::class, 'frontendPro
     ->name('admin.product.create');
 Route::get('/admin/product/edit/{product}', [AdminProductController::class, 'frontendProductEdit'])
     ->name('admin.product.edit');
-    Route::get('/admin/product/detail/{product}', [AdminProductController::class, 'frontendProductDetail'])
+Route::get('/admin/product/detail/{product}', [AdminProductController::class, 'frontendProductDetail'])
     ->name('admin.product.detail');
+
+// TEST KALENDER
+    Route::get('/admin/kalender', function () {
+    return view('backend.pages.product.kalender');
+})->name('admin.kalender');
 
 // Admin Order
 Route::get('/admin/order', function () {

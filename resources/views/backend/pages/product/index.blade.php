@@ -308,12 +308,18 @@
 
 
     <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+        <button id="openCalendar" class="btn btn-main btn-sm px-3 d-flex align-items-center gap-2">
+            <span class="iconify" data-icon="uil:calendar"></span>
+            <span id="currentMonth"></span>
+        </button>
+
+        @include('backend.components.calendar')
 
         <!-- LEFT -->
-        <button class="btn btn-main btn-sm px-3 d-flex align-items-center gap-2">
+        {{-- <button class="btn btn-main btn-sm px-3 d-flex align-items-center gap-2">
             <span class="iconify" data-icon="uil:calendar" style="font-size:20px;"></span>
             <span id="currentMonth" class="fw-semibold"></span>
-        </button>
+        </button> --}}
 
         <!-- RIGHT (DESKTOP - TETAP) -->
         <div class="ms-auto d-none d-md-flex">
@@ -477,6 +483,7 @@
     </div>
 
     <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const monthEl = document.getElementById('currentMonth');
@@ -510,6 +517,8 @@
 
             let selectedIds = [];
             let allProducts = [];
+
+
 
             /* =========================
                  SUCCESS HANDLER (CREATE & UPDATE)
@@ -636,40 +645,6 @@
                 }
             });
 
-            function renderPagination(meta) {
-                const container = document.querySelector('.custom-pagination');
-
-                let html = '';
-
-                // PREV
-                html += `
-                    <a href="#" class="nav-text ${!meta.prev_page_url ? 'disabled' : ''}" data-page="prev">
-                        &lt; Sebelumnya
-                    </a>
-    `;
-
-                // PAGE NUMBER
-                for (let i = 1; i <= meta.last_page; i++) {
-
-                    html += `
-                        <a href="#"
-                        class="page-number ${i === meta.current_page ? 'active' : ''}"
-                        data-page="${i}">
-                            ${i}
-                        </a>
-                    `;
-                }
-
-                // NEXT
-                html += `
-                    <a href="#" class="nav-text ${!meta.next_page_url ? 'disabled' : ''}" data-page="next">
-                        Berikutnya &gt;
-                    </a>
-                `;
-
-                container.innerHTML = html;
-            }
-
             document.addEventListener('click', function(e) {
                 const el = e.target.closest('.custom-pagination a');
                 if (!el) return;
@@ -692,18 +667,72 @@
                 }
             });
 
-            console.log("IDS:", selectedIds);
 
             if (selectedIds.some(id => !id)) {
                 showError("ID tidak valid");
                 return;
             }
 
+            //  KALENDER
+            document.addEventListener('dateRangeSelected', function(e) {
+                console.log('EVENT MASUK:', e.detail);
+
+                const {
+                    start,
+                    end
+                } = e.detail;
+
+                const el = document.getElementById('currentMonth');
+                if (!el) return;
+
+                const format = (date) =>
+                    new Date(date).toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                    });
+
+                const startDate = new Date(start);
+                const endDate = end ? new Date(end) : null;
+
+                const isSingle = !endDate;
+
+                let text;
+
+                if (isSingle) {
+                    text = format(startDate);
+                } else {
+                    const isSameDay =
+                        startDate.toDateString() === endDate.toDateString();
+
+                    text = isSameDay ?
+                        format(startDate) :
+                        `${format(startDate)} - ${format(endDate)}`;
+                }
+
+                el.textContent = text;
+
+                fetchData(1, start, isSingle ? start : end);
+            });
+            document.dispatchEvent(new CustomEvent('dateRangeSelected', {
+                detail: {
+                    start: '2026-05-04',
+                    end: null
+                }
+            }));
+
             /* =========================
                FETCH DATA
             ========================== */
-            function fetchData(page = 1) {
-                fetch(`/api/admin/products?page=${page}`, {
+            function fetchData(page = 1, startDate = null, endDate = null) {
+
+                let url = `/api/admin/products?page=${page}`;
+
+                if (startDate && endDate) {
+                    url += `&start_date=${startDate}&end_date=${endDate}`;
+                }
+
+                fetch(url, {
                         headers: {
                             'Accept': 'application/json'
                         }
@@ -757,9 +786,6 @@
                 }
 
                 data.forEach((item, index) => {
-                    console.log(item);
-                    console.log(item.image);
-
 
                     let image = item.image ??
                         item.images?.find(i => i.is_primary)?.image_url ??

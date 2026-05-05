@@ -35,6 +35,13 @@ class AdminProductController extends Controller
         $query->where('is_active', $request->boolean('is_active'));
     }
 
+    // Filter rentang tanggal (created_at)
+    if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('created_at', [
+                $request->start_date . ' 00:00:00',
+                $request->end_date . ' 23:59:59'
+            ]);
+        }
     $products = $query->latest()->paginate(10);
 
     $products->getCollection()->transform(function ($product) {

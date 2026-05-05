@@ -97,8 +97,10 @@
                         style="cursor:pointer; min-height:220px; overflow:hidden; position:relative;">
 
                         <div id="uploadContent">
-                            <div class="btn-image-admin fw-medium">Masukan Gambar</div>
-                            <div class="text-muted small">Seret dan Taruh Gambar</div>
+                            <button type="button" class="btn btn-image-admin fw-medium mb-2">
+                                Masukan Gambar
+                            </button>
+                            <div class="small text-neutral-custom">Klik atau seret gambar</div>
                         </div>
 
                     </label>

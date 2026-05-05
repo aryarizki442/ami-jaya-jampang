@@ -5,9 +5,45 @@
 @section('content')
 
     <style>
-        #dropArea.border-primary {
-            background: #f8f9fa;
-            border: 2px dashed #0d6efd !important;
+        #dropArea {
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* IMAGE di belakang */
+        #dropArea img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+        }
+
+        /* upload content di tengah */
+        #uploadContent {
+            position: absolute;
+            z-index: 2;
+        }
+
+        /* overlay hover di paling atas */
+        .hover-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+
+            opacity: 0;
+            transition: 0.2s ease;
+            pointer-events: none;
+        }
+
+        /* hover aktif */
+        #dropArea:hover .hover-overlay {
+            opacity: 1;
         }
     </style>
 
@@ -48,18 +84,28 @@
 
                     <h6 class="mb-3">Gambar Kategori</h6>
 
-                    <label id="dropArea"
-                        class="border rounded w-100 flex-grow-1 d-flex justify-content-center align-items-center text-center"
-                        style="cursor:pointer; min-height:220px; overflow:hidden; position:relative;">
+                    <label id="dropArea" for="imageInput"
+                        style="position:relative; cursor:pointer; min-height:220px; overflow:hidden;"
+                        class="border rounded w-100 d-flex justify-content-center align-items-center text-center">
 
+                        <!-- EMPTY STATE -->
                         <div id="uploadContent">
-                            <i class="ri-upload-cloud-2-line fs-2 text-primary mb-2"></i>
-                            <div class="text-primary fw-medium">Masukan Gambar</div>
-                            <div class="text-muted small">Klik atau seret gambar</div>
+                            <i class="ri-image-line fs-2 text-muted"></i>
+                        </div>
+
+                        <!-- IMAGE PREVIEW -->
+                        <img id="imagePreview"
+                            style="display:none; width:100%; height:100%; object-fit:contain; position:absolute; top:0; left:0;">
+
+                        <!-- HOVER -->
+                        <div class="hover-overlay">
+                            <button type="button" class="btn btn-image-edit-admin fw-medium mb-2">
+                                Masukan Gambar
+                            </button>
+                            <div class="small text-neutral-custom">Klik atau seret gambar</div>
                         </div>
 
                     </label>
-
                     <input type="file" name="image" id="imageInput" class="d-none" accept="image/*">
 
                     <small class="text-danger error-image mt-2 d-block text-center"></small>
@@ -181,7 +227,6 @@
                 renderImage(URL.createObjectURL(file));
             });
 
-            dropArea.addEventListener('click', () => input.click());
 
             // =========================
             // UPDATE DATA (API)

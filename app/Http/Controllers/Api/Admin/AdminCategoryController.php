@@ -15,12 +15,35 @@ class AdminCategoryController extends Controller
     // ──────────────────────────────────────────────────────────────
     public function index(Request $request)
     {
-        $categories = Category::withCount('products')
-            ->when($request->filled('search'), fn($q) => $q->where('name', 'like', '%' . $request->search . '%'))
-            ->when($request->filled('is_active'), fn($q) => $q->where('is_active', $request->boolean('is_active')))
-            ->get();
 
-        return response()->json(['success' => true, 'data' => $categories]);
+    $categories = Category::withCount('products')
+        ->when($request->filled('search'), function ($q) use ($request) {
+            $q->where('name', 'like', '%' . $request->search . '%');
+        })
+        ->when($request->filled('is_active'), function ($q) use ($request) {
+            $q->where('is_active', $request->boolean('is_active'));
+        })
+        ->paginate(10);
+
+    return response()->json([
+        'success' => true,
+        'data' => $categories->items(),
+        'meta' => [
+            'current_page' => $categories->currentPage(),
+            'last_page' => $categories->lastPage(),
+            'per_page' => $categories->perPage(),
+            'total' => $categories->total(),
+            'prev_page_url' => $categories->previousPageUrl(),
+            'next_page_url' => $categories->nextPageUrl(),
+        ]
+    ]);
+        // $categories = Category::withCount('products')
+        //     ->when($request->filled('search'), fn($q) => $q->where('name', 'like', '%' . $request->search . '%'))
+        //     ->when($request->filled('is_active'), fn($q) => $q->where('is_active', $request->boolean('is_active')))
+        //     ->get();
+        //      ->paginate(10);
+
+        // return response()->json(['success' => true, 'data' => $categories]);
     }
 
     // ──────────────────────────────────────────────────────────────

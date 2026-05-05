@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
         PaymentMethodSeeder::class,
         CategorySeeder::class,
         ProductSeeder::class,
-         ProductImageSeeder::class,
+      
 
     ]);
 }

@@ -1,37 +1,427 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>Bayar Order AJJ-20260412-0002</title>
-    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="Mid-client-Cg9mcCLdcKjErnCg"></script>
-</head>
-<body>
-    <div style="text-align: center; margin-top: 100px;">
-        <h1>Total Pembayaran: Rp1.300.000</h1>
-        <button id="pay-button" style="background: green; color: white; padding: 15px 30px; font-size: 18px; border: none; border-radius: 5px; cursor: pointer;">
-            💳 Bayar Sekarang
-        </button>
-    </div>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout Ami Jaya Jampang</title>
 
-    <script>
-        var snapToken = 'dc67e51a-aa4a-479b-83d4-ca4205b39172';
-        
-        document.getElementById('pay-button').onclick = function() {
-            window.snap.pay(snapToken, {
-                onSuccess: function(result) {
-                    console.log('SUKSES:', result);
-                    alert('✅ Pembayaran Berhasil!\n\nOrder: AJJ-20260412-0002\nTotal: Rp1.300.000');
-                    window.location.href = 'http://127.0.0.1:8000/api/orders/7';
-                },
-                onPending: function(result) {
-                    console.log('PENDING:', result);
-                    alert('⏳ Menunggu pembayaran, segera selesaikan pembayaran Anda');
-                },
-                onError: function(result) {
-                    console.log('ERROR:', result);
-                    alert('❌ Pembayaran gagal, silakan coba lagi');
-                }
-            });
-        };
-    </script>
+  <script
+    src="https://app.sandbox.midtrans.com/snap/snap.js"
+    data-client-key="Mid-client-Cg9mcCLdcKjErnCg">
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: #f4f6fb;
+      color: #111;
+    }
+
+    .header {
+      height: 100px;
+      background: linear-gradient(90deg, #083d28, #20875a);
+      display: flex;
+      align-items: center;
+      padding: 0 80px;
+      color: white;
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    .container {
+      padding: 30px 80px;
+    }
+
+    h1 {
+      margin-bottom: 25px;
+      font-size: 32px;
+    }
+
+    .checkout {
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 48px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 28px;
+      margin-bottom: 22px;
+    }
+
+    .section-title {
+      color: #9aa1ad;
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+
+    .address-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .address-name {
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .address-text {
+      line-height: 1.5;
+      font-size: 17px;
+    }
+
+    .btn-outline {
+      border: 1px solid #aaa;
+      background: white;
+      padding: 10px 28px;
+      border-radius: 5px;
+      color: #8d929b;
+      font-size: 16px;
+    }
+
+    .product {
+      display: grid;
+      grid-template-columns: 120px 1fr auto;
+      gap: 30px;
+      align-items: center;
+    }
+
+    .product img {
+      width: 110px;
+      height: 110px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+
+    .product-name {
+      font-size: 18px;
+      margin-bottom: 22px;
+    }
+
+    .product-qty {
+      color: #9aa1ad;
+      font-size: 18px;
+      margin-bottom: 18px;
+    }
+
+    .badge {
+      background: #e6f1ed;
+      color: #178555;
+      padding: 6px 24px;
+      border-radius: 5px;
+      display: inline-block;
+    }
+
+    .price {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #ccc;
+      margin: 35px 0;
+    }
+
+    .shipping-box {
+      border: 1px solid #bbb;
+      border-radius: 8px;
+      padding: 12px 16px;
+      max-width: 680px;
+      margin: auto;
+    }
+
+    .shipping-title {
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .shipping-option {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid #ccc;
+      padding: 10px 0;
+      font-size: 16px;
+    }
+
+    .radio {
+      width: 18px;
+      height: 18px;
+      border: 1px solid #ccc;
+      border-radius: 50%;
+    }
+
+    .radio.active {
+      border: 5px solid #17c61f;
+    }
+
+    .shipping-detail {
+      line-height: 1.6;
+      font-size: 16px;
+      margin-top: 12px;
+    }
+
+    .note {
+      border-top: 1px solid #ccc;
+      border-bottom: 1px solid #ccc;
+      padding: 12px 0;
+      color: #777;
+      margin-top: 10px;
+    }
+
+    .small {
+      font-size: 13px;
+      color: #777;
+      margin-top: 8px;
+    }
+
+    .payment-title {
+      color: #13854f;
+      font-weight: bold;
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    .payment-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 13px 0;
+      border-bottom: 1px solid #ddd;
+      font-size: 16px;
+    }
+
+    .payment-left {
+      display: flex;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .logo {
+      width: 42px;
+      font-weight: bold;
+      font-size: 13px;
+    }
+
+    .summary {
+      background: #25895b;
+      color: white;
+      border-radius: 5px;
+      padding: 18px;
+      margin-top: 20px;
+    }
+
+    .summary h3 {
+      margin-top: 0;
+    }
+
+    .summary-row,
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 12px 0;
+      font-size: 15px;
+    }
+
+    .total {
+      padding-top: 20px;
+      margin-top: 20px;
+      border-top: 1px solid #ddd;
+    }
+
+    .total-row {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .pay-btn {
+      width: 100%;
+      background: #25895b;
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 5px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    .pay-btn:hover {
+      background: #1f744d;
+    }
+
+    @media (max-width: 900px) {
+      .checkout {
+        grid-template-columns: 1fr;
+      }
+
+      .container {
+        padding: 25px;
+      }
+
+      .header {
+        padding: 0 25px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    Ami Jaya Jampang
+  </div>
+
+  <div class="container">
+    <h1>Checkout</h1>
+
+    <div class="checkout">
+      <div>
+        <div class="card">
+          <div class="section-title">ALAMAT PENGIRIMAN</div>
+          <div class="address-row">
+            <div>
+              <div class="address-name">📍 Rumah . Malik Hassan</div>
+              <div class="address-text">
+                Perumahan Cibinong Rt11 Rw222 Cibinong, Kabupaten Bogor,<br>
+                Jawa Barat 16345 <span style="color:#cbd0d8">( 0812002211122 )</span>
+              </div>
+            </div>
+            <button class="btn-outline">Ganti</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="product">
+            <img src="https://via.placeholder.com/110x110.png?text=Beras" alt="Beras">
+            <div>
+              <div class="product-name">Beras Putih BMW</div>
+              <div class="product-qty">15 x Rp.100.000</div>
+              <div class="badge">Premium</div>
+            </div>
+            <div class="price">Rp. 1.500.000</div>
+          </div>
+
+          <hr>
+
+          <div class="shipping-title" style="text-align:center;">Jenis Pengiriman</div>
+
+          <div class="shipping-box">
+            <div class="shipping-option">
+              <strong>Di Antar Oleh Penjual Ke Alamat Pembeli</strong>
+              <span class="radio active"></span>
+            </div>
+
+            <div class="shipping-option">
+              <strong>Pick Up <span style="color:#999">(Pembeli Ambil Barang Ke Lokasi Penjual)</span></strong>
+              <span class="radio"></span>
+            </div>
+
+            <div class="shipping-detail">
+              📍 Dikirim Dari <strong>Kabupaten Bogor</strong><br>
+              🚚 Ongkos Kirim(<strong>Rp. 2.000 Per Karung</strong>)<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Estimasi Tiba Hari ini - Besok
+            </div>
+          </div>
+
+          <div class="note">📝 Beri Catatan <span style="float:right;">0/200</span></div>
+          <div class="small">* Pengiriman Khusus Wilayah Bogor dan Sekitarnya</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <div class="payment-title">Metode Pembayaran</div>
+
+          <div class="payment-row">
+            <div class="payment-left"><span class="logo">COD</span> Cash On Delivery</div>
+            <span class="radio active"></span>
+          </div>
+
+          <div class="payment-row">
+            <div class="payment-left"><span class="logo">BCA</span> BCA Virtual Account</div>
+            <span class="radio"></span>
+          </div>
+
+          <div class="payment-row">
+            <div class="payment-left"><span class="logo">BNI</span> BNI Virtual Account</div>
+            <span class="radio"></span>
+          </div>
+
+          <div class="payment-row">
+            <div class="payment-left"><span class="logo">BRI</span> BRI Virtual Account</div>
+            <span class="radio"></span>
+          </div>
+
+          <div class="payment-row">
+            <div class="payment-left"><span class="logo">MDR</span> Mandiri Virtual Account</div>
+            <span class="radio"></span>
+          </div>
+
+          <div class="payment-row">
+            <div class="payment-left"><span class="logo">QRIS</span> Qris</div>
+            <span class="radio"></span>
+          </div>
+
+          <div class="summary">
+            <h3>Ringkasan Transaksi Anda</h3>
+            <div class="summary-row">
+              <span>Total Harga (1 Barang)</span>
+              <span>Rp.1.500.000</span>
+            </div>
+            <div class="summary-row">
+              <span>Total Ongkos Kirim</span>
+              <span>Rp. 30.000</span>
+            </div>
+            <div class="summary-row">
+              <span>Biaya Layanan</span>
+              <span>Rp. 1.000</span>
+            </div>
+          </div>
+
+          <div class="total">
+            <div class="total-row">
+              <span>Total Tagihan</span>
+              <span>Rp. 1.531.000</span>
+            </div>
+          </div>
+
+          <button id="pay-button" class="pay-btn">Bayar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var snapToken = 'b6ec1499-65bb-4368-acd4-4c07eb498cba';
+
+    document.getElementById('pay-button').onclick = function () {
+      window.snap.pay(snapToken, {
+        onSuccess: function(result) {
+          console.log('SUKSES:', result);
+          alert('✅ Pembayaran Berhasil!');
+          window.location.href = 'http://127.0.0.1:8000/api/orders/7';
+        },
+        onPending: function(result) {
+          console.log('PENDING:', result);
+          alert('⏳ Menunggu pembayaran');
+        },
+        onError: function(result) {
+          console.log('ERROR:', result);
+          alert('❌ Pembayaran gagal');
+        }
+      });
+    };
+  </script>
 </body>
 </html>

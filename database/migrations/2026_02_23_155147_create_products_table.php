@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('category_id')->constrained()->restrictOnDelete();
             $table->string('name', 200);
-            // $table->string('slug', 200)->unique();
+            $table->string('slug', 200)->unique();
             $table->string('sku')->nullable()->unique();
             $table->text('description')->nullable();
             $table->decimal('price', 12, 2);
@@ -26,11 +26,14 @@ return new class extends Migration
             $table->integer('total_sold')->default(0);
             $table->decimal('avg_rating', 3, 2)->default(0.00);
             $table->tinyInteger('is_active')->default(1);
+            $table->tinyInteger('is_recommended')->default(0);
+            $table->string('image')->nullable(); 
             $table->timestamps();
 
             $table->index('category_id');
             $table->index('is_active');
-            // $table->index('slug');
+            $table->index('is_recommended');
+            $table->index('slug');
         });
     }
 

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+
 class Product extends Model
 {
     use HasFactory;
@@ -12,7 +13,7 @@ class Product extends Model
     protected $fillable = [
         'category_id',
         'name',
-        // 'slug',
+        'slug',
         'description',
         'price',
         'weight_kg',
@@ -20,6 +21,8 @@ class Product extends Model
         'min_order',
         'max_order',
         'is_active',
+        'is_recommended',
+        'image',
     ];
 
     protected $casts = [
@@ -29,20 +32,27 @@ class Product extends Model
         'min_order' => 'integer',
         'max_order' => 'integer',
         'is_active' => 'boolean',
+        'is_recommended' => 'boolean',
     ];
 
     public function category()
     {
         return $this->belongsTo(Category::class);
     }
-
-    public function images()
-    {
-        return $this->hasMany(ProductImage::class)->orderBy('sort_order');
+    
+     public function getImageUrlAttribute(): ?string
+{
+    if (!$this->image) {
+        return null;
     }
-
-    public function primaryImage()
-    {
-        return $this->hasOne(ProductImage::class)->where('is_primary', true);
+    
+    // Jika sudah full URL, return langsung
+    if (filter_var($this->image, FILTER_VALIDATE_URL)) {
+        return $this->image;
     }
+    
+    // Jika hanya path, tambahkan asset
+    return asset('storage/' . $this->image);
+}
+
 }

@@ -15,13 +15,12 @@ class Category extends Model
     // ✅ WAJIB biar tidak error 500 (mass assignment)
     protected $fillable = [
         'name',
-        // 'slug',
         'description',
         'image',
         'is_active'
     ];
 
-    // ✅ Default value (optional tapi bagus)
+  
     protected $casts = [
         'is_active' => 'boolean',
     ];

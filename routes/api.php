@@ -24,8 +24,8 @@ use App\Http\Controllers\Api\OtpController;
 |
 */
 
-     
- 
+
+
 
 
 Route::post('/auth/register/complete', [AuthController::class, 'registerComplete']);
@@ -37,28 +37,28 @@ Route::post('/auth/register/complete', [AuthController::class, 'registerComplete
     Route::middleware('auth:api')->group(function () {
 
             // Register step 3 (step 1 & 2 via /otp)
- 
+
     // Login
-  
- 
+
+
     // Lupa password step 3 — reset password (step 1 & 2 via /otp)
-   
- 
+
+
         Route::get('/me',      [AuthController::class, 'me']);
         Route::post('/logout', [AuthController::class, 'logout']);
- 
+
         // Update profil dasar
         Route::put('/profile', [AuthController::class, 'update']);
- 
+
         // Ganti email (step 1 & 2 via /otp, step 3 di sini)
         Route::post('/update-email', [AuthController::class, 'updateEmail']);
- 
+
         // Ganti no. telepon (step 1 & 2 via /otp, step 3 di sini)
         Route::post('/update-phone', [AuthController::class, 'updatePhone']);
- 
+
         // Ganti password (sudah login, tidak butuh OTP)
         Route::post('/change-password', [AuthController::class, 'changePassword']);
- 
+
         // Avatar
         Route::post('/avatar',   [AuthController::class, 'uploadAvatar']);
         Route::delete('/avatar', [AuthController::class, 'deleteAvatar']);
@@ -71,7 +71,6 @@ Route::prefix('otp')->group(function () {
     Route::post('/request', [OtpController::class, 'request']);  // Kirim OTP
     Route::post('/verify',  [OtpController::class, 'verify']);   // Verifikasi OTP
 });
-
 
 Route::middleware(['jwt.auth'])->group(function () {
     Route::get('/cart', [CartController::class, 'index']);
@@ -92,8 +91,12 @@ Route::prefix('admin')->group(function () {
     Route::get('/categories', [AdminCategoryController::class, 'index']);
     Route::post('/categories', [AdminCategoryController::class, 'store']);
     Route::put('/categories/{category}', [AdminCategoryController::class, 'update']);
+Route::get('/categories/{id}', [AdminCategoryController::class, 'show']);
     Route::delete('/categories/{category}', [AdminCategoryController::class, 'destroy']);
     Route::patch('/categories/{category}/toggle-active', [AdminCategoryController::class, 'toggleActive']);
+
+   Route::post('/categories/bulk-delete', [AdminCategoryController::class, 'bulkDelete']);
+
 });
 
 
@@ -132,7 +135,7 @@ Route::middleware('auth:api')->group(function () {
 
     Route::post('/orders/{order}/reorder', [OrderController::class, 'reorder']);
 
-   
+
     Route::get('/orders/{order}/invoice', [OrderController::class, 'invoice']);
 
 });
@@ -140,19 +143,20 @@ Route::middleware('auth:api')->group(function () {
 
 Route::prefix('admin')->group(function () {
 
+        // ── Bulk Delete ─────────────────────────────
+        Route::delete('/products/bulk-delete', [AdminProductController::class, 'bulkDelete']);
+
         // ── CRUD Produk ─────────────────────────────
         Route::get('/products', [AdminProductController::class, 'index']);
         Route::get('/products/{product}', [AdminProductController::class, 'show']);
         Route::post('/products', [AdminProductController::class, 'store']);
         Route::put('/products/{product}', [AdminProductController::class, 'update']);
-        Route::post('/products/{product}', [AdminProductController::class, 'update']); 
+        Route::post('/products/{product}', [AdminProductController::class, 'update']);
         Route::delete('/products/{product}', [AdminProductController::class, 'destroy']);
 
         // ── Toggle Active ───────────────────────────
         Route::patch('/products/{product}/toggle-active', [AdminProductController::class, 'toggleActive']);
 
-        // ── Bulk Delete ─────────────────────────────
-        Route::delete('/products/bulk-delete', [AdminProductController::class, 'bulkDelete']);
 
         // ── Image Handling ──────────────────────────
         Route::post('/products/{product}/images', [AdminProductController::class, 'uploadImages']);

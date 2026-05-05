@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
-    
+
     public function index()
     {
         $categories = Category::where('is_active', 1)
@@ -37,4 +37,5 @@ class CategoryController extends Controller
             'data'    => $category,
         ]);
     }
+
 }

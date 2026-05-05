@@ -1,14 +1,16 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Admin\AdminCategoryController;
+use App\Http\Controllers\Api\Admin\AdminProductController;
+
 
 // Users Routes
-Route::get('/', function () {
+Route::redirect('/', '/home');
+
+Route::get('/home', function () {
     return view('frontend.pages.home');
-})->name('/home');
-// Route::get('/home', function () {
-//     return view('frontend.pages.home');
-// })->name('/home');
+})->name('home');
 Route::get('/detail-product', function () {
     return view('frontend.pages.detail-product');
 })->name('detail-product');
@@ -103,10 +105,39 @@ Route::get('/admin/dashboard', function () {
     return view('backend.pages.dashboard');
 })->name('admin.dashboard');
 
+// Admin Product
 Route::get('/admin/product', function () {
-    return view('backend.pages.product');
+    return view('backend.pages.product.index');
 })->name('admin.product');
+Route::get('/admin/product/create', [AdminProductController::class, 'frontendProduct'])
+    ->name('admin.product.create');
+Route::get('/admin/product/edit/{product}', [AdminProductController::class, 'frontendProductEdit'])
+    ->name('admin.product.edit');
+    Route::get('/admin/product/detail/{product}', [AdminProductController::class, 'frontendProductDetail'])
+    ->name('admin.product.detail');
+
+// Admin Order
 Route::get('/admin/order', function () {
-    return view('backend.pages.order');
+    return view('backend.pages.order.index');
 })->name('admin.order');
+
+// Admin Category
+Route::get('/admin/category', function () {
+    return view('backend.pages.category.index');
+})->name('admin.category');
+Route::get('/admin/category/create', function () {
+    return view('backend.pages.category.create');
+})->name('admin.category.create');
+Route::get('/admin/category/edit/{id}', function ($id) {
+    return view('backend.pages.category.edit', compact('id'));
+})->name('admin.category.edit');
+Route::get('/admin/category/detail/{id}', function ($id) {
+    return view('backend.pages.category.detail', compact('id'));
+})->name('admin.category.detail');
+
+// Admin Order
+Route::get('/admin/order', function () {
+    return view('backend.pages.order.index');
+})->name('admin.order');
+
 

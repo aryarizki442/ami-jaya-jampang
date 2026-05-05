@@ -15,7 +15,6 @@ class Category extends Model
     // ✅ WAJIB biar tidak error 500 (mass assignment)
     protected $fillable = [
         'name',
-        'slug',
         'description',
         'image',
         'is_active'
@@ -33,7 +32,6 @@ class Category extends Model
     }
 
     // 🔗 Accessor untuk URL gambar (biar langsung bisa dipakai di frontend)
-    
     public function getImageAttribute($value)
 {
     if (!$value) {
@@ -42,5 +40,4 @@ class Category extends Model
 
     return asset('storage/' . $value);
 }
-
 }

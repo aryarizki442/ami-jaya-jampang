@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
+
+
 class AdminProductController extends Controller
 {
 
@@ -79,7 +81,7 @@ class AdminProductController extends Controller
                 'is_active'      => $product->is_active,
                 'is_recommended' => $product->is_recommended,
                 'category'       => $product->category,
-                'image'          => $product->image_url, // Pakai accessor
+                'image'          => $product->image_url, 
             ],
         ]);
     }

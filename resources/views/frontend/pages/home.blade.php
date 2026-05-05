@@ -138,7 +138,7 @@
 
             <!-- Button -->
             <div class="text-center mt-5">
-                <a href="#" class="btn btn-custom-outline-green px-5">
+                <a href="#" class="btn btn-second px-5">
                     Lihat Lebih Banyak
                 </a>
             </div>

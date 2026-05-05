@@ -2,36 +2,41 @@
 
 namespace Database\Seeders;
 
-use App\Models\Category;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class CategorySeeder extends Seeder
 {
-    public function run()
+    public function run(): void
     {
-        $categories = [
-            [      
-                'name' => 'Medium',
-                'slug' => 'medium',
-                'description' => 'Beras kualitas medium dengan tekstur pulen',
-                'is_active' => true,
-            ],
+        DB::table('categories')->insert([
             [
                 'name' => 'Premium',
-                'slug' => 'premium',
-                'description' => 'Beras kualitas premium dengan aroma harum dan tekstur super pulen',
-                'is_active' => true,
+                'image' => $this->getImage('beras-putih.png'),
+                'is_active' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Medium',
+                'image' => $this->getImage('beras-medium.png'),
+                'is_active' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
                 'name' => 'Ketan',
-                'slug' => 'ketan',
-                'description' => 'Beras ketan putih untuk berbagai olahan tradisional',
-                'is_active' => true,
+                'image' => $this->getImage('beras-ketan.png'),
+                'is_active' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
-        ];
 
-        foreach ($categories as $category) {
-            Category::create($category);
-        }
+        ]);
+    }
+
+    private function getImage(string $filename): string
+    {
+        return 'categories/' . $filename;
     }
 }

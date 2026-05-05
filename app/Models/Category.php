@@ -21,7 +21,7 @@ class Category extends Model
         'is_active'
     ];
 
-    // ✅ Default value (optional tapi bagus)
+  
     protected $casts = [
         'is_active' => 'boolean',
     ];

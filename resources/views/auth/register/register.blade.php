@@ -59,4 +59,38 @@
 
         </div>
     </div>
+
+    <script>
+        // auto isi email dari OTP sebelumnya
+        document.getElementById('email').value =
+            localStorage.getItem('register_email') || '';
+
+        document.getElementById('btn-next')
+            .addEventListener('click', function(e) {
+
+                e.preventDefault();
+
+                const name = document.getElementById('name').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const phone = document.getElementById('phone').value.trim();
+
+                // validasi
+                if (!name || !email || !phone) {
+                    alert('Semua field wajib diisi');
+                    return;
+                }
+
+                // simpan data
+                localStorage.setItem('register_name', name);
+                localStorage.setItem('register_phone', phone);
+
+                // email tetap update
+                localStorage.setItem('register_email', email);
+
+                // pindah halaman
+                window.location.href =
+                    "{{ route('register-password') }}";
+
+            });
+    </script>
 @endsection

@@ -134,5 +134,78 @@
 <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <script src="{{ asset('js/main.js') }}"></script>
+<script>
+    const form = document.querySelector('form');
+    const phone = document.getElementById('phone');
+    const changePhoneBtn = document.getElementById('changePhoneBtn');
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            alert('Silakan login terlebih dahulu');
+            window.location.href = "/login";
+            return;
+        }
+
+        const updateToken = sessionStorage.getItem('update_token');
+
+        if (!updateToken || updateToken === 'null' || updateToken === 'undefined') {
+            alert('Session verifikasi habis, ulangi OTP');
+            window.location.href = "/verify-email";
+            return;
+        }
+
+        console.log('TOKEN YANG DIPAKAI:', updateToken);
+
+        try {
+            changePhoneBtn.disabled = true;
+            changePhoneBtn.innerText = 'Memproses...';
+
+            const response = await fetch('/api/update-phone', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    update_token: updateToken,
+                    new_phone: phone.value
+                })
+            });
+
+            const result = await response.json();
+
+            console.log(result);
+
+            if (!response.ok) {
+                alert(result.message || 'Gagal update nomor telepon');
+                changePhoneBtn.disabled = false;
+                changePhoneBtn.innerText = 'SELESAI';
+                return;
+            }
+
+            alert('Nomor telepon berhasil diperbarui');
+
+            // bersihkan session
+            sessionStorage.removeItem('update_token');
+            sessionStorage.removeItem('verify_email');
+            sessionStorage.removeItem('verify_target');
+
+            // redirect
+            window.location.href = "/profile";
+
+        } catch (error) {
+            console.error(error);
+            alert('Terjadi kesalahan');
+
+            changePhoneBtn.disabled = false;
+            changePhoneBtn.innerText = 'SELESAI';
+        }
+    });
+</script>
 
 </html>

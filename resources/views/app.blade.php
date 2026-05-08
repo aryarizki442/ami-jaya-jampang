@@ -32,7 +32,7 @@
     @yield('auth')
     @include('frontend.partials.navbar')
     @yield('hero')
-    <div class="container py-5">
+    <div class="container">
         @yield('content')
     </div>
 

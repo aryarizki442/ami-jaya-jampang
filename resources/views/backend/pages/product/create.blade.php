@@ -16,7 +16,7 @@
         <div class="row g-2 align-items-start">
             <!-- HEADER -->
             <div class="d-flex align-items-center mt-0">
-                <a href="{{ route('admin.product') }}" class="d-flex align-items-center text-decoration-none text-dark">
+                <a href="{{ route('admin.product.index') }}" class="d-flex align-items-center text-decoration-none text-dark">
                     <i class="ri-arrow-left-line fs-5 me-2"></i>
                     <span class="fw-medium">Kembali</span>
                 </a>
@@ -41,7 +41,7 @@
 
                     <!-- HARGA -->
                     <h6 class="mb-2 mt-3 border-top pt-3">Harga Produk</h6>
-                    <input type="number" name="price" class="form-control" placeholder="Masukan Harga Produk">
+                    <input type="text" name="price" class="form-control" placeholder="Masukan Harga Produk">
                     <small class="text-danger error-price"></small>
 
                     <!-- ROW -->
@@ -54,7 +54,7 @@
 
                         <div class="col-md-6">
                             <h6 class="mb-2">Berat Produk</h6>
-                            <input type="number" name="weight_kg" class="form-control"
+                            <input type="text" name="weight_kg" class="form-control"
                                 placeholder="Masukan Berat Produk Kg/Liter" min="0" step="0.01">
                         </div>
                     </div>
@@ -72,14 +72,16 @@
                     </div>
 
 
-                    {{-- <div class="form-check form-switch mt-4">
-                        <input class="form-check-input" type="checkbox" id="isActive" checked>
-                        <label class="form-check-label">Tampilkan ke Produk Terlaris</label>
-                    </div> --}}
+                    <div class="form-check form-switch mt-4">
+                        <input class="form-check-input" type="checkbox" id="isRecommended">
+                        <label class="form-check-label" for="isRecommended">
+                            Jadikan Rekomendasi
+                        </label>
+                    </div>
 
                     <!-- STATUS -->
                     <div class="form-check form-switch mt-4">
-                        <input class="form-check-input" type="checkbox" id="isActive" checked>
+                        <input class="form-check-input" type="checkbox" id="isActive">
                         <label class="form-check-label">Tampilkan Produk</label>
                     </div>
 
@@ -105,7 +107,7 @@
 
                     </label>
 
-                    <input type="file" name="images[]" id="imageInput" class="d-none" accept="image/*">
+                    <input type="file" name="image" id="imageInput" class="d-none" accept="image/*">
 
                     <small class="text-danger error-image mt-2 d-block text-center"></small>
 
@@ -141,6 +143,20 @@
             const dropArea = document.getElementById('dropArea');
             const uploadContent = document.getElementById('uploadContent');
             const btnSubmit = document.getElementById('btnSubmit');
+
+            // Cegah 2 kali klik (FIX BUG DRAG & DROP + CLICK)
+            if (!dropArea.dataset.bound) {
+                dropArea.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    input.click();
+                });
+
+                input.addEventListener('change', function(e) {
+                    showPreview(e.target.files[0]);
+                });
+
+                dropArea.dataset.bound = "true";
+            }
 
             // =========================
             // 🚫 BLOCK DRAG GLOBAL (FIX TAB BARU)
@@ -181,29 +197,21 @@
         position:absolute;
         top:0;
         left:0;
-    `;
+                `;
 
                 // gambar
                 const img = document.createElement('img');
                 img.src = url;
                 img.style.cssText = `
-        max-width:100%;
-        max-height:100%;
-        object-fit:contain;
-    `;
+                    max-width:100%;
+                    max-height:100%;
+                    object-fit:contain;
+                `;
 
                 wrapper.appendChild(img);
                 dropArea.appendChild(wrapper);
             }
 
-            // =========================
-            // CLICK
-            // =========================
-            dropArea.addEventListener('click', () => input.click());
-
-            input.addEventListener('change', function(e) {
-                showPreview(e.target.files[0]);
-            });
 
             // =========================
             // DRAG AREA
@@ -255,12 +263,17 @@
                     }
 
                     // WAJIB: pastikan masuk ke FormData
-                    formData.append('images[]', file);
+                    formData.append('image', file);
                 }
                 // set boolean
                 formData.set('is_active', document.getElementById('isActive').checked ? 1 : 0);
 
-                let token = localStorage.getItem('access_token');
+                formData.set(
+                    'is_recommended',
+                    document.getElementById('isRecommended').checked ? 1 : 0
+                );
+
+                let token = localStorage.getItem('token');
 
                 if (!token) {
                     alert('Session habis, login ulang!');
@@ -302,8 +315,8 @@
                             return;
                         }
 
-                        if (errors['images.0']) {
-                            showErrorModal(errors['images.0'][0]);
+                        if (errors['image']) {
+                            showErrorModal(errors['image'][0]);
                             return;
                         }
 
@@ -312,7 +325,7 @@
 
                     // SUCCESS
                     if (res.success) {
-                        window.location.href = "/admin/product?created=1&id=" + res.data.id;
+                        window.location.href = "/admin/product/index?created=1&id=" + res.data.id;
                     }
 
                 } catch (err) {

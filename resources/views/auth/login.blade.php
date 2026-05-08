@@ -55,7 +55,7 @@
             <!-- REGISTER -->
             <div class="mt-3 mb-3 register-text text-muted">
                 Belum Punya Akun?
-                <a href="{{ route('register') }}">Daftar</a>
+                <a href="{{ route('send-email') }}">Daftar</a>
             </div>
 
         </div>
@@ -145,11 +145,11 @@
                     const token = data.data.access_token;
                     const user = data.data.user;
 
-                    // simpan token (INI YANG PENTING)
-                    localStorage.setItem('access_token', token);
+                    // SIMPAN TOKEN (SATU NAMA SAJA)
+                    localStorage.setItem('token', token);
 
                     // redirect
-                    if (user.email === 'admin@gmail.com') {
+                    if (user.role === 'admin') {
                         window.location.href = "{{ route('admin.dashboard') }}";
                     } else {
                         window.location.href = "{{ route('home') }}";

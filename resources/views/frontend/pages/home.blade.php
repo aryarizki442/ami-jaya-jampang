@@ -35,72 +35,73 @@
 @section('content')
 
     <div class="container">
-
         <section class="kategori mb-4">
             <h2>Kategori Beras</h2>
 
             <div class="row g-0 text-center">
 
-                <!-- Beras Putih Medium -->
-                <div class="col-md-4 col-12 item mb-3">
-                    <button class="btn-category w-100" data-filter="beras-putih-medium">
-                        <img src="{{ asset('images/home/category/beras-medium.png') }}"
-                            class="img-fluid rounded-circle mb-2">
-                        <p class="mb-0">Beras Putih Medium</p>
-                    </button>
-                </div>
+                @forelse ($categories as $category)
+                    <div class="col-md-4 col-12 item mb-3">
 
-                <!-- Beras Putih Premium -->
-                <div class="col-md-4 col-12 item mb-3">
-                    <button class="btn-category w-100" data-filter="beras-putih-premium">
-                        <img src="{{ asset('images/home/category/beras-putih.png') }}"
-                            class="img-fluid rounded-circle mb-2">
-                        <p class="mb-0">Beras Putih Premium</p>
-                    </button>
-                </div>
+                        <button class="btn-category w-100" data-filter="{{ $category->slug ?? $category->id }}">
 
-                <!-- Beras Ketan -->
-                <div class="col-md-4 col-12 item mb-3">
-                    <button class="btn-category w-100" data-filter="beras-ketan">
-                        <img src="{{ asset('images/home/category/beras-ketan.png') }}"
-                            class="img-fluid rounded-circle mb-2">
-                        <p class="mb-0">Beras Ketan</p>
-                    </button>
-                </div>
+                            <img src="{{ $category->image }}" class="img-fluid rounded-circle mb-2"
+                                alt="{{ $category->name }}">
+
+
+                            <p class="mb-0">Beras {{ $category->name }}</p>
+
+                        </button>
+
+                    </div>
+                @empty
+                    <div class="col-12">
+                        <p class="text-muted">Kategori tidak tersedia</p>
+                    </div>
+                @endforelse
 
             </div>
         </section>
 
 
         <section class="best mb-4">
-            <h2>Beras Terlaris</h2>
+            <h2>Beras Rekomendasi</h2>
 
             <div class="best-slider">
                 <div class="best-track">
 
-                    @for ($i = 0; $i < 8; $i++)
+                    @forelse ($recommendedProducts as $product)
                         <div class="best-col">
-                            <div class="best-card rounded">
+                            <a href="{{ route('detail-product', $product->slug) }}"
+                                class="text-decoration-none text-dark d-block h-100">
+                                <div class="best-card rounded">
 
-                                <img src="{{ asset('images/home/category/beras-putih.png') }}">
+                                    <img src="{{ $product->image ? asset('storage/' . $product->image) : asset('images/home/category/beras-putih.png') }}"
+                                        class="img-fluid" alt="{{ $product->name }}">
+                                    <div class="best-body">
+                                        <div class="rating mb-3">★★★★★</div>
 
-                                <div class="best-body">
-                                    <div class="rating mb-3">★★★★★</div>
+                                        <p class="best-title mb-3">
+                                            {{ $product->weight ?? '1 Liter' }} {{ $product->name }}<br>
+                                        </p>
 
-                                    <p class="best-title mb-3">
-                                        1 Liter Beras Premium<br>
-                                        Beras Merah Premium Rojolele
-                                    </p>
+                                        <div class="best-footer">
+                                            <span class="harga">
+                                                Rp. {{ number_format($product->price, 0, ',', '.') }}
+                                            </span>
 
-                                    <div class="best-footer">
-                                        <span class="harga">Rp. 30.000</span>
-                                        <span class="terjual">Tersedia 100</span>
+                                            <span class="terjual">
+                                                Tersedia {{ $product->stock ?? 0 }}
+                                            </span>
+                                        </div>
                                     </div>
-                                </div>
 
-                            </div>
+                                </div>
+                            </a>
                         </div>
-                    @endfor
+                    @empty
+                        <p class="text-muted">Belum ada produk rekomendasi</p>
+                    @endforelse
 
                 </div>
             </div>
@@ -111,34 +112,49 @@
 
             <!-- Grid Produk -->
             <div class="row g-3 produk-row">
-                @for ($i = 0; $i < 15; $i++)
+
+                @forelse ($products as $product)
                     <div class="produk-col">
-                        <div class="produk-card rounded">
+                        <a href="{{ route('detail-product', $product->slug) }}" class="text-decoration-none text-dark">
+                            <div class="produk-card rounded">
 
-                            <img src="{{ asset('images/home/category/beras-putih.png') }}" class="img-fluid">
+                                <img src="{{ $product->image ? asset('storage/' . $product->image) : asset('images/home/category/beras-putih.png') }}"
+                                    class="img-fluid" alt="{{ $product->name }}">
+                                <div class="produk-body">
 
-                            <div class="produk-body ">
-                                <div class="rating mb-3">★★★★★</div>
+                                    <!-- ⭐ TETAP STATIS SESUAI PERMINTAAN -->
+                                    <div class="rating mb-3">★★★★★</div>
 
-                                <p class="produk-title mb-3">
-                                    1 Liter Beras Premium<br>
-                                    Beras Merah Premium Rojolele
-                                </p>
+                                    <p class="produk-title mb-3">
+                                        {{ $product->weight ?? '1 Liter' }} {{ $product->name }}<br>
+                                    </p>
 
-                                <div class="produk-footer">
-                                    <span class="harga">Rp. 30.000</span>
-                                    <span class="terjual">Tersedia 100</span>
+                                    <div class="produk-footer">
+                                        <span class="harga">
+                                            Rp. {{ number_format($product->price, 0, ',', '.') }}
+                                        </span>
+
+                                        <span class="terjual">
+                                            Tersedia {{ $product->stock ?? 0 }}
+                                        </span>
+                                    </div>
+
                                 </div>
-                            </div>
 
-                        </div>
+                            </div>
+                        </a>
                     </div>
-                @endfor
+                @empty
+                    <div class="col-12 text-center">
+                        <p class="text-muted">Produk belum tersedia</p>
+                    </div>
+                @endforelse
+
             </div>
 
             <!-- Button -->
             <div class="text-center mt-5">
-                <a href="#" class="btn btn-second px-5">
+                <a href="{{ route('all-product') }}" class="btn btn-second px-5">
                     Lihat Lebih Banyak
                 </a>
             </div>

@@ -212,7 +212,7 @@
 
                 formData.set('is_active', document.getElementById('isActive').checked ? 1 : 0);
 
-                let token = localStorage.getItem('access_token');
+                let token = localStorage.getItem('token');
 
                 if (!token) {
                     alert('Session habis, login ulang!');

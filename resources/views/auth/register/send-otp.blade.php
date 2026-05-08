@@ -42,4 +42,81 @@
 
         </div>
     </div>
+
+    <script>
+        document.getElementById('btn-next')
+            .addEventListener('click', async function(e) {
+
+                e.preventDefault();
+
+                const otp = document.getElementById('code').value.trim();
+
+                // ambil email dari localStorage
+                const email = localStorage.getItem('register_email');
+
+                if (!email) {
+                    alert('Email tidak ditemukan');
+                    return;
+                }
+
+                // validasi OTP
+                if (!otp) {
+                    alert('Kode OTP wajib diisi');
+                    return;
+                }
+
+                if (otp.length !== 6) {
+                    alert('Kode OTP harus 6 digit');
+                    return;
+                }
+
+                try {
+
+                    const res = await fetch('/api/otp/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            purpose: 'register',
+                            email: email,
+                            otp: otp
+                        })
+                    });
+
+                    const result = await res.json();
+
+                    console.log(result);
+
+                    // gagal
+                    if (!res.ok) {
+
+                        if (result.errors?.otp) {
+                            alert(result.errors.otp[0]);
+                            return;
+                        }
+
+                        alert(result.message || 'OTP tidak valid');
+                        return;
+                    }
+
+                    // simpan register token
+                    localStorage.setItem(
+                        'register_token',
+                        result.data.register_token
+                    );
+
+                    // redirect halaman password
+                    window.location.href = '/register';
+
+                } catch (err) {
+
+                    console.error(err);
+
+                    alert('Terjadi kesalahan server');
+                }
+
+            });
+    </script>
 @endsection

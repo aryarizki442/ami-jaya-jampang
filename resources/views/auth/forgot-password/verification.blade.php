@@ -43,4 +43,63 @@
 
         </div>
     </div>
+
+    <script>
+        document.getElementById('btn-next').addEventListener('click', async function(e) {
+            e.preventDefault();
+
+            const otp = document.getElementById('code').value.trim();
+            const email = localStorage.getItem('forgot_email');
+
+            if (!otp) {
+                alert('Kode OTP wajib diisi');
+                return;
+            }
+
+            if (!email) {
+                alert('Email tidak ditemukan, ulangi dari awal');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/otp/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        purpose: 'forgot_password',
+                        email: email,
+                        otp: otp
+                    })
+                });
+
+                const result = await res.json(); // ✅ hanya sekali
+
+                console.log(result);
+
+                if (!res.ok) {
+                    alert(result.message);
+                    return;
+                }
+
+                // 🔥 SIMPAN SESSION RESET
+                localStorage.setItem('reset_email', result.data.email);
+                localStorage.setItem('reset_token', result.data.reset_token);
+
+                console.log('ORIGIN:', window.location.origin);
+                console.log('STORAGE FULL:', localStorage);
+                console.log('reset_email:', localStorage.getItem('reset_email'));
+                console.log('reset_token:', localStorage.getItem('reset_token'));
+
+                // lanjut ke halaman password baru
+                window.location.href = "{{ route('new-password') }}";
+
+            } catch (err) {
+                console.error(err);
+                alert('Server error');
+            }
+        });
+    </script>
 @endsection

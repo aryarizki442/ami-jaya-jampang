@@ -156,10 +156,7 @@
         }
 
         /* =========================
-                                                                                                                                                                                                                                   RESPONSIVE PROFILE IMPROVED
-                                                                                                                                                                                                                                ========================= */
-
-        /* tablet */
+                                                                                                                                                                                                                                                                                                                                                    /* tablet */
         @media (max-width: 992px) {
 
             .profile-value {
@@ -282,9 +279,18 @@
                         Nama
                     </label>
 
-                    <div class="col-sm d-flex align-items-center">
-                        <p class="mb-0 profile-value">malikhassan123</p>
-                        <a href="#" class="ubah-link small">Ubah Nama</a>
+                    <div class="col-sm d-flex align-items-center gap-2">
+
+                        <!-- TEXT MODE -->
+                        <p class="mb-0 profile-value" id="profileName">-</p>
+
+                        <!-- EDIT MODE (hidden awalnya) -->
+                        <input type="text" id="editName" class="form-control form-control-sm d-none"
+                            style="max-width:200px;">
+
+                        <a href="#" id="btnEditName" class="ubah-link small">Ubah Nama</a>
+                        <a href="#" id="btnSaveName" class="ubah-link small d-none">Simpan</a>
+
                     </div>
                 </div>
 
@@ -295,8 +301,10 @@
                     </label>
 
                     <div class="col-sm d-flex align-items-center">
-                        <p class="mb-0 profile-value">ma******@gmail.com</p>
-                        <a href="#" class="ubah-link small">Ubah Email</a>
+                        <p class="mb-0 profile-value"id="profileEmail">-</p>
+                        <a href="{{ route('verify-email', ['target' => 'email']) }}" class="ubah-link small">
+                            Ubah Email
+                        </a>
                     </div>
                 </div>
 
@@ -307,8 +315,10 @@
                     </label>
 
                     <div class="col-sm d-flex align-items-center">
-                        <p class="mb-0 profile-value">08********66</p>
-                        <a href="#" class="ubah-link small">Ubah No.Telepon</a>
+                        <p class="mb-0 profile-value" id="profilePhone">-</p>
+                        <a href="{{ route('verify-email', ['target' => 'phone']) }}" class="ubah-link small">
+                            Ubah No Telepon
+                        </a>
                     </div>
                 </div>
 
@@ -318,7 +328,9 @@
                     </label>
 
                     <div class="col-sm d-flex align-items-center">
-                        <a href="#" class="ubah-link small">Ubah Kata Sandi</a>
+                        <a href="{{ route('verify-email', ['target' => 'password']) }}" class="ubah-link small">
+                            Ubah Kata Sandi
+                        </a>
                     </div>
                 </div>
 
@@ -331,13 +343,13 @@
                     <div class="col-sm-9">
                         <div class="form-check form-check-inline">
                             <input class="form-check-input" type="radio" name="jenis_kelamin" id="laki"
-                                value="laki" checked>
+                                value="male">
                             <label class="form-check-label" for="laki">Laki Laki</label>
                         </div>
 
                         <div class="form-check form-check-inline">
                             <input class="form-check-input" type="radio" name="jenis_kelamin" id="perempuan"
-                                value="perempuan">
+                                value="female">
                             <label class="form-check-label" for="perempuan">Perempuan</label>
                         </div>
                     </div>
@@ -349,60 +361,61 @@
                     </label>
                     <div class="col-sm-9 date-group">
 
-                        {{-- TANGGAL --}}
-                        <div class="select-wrapper">
-                            <select class="form-select ">
-                                <option selected disabled style="color: #B8B9BA" value="">Tanggal</option>
-                                @for ($i = 1; $i <= 31; $i++)
-                                    <option value="{{ $i }}">{{ $i }}</option>
-                                @endfor
-                            </select>
-                            <iconify-icon icon="iconamoon:arrow-down-2-light"></iconify-icon>
-                        </div>
+                        <p id="profileBirthText" class="mb-0 profile-value"></p>
 
-                        {{-- BULAN --}}
-                        <div class="select-wrapper">
-                            <select class="form-select">
-                                <option selected disabled style="color: #B8B9BA" value="">Bulan</option>
-                                <option value="1">Januari</option>
-                                <option value="2">Februari</option>
-                                <option value="3">Maret</option>
-                                <option value="4">April</option>
-                                <option value="5">Mei</option>
-                                <option value="6">Juni</option>
-                                <option value="7">Juli</option>
-                                <option value="8">Agustus</option>
-                                <option value="9">September</option>
-                                <option value="10">Oktober</option>
-                                <option value="11">November</option>
-                                <option value="12">Desember</option>
-                            </select>
-                            <iconify-icon icon="iconamoon:arrow-down-2-light"></iconify-icon>
-                        </div>
+                        <div id="birthSelects" class="d-none d-flex gap-2">
 
-                        {{-- TAHUN --}}
-                        <div class="select-wrapper">
-                            <select class="form-select">
-                                <option selected disabled style="color: #B8B9BA" value="">Tahun</option>
-                                @for ($i = date('Y'); $i >= 1950; $i--)
-                                    <option value="{{ $i }}">{{ $i }}</option>
-                                @endfor
-                            </select>
-                            <iconify-icon icon="iconamoon:arrow-down-2-light"></iconify-icon>
-                        </div>
+                            <div class="select-wrapper">
+                                <select class="form-select" id="birthDay">
+                                    <option selected disabled style="color: #B8B9BA" value="">Tanggal</option>
+                                    @for ($i = 1; $i <= 31; $i++)
+                                        <option value="{{ $i }}">{{ $i }}</option>
+                                    @endfor
+                                </select>
+                                <iconify-icon icon="iconamoon:arrow-down-2-light"></iconify-icon>
+                            </div>
 
+                            {{-- BULAN --}}
+                            <div class="select-wrapper">
+                                <select class="form-select" id="birthMonth">
+                                    <option selected disabled style="color: #B8B9BA" value="">Bulan</option>
+                                    <option value="1">Januari</option>
+                                    <option value="2">Februari</option>
+                                    <option value="3">Maret</option>
+                                    <option value="4">April</option>
+                                    <option value="5">Mei</option>
+                                    <option value="6">Juni</option>
+                                    <option value="7">Juli</option>
+                                    <option value="8">Agustus</option>
+                                    <option value="9">September</option>
+                                    <option value="10">Oktober</option>
+                                    <option value="11">November</option>
+                                    <option value="12">Desember</option>
+                                </select>
+                                <iconify-icon icon="iconamoon:arrow-down-2-light"></iconify-icon>
+                            </div>
+
+                            {{-- TAHUN --}}
+                            <div class="select-wrapper">
+                                <select class="form-select" id="birthYear">
+                                    <option selected disabled value="">Tahun</option>
+                                    @for ($i = date('Y'); $i >= 1950; $i--)
+                                        <option value="{{ $i }}">{{ $i }}</option>
+                                    @endfor
+                                </select>
+                                <iconify-icon icon="iconamoon:arrow-down-2-light"></iconify-icon>
+                            </div>
+
+                        </div>
                     </div>
                 </div>
-
-
-
             </div>
 
             {{-- FOTO KANAN --}}
             <div class="col-md-4 profile-divider text-center mt-4 pt-4">
 
-                <img src="{{ asset('images/home/category/beras-medium.png') }}" class="rounded-circle mb-3 w-50"
-                    alt="Foto Profil">
+                <img id="profileAvatar" src="{{ asset('images/home/category/beras-medium.png') }}"
+                    class="rounded-circle mb-3 w-50" alt="Foto Profil">
 
                 <div>
                     <button class="btn btn-save">Pilih Gambar</button>
@@ -416,11 +429,211 @@
             </div>
 
             <div class="col-sm-9 offset-sm-2 mt-2">
-                <button class="btn btn-save">Simpan</button>
+                <button class="btn btn-save" id="btnSaveProfile">
+                    Simpan
+                </button>
             </div>
 
         </div>
     </section>
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 
+    <script>
+        function formatBirthDate(dateString) {
+            if (!dateString) return '-';
+
+            const [y, m, d] = dateString.split('-');
+
+            const months = [
+                'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+            ];
+
+            return `${parseInt(d)} ${months[parseInt(m) - 1]} ${y}`;
+        }
+
+        function getToken() {
+            return localStorage.getItem('token');
+        }
+
+        async function apiFetch(url, options = {}) {
+            const token = getToken();
+
+            const res = await fetch(url, {
+                ...options,
+                headers: {
+                    'Content-Type': options.body instanceof FormData ? undefined : 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                    ...(options.headers || {})
+                }
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) throw data;
+
+            return data;
+        }
+
+        /* =========================
+           LOAD PROFILE
+        ========================= */
+        async function loadProfile() {
+            try {
+                const res = await apiFetch('/api/me');
+                const user = res.data?.user || res.data;
+
+                document.getElementById('profileName').textContent = user.name ?? '-';
+                document.getElementById('profileEmail').textContent = user.email ?? '-';
+                document.getElementById('profilePhone').textContent = user.phone ?? '-';
+
+
+                if (user?.email) {
+                    sessionStorage.setItem('profile_email', user.email);
+                }
+
+                if (user?.phone) {
+                    sessionStorage.setItem('profile_phone', user.phone);
+                }
+
+                const avatar = document.getElementById('profileAvatar');
+                if (avatar && user.avatar) {
+                    avatar.src = user.avatar;
+                }
+
+                if (user.gender) {
+                    const radio = document.querySelector(
+                        `input[name="jenis_kelamin"][value="${user.gender}"]`
+                    );
+                    if (radio) radio.checked = true;
+                }
+                if (user.birth_date) {
+                    const parts = user.birth_date.split('-');
+                    if (parts.length === 3) {
+                        const [year, month, day] = parts;
+
+                        const birthDay = document.getElementById('birthDay');
+                        const birthMonth = document.getElementById('birthMonth');
+                        const birthYear = document.getElementById('birthYear');
+
+                        if (birthDay) birthDay.value = Number(day);
+                        if (birthMonth) birthMonth.value = Number(month);
+                        if (birthYear) birthYear.value = Number(year);
+                    }
+                }
+                const birthText = document.getElementById('profileBirthText');
+                const birthSelects = document.getElementById('birthSelects');
+
+                if (user.birth_date) {
+                    birthText.textContent = formatBirthDate(user.birth_date);
+
+                    birthText.classList.remove('d-none');
+                    birthSelects.classList.add('d-none');
+                } else {
+                    birthText.textContent = '-';
+
+                    birthText.classList.add('d-none');
+                    birthSelects.classList.remove('d-none');
+                }
+
+            } catch (err) {
+                console.log(err);
+            }
+        }
+
+        /* =========================
+           INLINE EDIT NAME
+        ========================= */
+        const nameText = document.getElementById('profileName');
+        const editInput = document.getElementById('editName');
+        const btnEdit = document.getElementById('btnEditName');
+        const btnSaveProfile = document.getElementById('btnSaveProfile');
+
+        if (btnEdit) {
+            btnEdit.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                editInput.value = nameText.textContent;
+
+                nameText.classList.add('d-none');
+                editInput.classList.remove('d-none');
+
+                btnEdit.classList.add('d-none');
+                btnSaveProfile.classList.remove('d-none');
+
+                const birthText = document.getElementById('profileBirthText');
+                const birthSelects = document.getElementById('birthSelects');
+
+                // kalau belum ada data → tetap tampil select
+                if (birthText.textContent === '-' || !birthText.textContent) {
+                    birthText.classList.add('d-none');
+                    birthSelects.classList.remove('d-none');
+                } else {
+                    birthText.classList.add('d-none');
+                    birthSelects.classList.remove('d-none');
+                }
+            });
+        }
+
+        if (btnSaveProfile) {
+            btnSaveProfile.addEventListener('click', async function(e) {
+                e.preventDefault();
+
+                try {
+
+                    // =========================
+                    // NAME
+                    // =========================
+                    const name = document.getElementById('editName')?.value ||
+                        document.getElementById('profileName')?.textContent;
+
+                    // =========================
+                    // GENDER
+                    // =========================
+                    const gender = document.querySelector('input[name="jenis_kelamin"]:checked')?.value;
+
+                    // =========================
+                    // BIRTH DATE
+                    // =========================
+                    const tanggal = document.getElementById('birthDay')?.value;
+                    const bulan = document.getElementById('birthMonth')?.value;
+                    const tahun = document.getElementById('birthYear')?.value;
+
+                    let birth_date = null;
+
+                    if (tanggal && bulan && tahun) {
+                        birth_date =
+                            `${tahun}-${String(bulan).padStart(2,'0')}-${String(tanggal).padStart(2,'0')}`;
+                    }
+
+                    // =========================
+                    // HIT API UPDATE PROFILE
+                    // =========================
+                    const res = await apiFetch('/api/profile', {
+                        method: 'PUT',
+                        body: JSON.stringify({
+                            name,
+                            gender,
+                            birth_date
+                        })
+                    });
+
+                    alert(res.message);
+
+                    // refresh UI setelah save
+                    loadProfile();
+
+                } catch (err) {
+                    console.log(err);
+                    alert(err.message || 'Gagal menyimpan profil');
+                }
+            });
+        }
+
+        /* =========================
+           AUTO LOAD
+        ========================= */
+        document.addEventListener('DOMContentLoaded', loadProfile);
+    </script>
 @endsection

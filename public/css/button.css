@@ -233,3 +233,65 @@
     border-radius: 3px;
     padding: 10px;
 }
+
+/* BUTTON FILTER */
+.btn-dropdown-filter-all {
+    color: var(--neutral-500) !important;
+}
+
+.btn-dropdown-filter-all:hover {
+    background-color: var(--neutral-500);
+    color: var(--text-white) !important;
+}
+
+.btn-dropdown-filter-premium {
+    color: var(--primary-500) !important;
+}
+
+.btn-dropdown-filter-premium:hover {
+    background-color: var(--primary-500);
+    color: var(--text-white) !important;
+}
+
+.btn-dropdown-filter-medium {
+    color: var(--primary-700) !important;
+}
+
+.btn-dropdown-filter-medium:hover {
+    background-color: var(--primary-700);
+    color: var(--text-white) !important;
+}
+
+.btn-dropdown-filter-ketan {
+    color: var(--primary-500) !important;
+}
+
+.btn-dropdown-filter-ketan:hover {
+    background-color: var(--primary-500);
+    color: var(--text-white) !important;
+}
+
+/* BUTTON ADDRESS CUSTOMER */
+.btn-address-main {
+    background: var(--primary-500);
+    border: none;
+    color: #fff;
+}
+
+.btn-address-main:hover {
+    background: var(--primary-700);
+    color: #fff !important;
+
+}
+
+.btn-address-second {
+    background-color: #fff;
+    color: var(--primary-500) !important;
+    border: 1px solid var(--primary-500);
+}
+
+.btn-address-second:hover {
+    color: var(--primary-700) !important;
+    border: 1px solid var(--primary-700);
+    background-color: #fff;
+}

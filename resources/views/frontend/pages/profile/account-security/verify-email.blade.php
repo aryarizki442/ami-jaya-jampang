@@ -106,7 +106,7 @@
             <form method="POST" action="">
                 @csrf
 
-                <input type="hidden" name="type" value="">
+                <input type="hidden" id="target" value="{{ $target }}">
 
                 <div class="mb-3">
                     <label class="form-label ">Email</label>
@@ -131,18 +131,104 @@
 <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <script>
+    const form = document.querySelector('form');
     const email = document.getElementById('email');
+    const verifyEmailBtn = document.getElementById('verifyEmailBtn');
+    const target = document.getElementById('target');
 
-    function checkInputs() {
-        if (email.value.trim() !== '') {
-            verifyEmailBtn.classList.add('active'); // warna berubah
-        } else {
-            verifyEmailBtn.classList.remove('active'); // kembali ke warna default
+    email.addEventListener('input', function() {
+        verifyEmailBtn.classList.toggle('active', email.value.trim() !== '');
+    });
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            alert('Silakan login terlebih dahulu');
+            return;
         }
-    }
 
-    // cek setiap kali user mengetik
-    email.addEventListener('input', checkInputs);
+        try {
+            verifyEmailBtn.disabled = true;
+            verifyEmailBtn.innerText = 'Memproses...';
+
+            // AMBIL USER
+            const meResponse = await fetch('/api/me', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+
+            const meResult = await meResponse.json();
+
+            const currentEmail =
+                meResult?.data?.email ||
+                meResult?.data?.user?.email ||
+                meResult?.user?.email;
+
+            if (!currentEmail) {
+                alert('Gagal ambil data user');
+                return;
+            }
+
+            // VALIDASI EMAIL
+            if (email.value.trim().toLowerCase() !== currentEmail.toLowerCase()) {
+                alert('Masukkan email anda saat ini');
+                verifyEmailBtn.disabled = false;
+                verifyEmailBtn.innerText = 'BERIKUTNYA';
+                return;
+            }
+
+            // PURPOSE
+            const purposeMap = {
+                phone: 'update_phone',
+                email: 'update_email',
+                password: 'forgot_password'
+            };
+
+            const purpose = purposeMap[target.value];
+
+            // REQUEST OTP (HANYA 1X)
+            const response = await fetch('/api/otp/request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    purpose: purpose,
+                    email: currentEmail
+                })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                console.log(result);
+                alert(result.message || 'Verifikasi gagal');
+                verifyEmailBtn.disabled = false;
+                verifyEmailBtn.innerText = 'BERIKUTNYA';
+                return;
+            }
+
+            // SIMPAN
+            sessionStorage.setItem('verify_email', currentEmail);
+            sessionStorage.setItem('verify_target', target.value);
+
+            window.location.href = "{{ route('verify-otp') }}";
+
+        } catch (error) {
+            console.error(error);
+            alert('Terjadi kesalahan');
+
+            verifyEmailBtn.disabled = false;
+            verifyEmailBtn.innerText = 'BERIKUTNYA';
+        }
+    });
 </script>
 
 </html>

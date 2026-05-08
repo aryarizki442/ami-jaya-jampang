@@ -142,7 +142,7 @@
             const btnSubmit = document.getElementById('btnSubmit');
 
             const categoryId = "{{ $id }}";
-            const token = localStorage.getItem('access_token');
+            const token = localStorage.getItem('token');
 
             // =========================
             // RENDER IMAGE (API + PREVIEW)

@@ -25,8 +25,14 @@
 
         /* TABLE */
         .custom-table {
-            width: max-content;
-            min-width: 100%;
+            width: 100%;
+            table-layout: auto;
+        }
+
+        .name-text {
+            max-width: 350px;
+            white-space: normal;
+            overflow-wrap: break-word;
         }
 
         .custom-table thead th {
@@ -309,17 +315,12 @@
 
     <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
         <button id="openCalendar" class="btn btn-main btn-sm px-3 d-flex align-items-center gap-2">
-            <span class="iconify" data-icon="uil:calendar"></span>
+            <span class="iconify" data-icon="uil:calendar" style="font-size:18px;"></span>
             <span id="currentMonth"></span>
         </button>
 
         @include('backend.components.calendar')
 
-        <!-- LEFT -->
-        {{-- <button class="btn btn-main btn-sm px-3 d-flex align-items-center gap-2">
-            <span class="iconify" data-icon="uil:calendar" style="font-size:20px;"></span>
-            <span id="currentMonth" class="fw-semibold"></span>
-        </button> --}}
 
         <!-- RIGHT (DESKTOP - TETAP) -->
         <div class="ms-auto d-none d-md-flex">
@@ -350,11 +351,33 @@
             </div>
 
             <!-- FILTER -->
-            <div class="col-6 col-md-auto">
-                <button class="btn btn-filter-admin w-100 d-flex align-items-center justify-content-center gap-1">
+            <div class="col-6 col-md-auto position-relative">
+
+                <button type="button" id="filterBtn"
+                    class="btn btn-filter-admin w-100 d-flex align-items-center justify-content-center gap-1">
                     <span class="iconify" data-icon="mingcute:filter-line"></span>
                     Filter
                 </button>
+
+                <!-- DROPDOWN -->
+                <div id="filterDropdown" class="position-absolute bg-white shadow rounded p-3 mt-2 d-none"
+                    style="min-width:220px; z-index:999;">
+
+                    <div class="fw-semibold mb-2">Filter</div>
+
+                    <div class="small text-muted mb-1">Kategori Produk</div>
+
+                    <select id="categoryFilter" class="form-select form-select-sm">
+                        <option value="" data-filter="all">Semua Kategori</option>
+
+                        @foreach ($categories as $category)
+                            <option value="{{ $category->id }}" data-filter="{{ strtolower($category->name) }}">
+                                {{ $category->name }}
+                            </option>
+                        @endforeach
+                    </select>
+
+                </div>
             </div>
 
             <!-- DELETE -->
@@ -483,25 +506,10 @@
     </div>
 
     <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const monthEl = document.getElementById('currentMonth');
-
-            const now = new Date();
-            const options = {
-                month: 'long',
-                year: 'numeric'
-            };
-
-            monthEl.textContent = now.toLocaleDateString('id-ID', options);
-        });
-    </script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-
             /* =========================
-               ELEMENTS
+            ELEMENTS
             ========================== */
             const urlParams = new URLSearchParams(window.location.search);
 
@@ -515,68 +523,102 @@
             const deleteBtn = document.getElementById("deleteSelected");
             const confirmBtn = document.getElementById("confirmDeleteBtn");
 
+
             let selectedIds = [];
             let allProducts = [];
 
-
-
-            /* =========================
-                 SUCCESS HANDLER (CREATE & UPDATE)
-              ========================== */
-            const created = urlParams.get('created') === '1';
-            const updated = urlParams.get('updated') === '1';
-            const id = urlParams.get('id');
-
-            if (created || updated) {
-
-                let message = created ?
-                    'Berhasil Menambahkan Kategori' :
-                    'Berhasil Mengubah Kategori';
-
-                showSuccess(message);
-
-                if (id) {
-                    setTimeout(() => {
-                        const row = document.querySelector(`[data-id='${id}']`);
-                        if (row) {
-                            row.classList.add('table-success');
-                            row.scrollIntoView({
-                                behavior: 'smooth',
-                                block: 'center'
-                            });
-
-                            setTimeout(() => {
-                                row.classList.remove('table-success');
-                            }, 2000);
-                        }
-                    }, 200);
-                }
-
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
+            let filters = {
+                page: 1,
+                startDate: null,
+                endDate: null,
+                categoryId: null
+            };
 
             // =========================
-            // FUNCTION MODAL Create & Update || EROR
+            // DROPDOWN FUNCTION
             // =========================
-            function showSuccess(message) {
-                const text = document.getElementById('successMessage');
-                text.innerText = message;
+            function initDropdown(triggerId, dropdownId) {
+                const trigger = document.getElementById(triggerId);
+                const dropdown = document.getElementById(dropdownId);
 
-                const modal = new bootstrap.Modal(document.getElementById('successModal'));
-                modal.show();
+                if (!trigger || !dropdown) return;
 
-                setTimeout(() => modal.hide(), 1500);
+                trigger.addEventListener('click', function(e) {
+                    e.stopPropagation();
+
+                    dropdown.classList.toggle('d-none');
+
+                    // reset posisi
+                    dropdown.style.left = '';
+                    dropdown.style.right = '';
+
+                    const rect = dropdown.getBoundingClientRect();
+                    const screenWidth = window.innerWidth;
+
+                    // auto flip kiri/kanan
+                    if (rect.right > screenWidth) {
+                        dropdown.style.left = 'auto';
+                        dropdown.style.right = '0';
+                    } else {
+                        dropdown.style.left = '0';
+                        dropdown.style.right = 'auto';
+                    }
+                });
+
+                dropdown.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+                document.addEventListener('click', function() {
+                    dropdown.classList.add('d-none');
+                });
+            }
+            initDropdown('filterBtn', 'filterDropdown');
+
+            const categoryFilter = document.getElementById('categoryFilter');
+
+            if (categoryFilter) {
+                categoryFilter.addEventListener('change', function() {
+                    const selected = this.options[this.selectedIndex];
+                    const type = selected.dataset.filter || 'all';
+
+                    // this.classList.remove(
+                    //     'btn-dropdown-filter-all',
+                    //     'btn-dropdown-filter-premium',
+                    //     'btn-dropdown-filter-medium',
+                    //     'btn-dropdown-filter-ketan'
+                    // );
+
+                    // this.classList.add(`btn-dropdown-filter-${type}`);
+
+                    // filter logic
+                    filters.categoryId = this.value || null;
+                    filters.page = 1;
+
+                    fetchData();
+                });
+
+                // set default saat load
+                categoryFilter.dispatchEvent(new Event('change'));
             }
 
-            function showError(message) {
-                const text = document.getElementById('errorMessage');
-                text.innerText = message;
 
-                const modal = new bootstrap.Modal(document.getElementById('errorModal'));
-                modal.show();
+            // =========================
+            // TANGGAL SEKARANG
+            // =========================
+            const monthEl = document.getElementById('currentMonth');
 
-                setTimeout(() => modal.hide(), 2000);
+            if (monthEl) {
+                const now = new Date();
+
+                const options = {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                };
+
+                monthEl.textContent = now.toLocaleDateString('id-ID', options);
             }
+
 
             /* =========================
                DROPDOWN ICON TOGGLE
@@ -660,7 +702,8 @@
                     }
                 } else if (page === 'next') {
                     if (window.currentPage < window.lastPage) {
-                        fetchData(window.currentPage + 1);
+                        filters.page = window.currentPage + 1;
+                        fetchData();
                     }
                 } else {
                     fetchData(Number(page));
@@ -668,10 +711,6 @@
             });
 
 
-            if (selectedIds.some(id => !id)) {
-                showError("ID tidak valid");
-                return;
-            }
 
             //  KALENDER
             document.addEventListener('dateRangeSelected', function(e) {
@@ -685,51 +724,73 @@
                 const el = document.getElementById('currentMonth');
                 if (!el) return;
 
-                const format = (date) =>
-                    new Date(date).toLocaleDateString('id-ID', {
+                // parse aman (hindari timezone shift)
+                const parseLocalDate = (str) => {
+                    const [y, m, d] = str.split('-');
+                    return new Date(y, m - 1, d);
+                };
+
+                const formatDate = (date) => {
+                    const y = date.getFullYear();
+                    const m = String(date.getMonth() + 1).padStart(2, '0');
+                    const d = String(date.getDate()).padStart(2, '0');
+                    return `${y}-${m}-${d}`;
+                };
+
+                const startDate = parseLocalDate(start);
+                const endDate = end ? parseLocalDate(end) : null;
+
+                const isSingle = !endDate;
+
+                // tampilkan teks di UI
+                const formatDisplay = (date) =>
+                    date.toLocaleDateString('id-ID', {
                         day: 'numeric',
                         month: 'short',
                         year: 'numeric'
                     });
 
-                const startDate = new Date(start);
-                const endDate = end ? new Date(end) : null;
-
-                const isSingle = !endDate;
-
                 let text;
 
                 if (isSingle) {
-                    text = format(startDate);
+                    text = formatDisplay(startDate);
                 } else {
                     const isSameDay =
                         startDate.toDateString() === endDate.toDateString();
 
                     text = isSameDay ?
-                        format(startDate) :
-                        `${format(startDate)} - ${format(endDate)}`;
+                        formatDisplay(startDate) :
+                        `${formatDisplay(startDate)} - ${formatDisplay(endDate)}`;
                 }
 
                 el.textContent = text;
 
-                fetchData(1, start, isSingle ? start : end);
+                // 🔥 FETCH CUMA 1X (INI YANG BENAR)
+                fetchData(
+                    1,
+                    formatDate(startDate),
+                    formatDate(endDate ?? startDate)
+                );
             });
-            document.dispatchEvent(new CustomEvent('dateRangeSelected', {
-                detail: {
-                    start: '2026-05-04',
-                    end: null
-                }
-            }));
+
 
             /* =========================
                FETCH DATA
             ========================== */
             function fetchData(page = 1, startDate = null, endDate = null) {
 
-                let url = `/api/admin/products?page=${page}`;
+                filters.page = page;
+                filters.startDate = startDate;
+                filters.endDate = endDate;
 
-                if (startDate && endDate) {
-                    url += `&start_date=${startDate}&end_date=${endDate}`;
+                let url = `/api/admin/products?page=${filters.page}`;
+
+                if (filters.startDate && filters.endDate) {
+                    url += `&start_date=${filters.startDate}&end_date=${filters.endDate}`;
+                }
+
+                if (filters.categoryId) {
+                    url += `&category_id=${filters.categoryId}`;
                 }
 
                 fetch(url, {
@@ -739,7 +800,6 @@
                     })
                     .then(res => res.json())
                     .then(res => {
-
                         const pagination = res.data;
 
                         const tbody = document.getElementById('ProductTableBody');
@@ -763,36 +823,24 @@
 
                         renderTableBody(pagination.data);
                         renderCardList(pagination.data);
-
                         renderPagination(pagination);
 
-                        // simpan state penting
-                        window.currentPage = pagination.current_page;
-                        window.lastPage = pagination.last_page;
+                        filters.page = pagination.current_page;
 
                         resetState();
                         updateEyeIcon();
                     })
                     .catch(err => console.error(err));
             }
-
             // Dekstop Tabel Body
             function renderTableBody(data) {
                 let html = '';
 
-                if (!Array.isArray(data)) {
-                    console.error('Data bukan array:', data);
-                    return;
-                }
-
                 data.forEach((item, index) => {
 
-                    let image = item.image ??
-                        item.images?.find(i => i.is_primary)?.image_url ??
-                        item.images?.[0]?.image_url ??
-                        '/images/home/products/beras-putih.png';
+                    let image = item.image ?? '/images/home/products/beras-putih.png';
 
-                    let category = (item.category?.name || item.category || '').toString().toLowerCase();
+                    let category = (item.category?.name || '-').toLowerCase();
 
                     let categoryClass = '';
                     if (category === 'premium') {
@@ -801,17 +849,15 @@
                         categoryClass = 'medium-category fw-normal';
                     } else if (category === 'ketan') {
                         categoryClass = 'ketan-category fw-normal';
-                    } else {
-                        categoryClass = 'fw-normal';
                     }
 
                     let price = Number(item.price || 0).toLocaleString('id-ID');
 
                     html += `
-        <tr class="align-middle" data-id="${item.id || index}">
+        <tr class="align-middle" data-id="${item.id}">
 
             <td class="text-center">
-                <input type="checkbox" class="custom-check row-check" value="${item.id ?? ''}">
+                <input type="checkbox" class="custom-check row-check" value="${item.id}">
             </td>
 
             <td class="text-start fw-medium">
@@ -820,19 +866,17 @@
                     <img src="${image}" width="45" class="rounded">
 
                     <div>
-                        <div class="fw-medium">
-                            ${item.name || '-'}
-                        </div>
+                        <div class="fw-medium name-text">${item.name}</div>
 
                         <span class="badge ${categoryClass} category-badge">
-                            ${item.category?.name || '-'}
+                            ${item.category?.name ?? '-'}
                         </span>
                     </div>
 
                 </div>
             </td>
 
-            <td class="text-start fw-medium">
+            <td class="text-start fw-medium ps-0">
                 Rp ${price}
             </td>
 
@@ -853,8 +897,7 @@
         </tr>`;
                 });
 
-                const tbody = document.getElementById('ProductTableBody');
-                tbody.innerHTML = html;
+                document.getElementById('ProductTableBody').innerHTML = html;
             }
             //Mobile Table Body
             function renderCardList(data) {
@@ -873,11 +916,11 @@
                 }
 
                 catList.innerHTML = data.map((item, index) => {
-                    let image = item.image ??
-                        item.images?.find(i => i.is_primary)?.image_url ??
-                        item.images?.[0]?.image_url ??
-                        '/images/home/products/beras-putih.png';
-                    let category = (item.category?.name || item.category || '').toString().toLowerCase();
+
+                    // ✅ image sudah dari backend (item.image)
+                    let image = item.image ?? '/images/home/products/beras-putih.png';
+
+                    let category = (item.category?.name || '-').toLowerCase();
 
                     let categoryClass = '';
                     if (category === 'premium') {
@@ -894,18 +937,19 @@
                     let stock = item.stock ?? 0;
 
                     return `
-        <div class="cat-card" data-id="${item.id || index}">
+        <div class="cat-card" data-id="${item.id}">
 
-            <input type="checkbox" class="custom-check row-check" value="${item.id ?? ''}" style="margin-top:4px; flex-shrink:0;">
+            <input type="checkbox" class="custom-check row-check" value="${item.id}" style="margin-top:4px; flex-shrink:0;">
 
-            <img class="cat-img" src="${image}" alt="${item.name || '-'}">
+            <img class="cat-img" src="${image}" alt="${item.name ?? '-'}">
 
             <div class="cat-info">
 
                 <div class="cat-row1">
-                    <span class="cat-name">${item.name || '-'}</span>
-                    <span class=" badge ${categoryClass} category-badge" style="font-size:11px;">
-                      ${item.category?.name || '-'}
+                    <span class="cat-name">${item.name ?? '-'}</span>
+
+                    <span class="badge ${categoryClass} category-badge" style="font-size:11px;">
+                        ${item.category?.name ?? '-'}
                     </span>
                 </div>
 
@@ -920,6 +964,7 @@
                     </span>
 
                     <div class="cat-actions">
+
                         <a href="/admin/product/edit/${item.id}" class="act-btn edit">
                             <span class="iconify" data-icon="flowbite:edit-outline" style="font-size:16px;"></span>
                         </a>
@@ -927,6 +972,7 @@
                         <a href="/admin/product/detail/${item.id}" class="act-btn detail">
                             <span class="iconify" data-icon="heroicons-outline:eye" style="font-size:16px;"></span>
                         </a>
+
                     </div>
 
                 </div>
@@ -1055,6 +1101,66 @@
 
                 return colors[Math.abs(hash) % colors.length] + ' fw-normal';
             }
+
+
+            /* =========================
+                 SUCCESS HANDLER (CREATE & UPDATE)
+              ========================== */
+            const created = urlParams.get('created') === '1';
+            const updated = urlParams.get('updated') === '1';
+            const id = urlParams.get('id');
+
+            if (created || updated) {
+
+                let message = created ?
+                    'Berhasil Menambahkan Kategori' :
+                    'Berhasil Mengubah Kategori';
+
+                showSuccess(message);
+
+                if (id) {
+                    setTimeout(() => {
+                        const row = document.querySelector(`[data-id='${id}']`);
+                        if (row) {
+                            row.classList.add('table-success');
+                            row.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'center'
+                            });
+
+                            setTimeout(() => {
+                                row.classList.remove('table-success');
+                            }, 2000);
+                        }
+                    }, 200);
+                }
+
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            // =========================
+            // FUNCTION MODAL Create & Update || EROR
+            // =========================
+            function showSuccess(message) {
+                const text = document.getElementById('successMessage');
+                text.innerText = message;
+
+                const modal = new bootstrap.Modal(document.getElementById('successModal'));
+                modal.show();
+
+                setTimeout(() => modal.hide(), 1500);
+            }
+
+            function showError(message) {
+                const text = document.getElementById('errorMessage');
+                text.innerText = message;
+
+                const modal = new bootstrap.Modal(document.getElementById('errorModal'));
+                modal.show();
+
+                setTimeout(() => modal.hide(), 2000);
+            }
+
 
         });
     </script>

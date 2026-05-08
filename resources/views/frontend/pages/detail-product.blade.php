@@ -70,23 +70,48 @@
         .custom-border {
             border-bottom: 2px solid #adadad;
         }
+
+        .breadcrumb-item+.breadcrumb-item::before {
+            display: none;
+        }
     </style>
 
     {{-- DESKRIPSI PRODUK --}}
-    <div class="row g-4">
+    <div class="row g-4 py-5">
         {{-- GAMBAR PRODUK --}}
-        <h5 class="fw-bold mb-3 title-product">Deskripsi Produk</h5>
+        <div class="d-flex align-items-center gap-5 mb-3">
+
+            <h5 class="fw-bold mb-0 title-product">
+                Deskripsi Produk
+            </h5>
+
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb small mb-0 align-items-center ">
+
+                    <li class="breadcrumb-item">
+                        <a href="{{ route('home') }}" class="text-decoration-none text-muted">
+                            Home
+                        </a>
+                    </li>
+
+                    <li class="breadcrumb-item d-flex align-items-center active text-dark fw-semibold" aria-current="page">
+                        <span class="iconify mx-2 text-muted" data-icon="solar:alt-arrow-right-linear"></span>
+
+                        {{ $product->name }}
+                    </li>
+
+                </ol>
+            </nav>
+
+        </div>
+        {{-- GAMBAR --}}
         <div class="col-lg-4">
 
             <div class="text-center">
-                <img src="{{ asset('images/home/category/beras-putih.png') }}" class="img-fluid" alt="Beras Putih"
-                    width="250">
 
-                <div class="d-flex justify-content-center gap-3 mb-4">
-                    <img src="{{ asset('images/home/category/beras-putih.png') }}" class="rounded-circle" width="90">
-                    <img src="{{ asset('images/home/category/beras-putih.png') }}" class="rounded-circle" width="90">
-                    <img src="{{ asset('images/home/category/beras-putih.png') }}" class="rounded-circle" width="90">
-                </div>
+                <img src="{{ $product->image ? asset('storage/' . $product->image) : asset('images/home/category/beras-putih.png') }}"
+                    class="img-fluid" alt="{{ $product->name }}">
+
             </div>
         </div>
 
@@ -97,27 +122,27 @@
             </div>
 
             <h5 class="fw-semibold mb-2">
-                1 Karung Beras Putih Premium<br>Rojo Lele
+                {{ $product->name }}<br>
             </h5>
 
             <div class="d-flex gap-4 small mb-2">
                 <span class="text-muted">
                     Stok:
-                    <span class="text-success fw-medium">Tersedia</span>
+                    <span class="text-success fw-medium">{{ $product->stock > 0 ? 'Tersedia' : 'Habis' }}</span>
                 </span>
                 <span class="text-muted">
                     Kategori:
-                    <span class="text-dark fw-medium">Beras Putih Premium</span>
+                    <span class="text-dark fw-medium">{{ $product->category->name ?? '-' }}</span>
                 </span>
             </div>
 
             <p class="small text-muted mb-2">
                 Terjual:
-                <span class="text-dark fw-medium">45 Karung</span>
+                <span class="text-dark fw-medium">{{ $product->sold ?? 0 }} Karung</span>
             </p>
 
             <h4 class="fw-bold price-product pb-2">
-                Rp. 100.000
+                Rp. {{ number_format($product->price, 0, ',', '.') }}
             </h4>
 
             <div class="section-header mb-3">
@@ -131,10 +156,10 @@
                 <div class="d-flex mb-1">
                     <div class="text-muted" style="width: 130px;">Berat Per Karung</div>
                     <div class="text-muted" style="width: 10px;">:</div>
-                    <div class="text-dark fw-medium"> 50 Kg</div>
+                    <div class="text-dark fw-medium">{{ $product->weight_kg ?? '1' }} Kg</div>
                 </div>
 
-                <div>
+                {{-- <div>
                     <div class="text-muted" style="width: 140px;">Pengiriman <span style="margin-left: 46px;">:</span>
                     </div>
 
@@ -150,33 +175,29 @@
                         <br>
                         <div>(<span class="text-muted"> Pick Up ( Pembeli ambil beras ke Toko ) </span>)</div>
                     </div>
-                </div>
+                </div> --}}
             </div>
 
+            {{-- CATEGORY NAME --}}
+            <div class="border-bottom pb-2 mb-2" style="border-bottom: 2px solid #ddd !important;">
+                <p class="small text-dark fw-semibold mb-0">
+                    {{ $product->category->name ?? 'Tidak ada kategori' }}
+                </p>
 
-            <p class="small text-dark fw-medium mb-0">
+                <p class="small text-dark fw-medium mb-0">
+                    {{ $product->category->description ?? 'Tidak ada deskripsi kategori' }}
+                </p>
+            </div>
 
-                <span class="fw-bold">Beras Putih Premium</span> <br>
+            <div class="border-bottom pb-2 mb-2" style="border-bottom: 2px solid #ddd !important;">
+                <p class="small text-dark fw-bold mb-0">
+                    {{ $product->name ?? 'Tidak ada nama produk' }}
+                </p>
 
-                Beras putih premium merupakan pilihan beras berkualitas
-                tinggi yang dihasilkan dari padi terbaik dengan proses
-                pengolahan modern dan higienis. Memiliki butiran yang
-                utuh, bersih, dan berwarna putih cerah, beras ini
-                menghasilkan nasi yang pulen, harum, dan lezat.
-                Cocok untuk kebutuhan sehari-hari maupun hidangan
-                spesial keluarga, beras putih premium juga kaya akan
-                karbohidrat sebagai sumber energi utama. Teksturnya
-                yang lembut dan rasa yang nikmat menjadikannya favorit
-                untuk berbagai jenis masakan.
-                <br> <span class="fw-bold"> Keunggulan:</span> <br>
-            <ul class="custom-border pb-3 small text-dark fw-medium" style="font-size: 14px;">
-                <li>Butiran utuh dan minim patah</li>
-                <li>Nasi pulen, harum, dan tidak mudah basi</li>
-                <li>Bersih dan bebas kotoran</li>
-                <li>Diproses secara higienis</li>
-                <li>Cocok untuk konsumsi harian hingga acara spesial</li>
-            </ul>
-            </p>
+                <p class="small text-dark fw-medium mb-0">
+                    {{ $product->description ?? 'Tidak ada deskripsi produk' }}
+                </p>
+            </div>
 
 
         </div>
@@ -191,29 +212,32 @@
                     <!-- Input Group -->
                     <div class="input-group input-group-sm qty-group">
                         <button class="btn qty-btn fw-bold" data-action="minus">-</button>
-                        <input type="text" class="form-control text-center fw-semibold qty-input" value="1">
+                        <input type="text" class="form-control text-center fw-semibold qty-input" value="1"
+                            data-price="{{ $product->price }}">
                         <button class="btn qty-btn fw-bold" data-action="plus">+</button>
                     </div>
 
 
 
                     <!-- Stok -->
-                    <span class="small fw-medium">
-                        Stok Total : sisa 100
-                    </span>
+                    {{-- <span class="small fw-medium">
+                        Stok: {{ $product->stock ?? 0 }} Karung
+                    </span> --}}
                 </div>
 
                 <!-- SUBTOTAL -->
                 <div class="d-flex justify-content-between fw-bold mb-3">
                     <span class="fw-medium">Subtotal</span>
-                    <span>Rp. 100.000</span>
+                    <span id="subtotal">
+                        Rp. {{ number_format($product->price, 0, ',', '.') }}
+                    </span>
                 </div>
 
-                <button class="btn btn-custom-green w-100 mb-2">
+                <button class="btn btn-main w-100 mb-2">
                     + Keranjang
                 </button>
 
-                <button class="btn btn-custom-outline-green w-100">
+                <button class="btn btn-second w-100">
                     Beli Langsung
                 </button>
             </div>
@@ -234,52 +258,83 @@
             <h6 class="fw-bold text-custom-green mb-3">Pilihan Lainnya</h6>
 
             <div class="row g-3 produk-row">
-                @for ($i = 0; $i < 15; $i++)
+                @forelse ($products as $product)
                     <div class="produk-col">
-                        <div class="produk-card rounded">
+                        <a href="{{ route('detail-product', $product->slug) }}" class="text-decoration-none text-dark">
+                            <div class="produk-card rounded">
 
-                            <img src="{{ asset('images/home/category/beras-putih.png') }}" class="img-fluid">
+                                <img src="{{ $product->image ? asset('storage/' . $product->image) : asset('images/home/category/beras-putih.png') }}"
+                                    class="img-fluid" alt="{{ $product->name }}">
+                                <div class="produk-body">
 
-                            <div class="produk-body">
-                                <div class="rating">★★★★★</div>
+                                    <!-- ⭐ TETAP STATIS SESUAI PERMINTAAN -->
+                                    <div class="rating mb-3">★★★★★</div>
 
-                                <p class="produk-title">
-                                    1 Liter Beras Premium<br>
-                                    Beras Merah Premium Rojolele
-                                </p>
+                                    <p class="produk-title mb-3">
+                                        {{ $product->weight ?? '1 Liter' }} {{ $product->name }}<br>
+                                    </p>
 
-                                <div class="produk-footer">
-                                    <span class="harga">Rp. 30.000</span>
-                                    <span class="terjual">Tersedia 100</span>
+                                    <div class="produk-footer">
+                                        <span class="harga">
+                                            Rp. {{ number_format($product->price, 0, ',', '.') }}
+                                        </span>
+
+                                        <span class="terjual">
+                                            Tersedia {{ $product->stock ?? 0 }}
+                                        </span>
+                                    </div>
+
                                 </div>
-                            </div>
 
-                        </div>
+                            </div>
+                        </a>
                     </div>
-                @endfor
+                @empty
+                    <div class="col-12 text-center">
+                        <p class="text-muted">Produk belum tersedia</p>
+                    </div>
+                @endforelse
             </div>
         </div>
 
     </div>
 
+
     <script>
-        const qtyGroup = document.querySelectorAll('.qty-group');
+        document.addEventListener('DOMContentLoaded', function() {
 
-        qtyGroup.forEach(group => {
-            const input = group.querySelector('.qty-input');
-            const buttons = group.querySelectorAll('.qty-btn');
+            const qtyGroup = document.querySelector('.qty-group');
+            const input = document.querySelector('.qty-input');
+            const subtotalEl = document.getElementById('subtotal');
 
-            buttons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    let current = parseInt(input.value) || 0;
+            const price = parseInt(input.dataset.price || 0);
+
+            function updateSubtotal() {
+                let qty = parseInt(input.value) || 1;
+                let total = qty * price;
+
+                subtotalEl.innerText = 'Rp. ' + total.toLocaleString('id-ID');
+            }
+
+            qtyGroup.querySelectorAll('.qty-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+
+                    let qty = parseInt(input.value) || 1;
 
                     if (btn.dataset.action === 'plus') {
-                        input.value = current + 1;
+                        qty++;
                     } else if (btn.dataset.action === 'minus') {
-                        input.value = current > 0 ? current - 1 : 0;
+                        qty = qty > 1 ? qty - 1 : 1;
                     }
+
+                    input.value = qty;
+                    updateSubtotal();
                 });
             });
+
+            // init pertama kali
+            updateSubtotal();
+
         });
     </script>
 @endsection

@@ -151,6 +151,91 @@
 <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <script src="{{ asset('js/eye-on.js') }}"></script>
+<script>
+    const form = document.querySelector('form');
 
+    const oldPassword = document.getElementById('oldPassword');
+    const newPassword = document.getElementById('newPassword');
+    const confirmPassword = document.getElementById('password_confirmation');
+
+    const changePasswordBtn = document.getElementById('changePasswordBtn');
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const token = localStorage.getItem('token');
+        const updateToken = sessionStorage.getItem('update_token');
+
+        // 1. CEK LOGIN
+        if (!token) {
+            alert('Silakan login terlebih dahulu');
+            window.location.href = "/login";
+            return;
+        }
+
+        // 2. CEK OTP TOKEN
+        if (!updateToken || updateToken === 'null' || updateToken === 'undefined') {
+            alert('Session verifikasi habis, ulangi OTP');
+            window.location.href = "/verify-otp";
+            return;
+        }
+
+        // 3. VALIDASI PASSWORD
+        if (newPassword.value !== confirmPassword.value) {
+            alert('Konfirmasi password tidak sama');
+            return;
+        }
+
+        if (newPassword.value.length < 8) {
+            alert('Password minimal 8 karakter');
+            return;
+        }
+
+        try {
+            changePasswordBtn.disabled = true;
+            changePasswordBtn.innerText = 'Memproses...';
+
+            const response = await fetch('/api/auth/change-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    update_token: updateToken,
+                    current_password: oldPassword.value,
+                    password: newPassword.value,
+                    password_confirmation: confirmPassword.value
+                })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                alert(result.message || 'Gagal update password');
+                changePasswordBtn.disabled = false;
+                changePasswordBtn.innerText = 'SELESAI';
+                return;
+            }
+
+            alert('Password berhasil diperbarui');
+
+            // clear session
+            sessionStorage.removeItem('update_token');
+            sessionStorage.removeItem('verify_email');
+            sessionStorage.removeItem('verify_target');
+
+            window.location.href = "/profile";
+
+        } catch (error) {
+            console.error(error);
+            alert('Terjadi kesalahan');
+
+            changePasswordBtn.disabled = false;
+            changePasswordBtn.innerText = 'SELESAI';
+        }
+    });
+</script>
 
 </html>

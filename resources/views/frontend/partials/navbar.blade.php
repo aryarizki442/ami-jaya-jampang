@@ -154,6 +154,16 @@
         color: #e74c3c;
         font-weight: 600;
     }
+
+    .modal-header,
+    .modal-footer {
+        border: none !important;
+    }
+
+    .modal-content {
+        border: none !important;
+        box-shadow: none !important;
+    }
 </style>
 
 <header class="navbar-bg">
@@ -227,9 +237,6 @@
                     </div>
                 </form>
 
-
-
-                <!-- ACTION -->
                 <!-- ACTION -->
                 <div class="d-flex align-items-center gap-3 ms-lg-4 action-group">
 
@@ -258,23 +265,43 @@
 
                         <div class="dropdown-menu-custom">
                             <span class="dropdown-arrow"></span>
-                            <a href="/account">Akun Saya</a>
+                            <a href="{{ route('profile') }}">Akun Saya</a>
                             <a href="#">Pesanan Saya</a>
-                            <a href="#" class="logout" onclick="logoutUser()">Keluar</a>
+                            <a href="#" id="logoutBtn" class="logout">
+                                Keluar
+                            </a>
                         </div>
                     </div>
-
-
-
                 </div>
 
 
             </div>
         </div>
     </nav>
-
 </header>
 
+<!-- MODAL LOGOUT -->
+<div class="modal fade" id="logoutModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header justify-content-center">
+                <h5 class="fw-semibold m-0">Logout</h5>
+            </div>
+
+            <div class="modal-body text-center">
+                <p class="mb-0">Apakah Anda yakin ingin keluar dari akun ini?</p>
+            </div>
+
+            <div class="modal-footer justify-content-center gap-2">
+                <button class="btn btn-delete-second" data-bs-dismiss="modal">Batal</button>
+                <button class="btn btn-delete-main text-custom-red" id="confirmLogoutBtn">Logout</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
 <script>
     const authButtons = document.getElementById('authButtons');
@@ -286,7 +313,7 @@
      * Ambil token dari localStorage
      */
     function getToken() {
-        return localStorage.getItem('access_token');
+        return localStorage.getItem('token');
     }
 
     /**
@@ -344,38 +371,77 @@
         userDropdown.classList.toggle('open');
     }
 
-    /**
-     * Logout user via API
-     */
-    async function logoutUser() {
-        const token = getToken();
-        if (!token) return;
 
-        try {
-            const res = await fetch('{{ url('/api/logout') }}', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                }
-            });
+    // =========================
+    // OPEN LOGOUT MODAL
+    // =========================
+    document.querySelector('.logout').addEventListener('click', function(e) {
 
-            const data = await res.json();
+        e.preventDefault();
 
-            if (res.ok && data.success) {
-                // Logout berhasil → hapus token & reset navbar
-                localStorage.removeItem('access_token');
-                userDropdown.classList.remove('open');
-                renderNavbar();
-            } else {
-                alert(data.message || 'Logout gagal');
+        const modal = new bootstrap.Modal(
+            document.getElementById('logoutModal')
+        );
+
+        modal.show();
+    });
+
+    // =========================
+    // CONFIRM LOGOUT
+    // =========================
+    document.getElementById('confirmLogoutBtn')
+        .addEventListener('click', async function() {
+
+            const token = localStorage.getItem('token');
+
+            // kalau token tidak ada
+            if (!token) {
+
+                localStorage.removeItem('token');
+
+                window.location.href = '/login';
+
+                return;
             }
-        } catch (err) {
-            console.error('Logout error:', err);
-            alert('Terjadi kesalahan saat logout');
-        }
-    }
+
+            try {
+
+                const res = await fetch('/api/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+
+                // walaupun token invalid tetap logout frontend
+                if (res.status === 401) {
+
+                    localStorage.removeItem('token');
+
+                    window.location.href = '/login';
+
+                    return;
+                }
+
+                // tutup modal
+                bootstrap.Modal
+                    .getInstance(document.getElementById('logoutModal'))
+                    ?.hide();
+
+                // hapus token
+                localStorage.removeItem('token');
+
+                // redirect login
+                window.location.href = '/login';
+
+            } catch (err) {
+
+                console.error(err);
+
+                alert('Logout gagal');
+            }
+        });
 
     /**
      * Login user (panggil saat submit login form)

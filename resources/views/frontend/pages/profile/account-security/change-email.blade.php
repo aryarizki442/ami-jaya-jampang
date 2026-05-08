@@ -133,18 +133,76 @@
 <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <script>
+    const form = document.querySelector('form');
     const email = document.getElementById('email');
+    const changeEmailBtn = document.getElementById('changeEmailBtn');
 
-    function checkInputs() {
-        if (email.value.trim() !== '') {
-            changeEmailBtn.classList.add('active'); // warna berubah
-        } else {
-            changeEmailBtn.classList.remove('active'); // kembali ke warna default
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const token = localStorage.getItem('token');
+
+
+        if (!token) {
+            alert('Silakan login terlebih dahulu');
+            window.location.href = "/login";
+            return;
         }
-    }
+        const updateToken = sessionStorage.getItem('update_token');
 
-    // cek setiap kali user mengetik
-    email.addEventListener('input', checkInputs);
+        if (!updateToken || updateToken === 'null' || updateToken === 'undefined') {
+            alert('Session verifikasi habis, ulangi OTP');
+            window.location.href = "/verify-email";
+            return;
+        }
+
+        console.log('TOKEN YANG DIPAKAI:', updateToken);
+        try {
+            changeEmailBtn.disabled = true;
+            changeEmailBtn.innerText = 'Memproses...';
+
+            const response = await fetch('/api/update-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    update_token: updateToken,
+                    new_email: email.value
+                })
+            });
+
+            const result = await response.json();
+
+            console.log(result);
+
+            if (!response.ok) {
+                alert(result.message || 'Gagal update email');
+                changeEmailBtn.disabled = false;
+                changeEmailBtn.innerText = 'SELESAI';
+                return;
+            }
+
+            alert('Email berhasil diperbarui');
+
+            // bersihkan session
+            sessionStorage.removeItem('update_token');
+            sessionStorage.removeItem('verify_email');
+            sessionStorage.removeItem('verify_target');
+
+            // redirect
+            window.location.href = "/profile";
+
+        } catch (error) {
+            console.error(error);
+            alert('Terjadi kesalahan');
+
+            changeEmailBtn.disabled = false;
+            changeEmailBtn.innerText = 'SELESAI';
+        }
+    });
 </script>
 
 </html>

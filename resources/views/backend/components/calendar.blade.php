@@ -354,7 +354,6 @@
             // =========================
             // RENDER CALENDAR
             // =========================
-            const isSingle = startDate && !endDate;
 
             function renderCalendar() {
                 daysEl.innerHTML = '';
@@ -385,7 +384,7 @@
                     if (startDate && endDate && date >= startDate && date <= endDate) {
                         div.classList.add('in-range');
                     }
-
+                    const isSingle = startDate && !endDate;
                     const isSameDay = (a, b) =>
                         a && b && a.getTime() === b.getTime();
 
@@ -417,7 +416,7 @@
                     div.addEventListener('click', () => {
                         presets.forEach(p => p.classList.remove('active'));
 
-                        if (!startDate || (startDate && endDate)) {
+                        if (!startDate || endDate) {
                             startDate = date;
                             endDate = null;
                         } else {
@@ -440,9 +439,10 @@
             // SET RANGE (UNTUK PRESET)
             // =========================
             function setRange(start, end) {
-                startDate = new Date(start.setHours(0, 0, 0, 0));
-                endDate = new Date(end.setHours(0, 0, 0, 0));
-                current = new Date(startDate); // pindah bulan sesuai pilihan
+                startDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+                endDate = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+
+                current = new Date(startDate);
                 renderCalendar();
             }
 
@@ -509,10 +509,13 @@
                 if (!startDate) return;
 
                 const formatDate = (date) => {
-                    const y = date.getFullYear();
-                    const m = String(date.getMonth() + 1).padStart(2, '0');
-                    const d = String(date.getDate()).padStart(2, '0');
-                    return `${y}-${m}-${d}`;
+                    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+                    const y = d.getFullYear();
+                    const m = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+
+                    return `${y}-${m}-${day}`;
                 };
 
                 const start = formatDate(startDate);

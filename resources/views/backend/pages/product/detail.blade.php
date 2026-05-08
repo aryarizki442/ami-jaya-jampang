@@ -33,6 +33,16 @@
             padding-left: 20px;
             height: 100%;
         }
+
+        .detail-image {
+            width: 250px;
+            height: 250px;
+            object-fit: contain;
+            /* ini kuncinya */
+            flex-shrink: 0;
+            background: #fff;
+            /* biar kalau ada space kosong nggak aneh */
+        }
     </style>
     </style>
 
@@ -41,7 +51,7 @@
 
             <!-- HEADER -->
             <div class="d-flex align-items-center">
-                <a href="{{ route('admin.product') }}" class="d-flex align-items-center text-decoration-none text-dark">
+                <a href="{{ route('admin.product.index') }}" class="d-flex align-items-center text-decoration-none text-dark">
                     <i class="ri-arrow-left-line fs-5 me-2"></i>
                     <span class="fw-medium">Kembali</span>
                 </a>
@@ -52,43 +62,49 @@
             <div class="card p-4 border-0 shadow-sm mt-3">
                 <div class="row align-items-start g-0">
 
-                    <!-- IMAGE -->
+                    <!-- GAMBAR PRODUK -->
                     <div class="col-md-auto d-flex align-items-center ps-2 pe-3">
-                        <img id="detailImage" src="/images/home/category/beras-putih.png" class="rounded"
-                            style="width:140px; height:140px; object-fit:cover;">
+                        <img id="detailImage" src="/images/home/category/beras-putih.png" class="detail-image">
                     </div>
 
-                    <!-- INFO -->
+                    <!-- INFO PRODUK -->
                     <div class="col d-flex flex-column ps-2 pe-3">
 
+                        <!-- NAMA -->
                         <div class="mb-3">
                             <div class="fw-semibold small text-muted">Nama Produk</div>
-                            <div id="detailName" class="fw-medium fs-5">-</div>
+                            <div id="detailName" class="detail-name">-</div>
                         </div>
 
+                        <!-- DESKRIPSI -->
                         <div>
-                            <div class="fw-semibold small text-muted">Deskripsi</div>
-                            <div id="detailDescription" class="text-muted">-</div>
+                            <div class="fw-semibold small text-muted">Deskripsi Produk</div>
+                            <div id="detailDescription" class="detail-desc">-</div>
                         </div>
 
                     </div>
 
-                    <!-- CATEGORY + PRICE -->
-                    <div class="col-md-3 ps-3 border-start">
+                    <!-- INFO SAMPING -->
+                    <div class="col-md-3 d-flex flex-column justify-content-start ps-3 detail-divider">
 
-                        <div class="mb-3">
-                            <div class="fw-semibold small text-muted">Kategori</div>
-                            <span id="detailCategory" class="badge bg-success-subtle text-success">-</span>
+                        <div class="pt-1 mb-3">
+                            <div class="fw-semibold small text-muted">Harga</div>
+                            <div id="detailPrice">-</div>
                         </div>
 
                         <div class="mb-3">
-                            <div class="fw-semibold small text-muted">Harga</div>
-                            <div id="detailPrice" class="fw-semibold">-</div>
+                            <div class="fw-semibold small text-muted">Stok</div>
+                            <div id="detailStock">-</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="fw-semibold small text-muted">Berat</div>
+                            <div id="detailWeight">-</div>
                         </div>
 
                         <div>
-                            <div class="fw-semibold small text-muted">Stok</div>
-                            <div id="detailStock">-</div>
+                            <div class="fw-semibold small text-muted">Kategori</div>
+                            <span id="detailCategory" class="badge bg-success-subtle text-success">-</span>
                         </div>
 
                     </div>
@@ -108,19 +124,17 @@
     <script>
         document.addEventListener("DOMContentLoaded", async function() {
 
-            const id = getProductIdFromUrl();
+            const id = window.location.pathname.split('/').filter(Boolean).pop();
 
             const elImage = document.getElementById('detailImage');
             const elName = document.getElementById('detailName');
             const elDesc = document.getElementById('detailDescription');
-            const elBadge = document.getElementById('detailBadge');
-
-            const inputName = document.getElementById('name');
-            const inputDesc = document.getElementById('description');
-            const inputActive = document.getElementById('isActive');
+            const elCategory = document.getElementById('detailCategory');
+            const elPrice = document.getElementById('detailPrice');
+            const elStock = document.getElementById('detailStock');
+            const elWeight = document.getElementById('detailWeight');
 
             try {
-
                 const res = await fetch(`/api/admin/products/${id}`, {
                     headers: {
                         'Accept': 'application/json'
@@ -132,9 +146,9 @@
 
                 if (!data) return;
 
-                /* =========================
-                   IMAGE HANDLER
-                ========================== */
+                // =========================
+                // IMAGE
+                // =========================
                 const image = data.image ?
                     (data.image.startsWith('http') ?
                         data.image :
@@ -143,33 +157,35 @@
 
                 elImage.src = image;
 
-                /* =========================
-                   TEXT DETAIL
-                ========================== */
+                // =========================
+                // TEXT
+                // =========================
                 elName.textContent = data.name ?? '-';
                 elDesc.textContent = data.description ?? '-';
 
-                /* =========================
-                   BADGE COLOR
-                ========================== */
+                // =========================
+                // CATEGORY (FIXED)
+                // =========================
+                const categoryName = data.category?.name ?? '-';
+
                 const badgeMap = {
-                    premium: 'bg-success-subtle text-success',
-                    medium: 'bg-warning-subtle text-warning',
-                    ketan: 'bg-info-subtle text-info'
+                    premium: 'premium-category fw-normal',
+                    medium: 'medium-category fw-normal',
+                    ketan: 'ketan-category fw-normal'
                 };
 
-                const key = (data.name || '').toLowerCase();
+                const key = categoryName.toLowerCase();
                 const badgeClass = badgeMap[key] || 'bg-secondary-subtle text-secondary';
 
-                elBadge.className = `badge ${badgeClass}`;
-                elBadge.textContent = data.name ?? '-';
+                elCategory.className = `badge ${badgeClass}`;
+                elCategory.textContent = categoryName;
 
-                /* =========================
-                   FORM FILL (EDIT MODE)
-                ========================== */
-                if (inputName) inputName.value = data.name ?? '';
-                if (inputDesc) inputDesc.value = data.description ?? '';
-                if (inputActive) inputActive.checked = !!data.is_active;
+                // =========================
+                // PRICE + STOCK
+                // =========================
+                elPrice.textContent = data.price_format ?? `Rp ${data.price}`;
+                elStock.textContent = `${data.stock ?? 0}`;
+                elWeight.textContent = data.weight_kg ? `${data.weight_kg} Kg` : '-';
 
             } catch (err) {
                 console.error('Fetch detail error:', err);

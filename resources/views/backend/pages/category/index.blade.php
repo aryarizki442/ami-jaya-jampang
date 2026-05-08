@@ -320,8 +320,8 @@
                             <input type="checkbox" id="checkAll" class="custom-check">
                         </th>
                         <th class="text-start">Nomor</th>
-                        <th>Nama Kategori</th>
-                        <th class="text-center">Status</th>
+                        <th class="text-start">Nama Kategori</th>
+                        <th class="text-start">Status</th>
                         <th>Gambar Kategori</th>
                         <th>Aksi</th>
                     </tr>
@@ -681,10 +681,10 @@
                     <input type="checkbox" class="custom-check row-check" value="${item.id}">
                 </td>
                 <td class="text-start ps-4">${index + 1}</td>
-                <td class="text-center">
-                    <span class="badge ${categoryClass} category-badge">${item.name}</span>
-                </td>
-                <td class="text-center">
+                <td class="text-start ps-4">
+    <span class="badge ${categoryClass} category-badge">${item.name}</span>
+</td>
+                <td class="text-start ps-2">
                     <span class="badge ${statusClass}">${statusText}</span>
                 </td>
               <td class="text-center">

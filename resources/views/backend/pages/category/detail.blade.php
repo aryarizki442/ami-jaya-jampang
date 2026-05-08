@@ -140,9 +140,9 @@
                    BADGE COLOR
                 ========================== */
                 const badgeMap = {
-                    premium: 'bg-success-subtle text-success',
-                    medium: 'bg-warning-subtle text-warning',
-                    ketan: 'bg-info-subtle text-info'
+                    premium: 'premium-category fw-normal',
+                    medium: 'medium-category fw-normal',
+                    ketan: 'ketan-category fw-normal'
                 };
 
                 const key = (data.name || '').toLowerCase();

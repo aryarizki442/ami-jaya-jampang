@@ -109,9 +109,6 @@
             <!-- FORM -->
             <form method="POST" action="">
                 @csrf
-
-                <input type="hidden" name="type" value="">
-
                 <div class="mb-3">
                     <label class="form-label ">Kode Verifikasi</label>
                     <input id="kode" type="text" name="kode" class="form-control"
@@ -139,18 +136,99 @@
 <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <script>
+    const form = document.querySelector('form');
     const kode = document.getElementById('kode');
+    const verifyOtpBtn = document.getElementById('verifyOtpBtn');
 
-    function checkInputs() {
+    // ACTIVE BUTTON
+    kode.addEventListener('input', function() {
         if (kode.value.trim() !== '') {
-            verifyOtpBtn.classList.add('active'); // warna berubah
+            verifyOtpBtn.classList.add('active');
         } else {
-            verifyOtpBtn.classList.remove('active'); // kembali ke warna default
+            verifyOtpBtn.classList.remove('active');
         }
-    }
+    });
 
-    // cek setiap kali user mengetik
-    kode.addEventListener('input', checkInputs);
+    // SUBMIT OTP
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            alert('Silakan login terlebih dahulu');
+            return;
+        }
+
+        const target = sessionStorage.getItem('verify_target');
+
+        let purpose = '';
+
+        if (target === 'email') purpose = 'update_email';
+        if (target === 'phone') purpose = 'update_phone';
+        if (target === 'password') purpose = 'forgot_password';
+
+        try {
+            verifyOtpBtn.disabled = true;
+            verifyOtpBtn.innerText = 'Memproses...';
+
+            // VERIFY OTP
+            const response = await fetch('/api/otp/verify', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    otp: kode.value,
+                    purpose: purpose,
+                    email: sessionStorage.getItem('verify_email')
+                })
+            });
+
+            const result = await response.json();
+            console.log(result);
+
+            if (!response.ok) {
+                console.log(result);
+                alert(result.message || 'OTP tidak valid');
+                verifyOtpBtn.disabled = false;
+                verifyOtpBtn.innerText = 'BERIKUTNYA';
+                return;
+            }
+
+            // SIMPAN UPDATE TOKEN
+            sessionStorage.setItem(
+                'update_token',
+                result.data.update_token
+            );
+
+            // REDIRECT
+            if (target === 'email') {
+                window.location.href = "{{ route('change-email') }}";
+                return;
+            }
+
+            if (target === 'phone') {
+                window.location.href = "{{ route('change-phone') }}";
+                return;
+            }
+
+            if (target === 'password') {
+                window.location.href = "{{ route('change-password') }}";
+                return;
+            }
+
+        } catch (error) {
+            console.error(error);
+
+            alert('Terjadi kesalahan');
+
+            verifyOtpBtn.disabled = false;
+            verifyOtpBtn.innerText = 'BERIKUTNYA';
+        }
+    });
 </script>
 
 </html>

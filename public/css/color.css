@@ -151,15 +151,34 @@
 }
 
 .medium-category {
-    background-color: var(--primary-50);
+    background-color: var(--secondary-100);
     color: var(--warning-500);
     font-weight: 500;
 }
 
 .ketan-category {
-    background-color: var(--primary-50);
+    background-color: var(--info-50);
     color: var(--info-500);
     font-weight: 500;
+}
+
+.premium-category,
+.medium-category,
+.ketan-category {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 4px 10px;
+    min-width: 80px;
+    /* biar lebar konsisten */
+    height: 20px;
+    /* biar tinggi sama */
+    border-radius: 5px;
+
+    font-weight: 500;
+    font-size: 12px;
+    white-space: nowrap;
 }
 
 .active-category {

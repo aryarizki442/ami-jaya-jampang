@@ -55,5 +55,78 @@
                 </a>
             </form>
         </div>
+        <script>
+            document.getElementById('btn-next').addEventListener('click', async function(e) {
+                e.preventDefault();
+
+                const password = document.getElementById('password').value.trim();
+                const passwordConfirmation = document.getElementById('password_confirmation').value.trim();
+
+                const email = localStorage.getItem('reset_email');
+                const resetToken = localStorage.getItem('reset_token');
+
+                console.log('reset_email:', localStorage.getItem('reset_email'));
+                console.log('reset_token:', localStorage.getItem('reset_token'));
+
+                // validasi frontend
+                if (!password || !passwordConfirmation) {
+                    alert('Password wajib diisi');
+                    return;
+                }
+
+                if (password.length < 8) {
+                    alert('Password minimal 8 karakter');
+                    return;
+                }
+
+                if (password !== passwordConfirmation) {
+                    alert('Konfirmasi password tidak cocok');
+                    return;
+                }
+
+                if (!email || !resetToken) {
+                    alert('Session reset tidak ditemukan, ulangi dari awal');
+                    return;
+                }
+
+                try {
+                    const res = await fetch('/api/forgot-password/reset', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            email: email,
+                            reset_token: resetToken,
+                            password: password,
+                            password_confirmation: passwordConfirmation
+                        })
+                    });
+
+                    const result = await res.json();
+
+                    console.log(result);
+
+                    // gagal
+                    if (!res.ok) {
+                        alert(result.message || 'Gagal reset password');
+                        return;
+                    }
+
+                    // bersihkan storage
+                    localStorage.removeItem('reset_email');
+                    localStorage.removeItem('reset_token');
+
+                    // redirect ke login
+                    alert('Password berhasil diubah');
+                    window.location.href = '/login';
+
+                } catch (err) {
+                    console.error(err);
+                    alert('Server error');
+                }
+            });
+        </script>
 
     @endsection

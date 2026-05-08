@@ -41,5 +41,49 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('btn-next').addEventListener('click', async function(e) {
+            e.preventDefault();
 
+            const email = document.getElementById('email').value.trim();
+
+            if (!email) {
+                alert('Email wajib diisi');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/otp/request', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        purpose: 'forgot_password',
+                        email: email
+                    })
+                });
+
+                const result = await res.json();
+
+                console.log(result);
+
+                if (!res.ok) {
+                    alert(result.message || 'Gagal mengirim OTP');
+                    return;
+                }
+
+                // simpan email untuk step berikutnya
+                localStorage.setItem('forgot_email', email);
+
+                // pindah ke halaman OTP
+                window.location.href = "{{ route('verification') }}";
+
+            } catch (err) {
+                console.error(err);
+                alert('Server error');
+            }
+        });
+    </script>
 @endsection

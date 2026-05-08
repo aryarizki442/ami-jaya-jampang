@@ -159,6 +159,16 @@
                 display: block;
             }
         }
+
+        .modal-header,
+        .modal-footer {
+            border: none !important;
+        }
+
+        .modal-content {
+            border: none !important;
+            box-shadow: none !important;
+        }
     </style>
 </head>
 
@@ -182,8 +192,8 @@
                 </a>
             </li>
             <li>
-                <a href="{{ route('admin.product') }}"
-                    class="{{ request()->routeIs('admin.product') ? 'active' : '' }}">
+                <a href="{{ route('admin.product.index') }}"
+                    class="{{ request()->routeIs('admin.product.index') ? 'active' : '' }}">
                     <i class="ri-box-3-line"></i>
                     <span>Produk</span>
                 </a>
@@ -235,6 +245,28 @@
 
     </div>
 
+    <!-- MODAL LOGOUT -->
+    <div class="modal fade" id="logoutModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header justify-content-center">
+                    <h5 class="fw-semibold m-0">Logout</h5>
+                </div>
+
+                <div class="modal-body text-center">
+                    <p class="mb-0">Apakah Anda yakin ingin keluar dari akun ini?</p>
+                </div>
+
+                <div class="modal-footer justify-content-center gap-2">
+                    <button class="btn btn-delete-second" data-bs-dismiss="modal">Batal</button>
+                    <button class="btn btn-delete-main text-custom-red" id="confirmLogoutBtn">Logout</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <script>
         const toggle = document.getElementById('menuToggle');
         const sidebar = document.getElementById('sidebar');
@@ -253,7 +285,61 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('js/pagination.js') }}"></script>
+    <script src="{{ asset('js/formatText.js') }}"></script>
 
+
+    <script>
+        document.getElementById('confirmLogoutBtn').addEventListener('click', async function() {
+
+            const token = localStorage.getItem('token');
+
+            // 🔥 guard kalau token tidak ada
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+
+                // 🔥 kalau unauthorized tetap paksa logout frontend
+                if (res.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = '/login';
+                    return;
+                }
+
+                const data = await res.json();
+
+                // tutup modal
+                const modalEl = document.getElementById('logoutModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                modal.hide();
+
+                // hapus token
+                localStorage.removeItem('token');
+
+                // redirect
+                window.location.href = '/login';
+
+            } catch (err) {
+                console.error(err);
+                alert('Logout gagal');
+            }
+
+        });
+
+        document.querySelector('.logout').addEventListener('click', function() {
+            const modal = new bootstrap.Modal(document.getElementById('logoutModal'));
+            modal.show();
+        });
+    </script>
 </body>
 
 </html>

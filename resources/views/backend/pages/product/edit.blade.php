@@ -58,7 +58,7 @@
         <div class="row g-2 align-items-start">
             <!-- HEADER -->
             <div class="d-flex align-items-center mt-0">
-                <a href="{{ route('admin.product') }}" class="d-flex align-items-center text-decoration-none text-dark">
+                <a href="{{ route('admin.product.index') }}" class="d-flex align-items-center text-decoration-none text-dark">
                     <i class="ri-arrow-left-line fs-5 me-2"></i>
                     <span class="fw-medium">Kembali</span>
                 </a>
@@ -115,15 +115,16 @@
                         </div>
                     </div>
 
-
-                    {{-- <div class="form-check form-switch mt-4">
-                        <input class="form-check-input" type="checkbox" id="isActive" checked>
-                        <label class="form-check-label">Tampilkan ke Produk Terlaris</label>
-                    </div> --}}
+                    <div class="form-check form-switch mt-4">
+                        <input class="form-check-input" type="checkbox" id="isRecommended">
+                        <label class="form-check-label" for="isRecommended">
+                            Jadikan Rekomendasi
+                        </label>
+                    </div>
 
                     <!-- STATUS -->
                     <div class="form-check form-switch mt-4">
-                        <input class="form-check-input" type="checkbox" id="isActive" checked>
+                        <input class="form-check-input" type="checkbox" id="isActive">
                         <label class="form-check-label">Tampilkan Produk</label>
                     </div>
 
@@ -138,8 +139,8 @@
                     <div id="imagePreview" class="border rounded w-100 text-center"
                         style="min-height:220px; overflow:hidden; position:relative; cursor:pointer;">
 
-                        <!-- IMAGE BACKGROUND -->
-                        <img id="previewImg">
+                        <!-- IMAGE PREVIEW -->
+                        <img id="previewImg" style="width:100%; height:220px; object-fit:contain; display:none;">
 
                         <!-- EMPTY STATE -->
                         <div id="uploadContent">
@@ -155,8 +156,7 @@
                         </div>
 
                     </div>
-
-                    <input type="file" name="images[]" id="imageInput" class="d-none" accept="image/*" multiple>
+                    <input type="file" name="image" id="imageInput" class="d-none" accept="image/*">
 
                     <small class="text-danger error-image mt-2 d-block text-center"></small>
 
@@ -194,14 +194,16 @@
             const btnSubmit = document.getElementById('btnSubmit');
 
             const productId = @json($product->id ?? null);
-            const token = localStorage.getItem('access_token');
+            const token = localStorage.getItem('token');
 
             if (!form || !input || !dropArea) return;
 
-            // =========================
-            // FALLBACK IMAGE
-            // =========================
-            const NO_IMAGE = "{{ asset('assets/img/no-image.png') }}";
+
+            if (dropArea && input) {
+                dropArea.addEventListener('click', () => {
+                    input.click();
+                });
+            }
 
             // =========================
             // SET VALUE HELPER
@@ -224,49 +226,20 @@
             }
 
             // =========================
-            // IMAGE URL SAFE HANDLER
-            // =========================
-            function getImageUrl(img) {
-                if (!img) return NO_IMAGE;
-
-                let url = img;
-
-                // 1. kalau sudah full URL, langsung pakai
-                if (url.startsWith('http')) {
-                    return url;
-                }
-
-                // 2. bersihkan semua storage rusak
-                url = url
-                    .replace(/^\/?storage\//, '')
-                    .replace('http://127.0.0.1:8000/storage/', '')
-                    .replace('https://127.0.0.1:8000/storage/', '');
-
-                // 3. return format benar
-                return `/storage/${url}`;
-            }
-
-            // =========================
-            // RENDER IMAGE
+            // RENDER IMAGE PREVIEW
             // =========================
             function renderImage(url) {
                 const img = document.getElementById('previewImg');
                 const empty = document.getElementById('uploadContent');
 
-                img.src = url;
-                img.style.display = 'block';
+                if (img) {
+                    img.src = url;
+                    img.style.display = 'block';
+                }
 
-                empty.style.display = 'none';
-            }
-
-            function resetImage() {
-                const img = document.getElementById('previewImg');
-                const empty = document.getElementById('uploadContent');
-
-                img.src = '';
-                img.style.display = 'none';
-
-                empty.style.display = 'block';
+                if (empty) {
+                    empty.style.display = 'none';
+                }
             }
 
             // =========================
@@ -309,7 +282,6 @@
 
                         categoryEl.value = value;
 
-                        // fallback kalau select tidak berubah
                         if (categoryEl.value !== value) {
                             Array.from(categoryEl.options).forEach(opt => {
                                 opt.selected = String(opt.value) === value;
@@ -317,15 +289,23 @@
                         }
                     }
                     const activeEl = document.getElementById('isActive');
-                    if (activeEl) activeEl.checked = !!p.is_active;
+                    if (activeEl) {
+                        activeEl.checked = Number(p.is_active) === 1;
+                    }
 
-                    const primaryImage =
-                        p.images?.find(img => img?.is_primary) ||
-                        p.images?.[0];
+                    const recommendedEl = document.getElementById('isRecommended');
+                    if (recommendedEl) {
+                        recommendedEl.checked = Number(p.is_recommended) === 1;
+                    }
 
-                    const imageUrl = getImageUrl(primaryImage?.image_url);
+                    if (p.image) {
+                        renderImage(
+                            p.image.startsWith('http') ?
+                            p.image :
+                            `/storage/${p.image.replace(/^\/+/, '')}`
+                        );
+                    }
 
-                    renderImage(imageUrl);
 
                 } catch (err) {
                     console.error('Error load product:', err);
@@ -333,38 +313,18 @@
             }
 
             // =========================
-            // PREVIEW NEW IMAGE
+            // PREVIEW IMAGE BARU
             // =========================
             input.addEventListener('change', function() {
                 const file = this.files[0];
-
                 if (!file) return;
 
                 renderImage(URL.createObjectURL(file));
             });
 
-            dropArea.addEventListener('click', () => input.click());
-
-            dropArea.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                dropArea.classList.add('border-primary');
-            });
-
-            dropArea.addEventListener('dragleave', function() {
-                dropArea.classList.remove('border-primary');
-            });
-
-            dropArea.addEventListener('drop', function(e) {
-                e.preventDefault();
-                dropArea.classList.remove('border-primary');
-
-                const file = e.dataTransfer.files[0];
-                if (!file) return;
-
-                input.files = e.dataTransfer.files;
-                renderImage(URL.createObjectURL(file));
-            });
-
+            // =========================
+            // UPDATE DATA (API)
+            // =========================
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
 
@@ -385,14 +345,18 @@
                     'is_active',
                     document.getElementById('isActive').checked ? 1 : 0
                 );
+                formData.append(
+                    'is_recommended',
+                    document.getElementById('isRecommended').checked ? 1 : 0
+                );
 
                 formData.append('_method', 'POST');
 
-                const file = input.files[0];
+                const file = document.getElementById('imageInput').files[0];
 
                 if (file) {
-                    formData.delete('images[]');
-                    formData.append('images[]', file);
+                    formData.delete('image');
+                    formData.append('image', file);
                     formData.append('replace_image', 1);
                 }
 
@@ -418,7 +382,7 @@
 
                     if (result.success) {
                         window.location.href =
-                            `/admin/product?updated=1&id=${productId}`;
+                            `/admin/product/index?updated=1&id=${productId}`;
                     }
 
                 } catch (err) {

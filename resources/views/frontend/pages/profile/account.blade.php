@@ -93,8 +93,8 @@
         }
 
         /* ======================
-                                                                                                                                                               RESPONSIVE PROFILE
-                                                                                                                                                            ====================== */
+                                                                                                                                                                                                                   RESPONSIVE PROFILE
+                                                                                                                                                                                                                ====================== */
 
         /* tablet */
         @media (max-width: 992px) {
@@ -173,9 +173,10 @@
             {{-- SIDEBAR --}}
             <div class="profile-sidebar">
                 <div class="user-info d-flex align-items-center gap-2">
-                    <img src="{{ asset('images/home/category/beras-medium.png') }}" alt="">
-                    <p class="mb-0 fw-semibold username-profile">
-                        {{ Auth::user()->name ?? 'MALIK HASAN PELUPPESY' }}
+                    <img id="profileAvatar" src="{{ asset('images/home/user/user-group.png') }}" alt="">
+
+                    <p class="mb-0 fw-semibold username-profile" id="profileUsername">
+
                     </p>
                 </div>
                 <ul class="list-unstyled">
@@ -277,4 +278,63 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <script>
+        const DEFAULT_AVATAR = "{{ asset('images/home/user/user-group.png') }}";
+
+        function avatarUrl(path) {
+            if (!path) return DEFAULT_AVATAR;
+            if (path.startsWith('http')) return path;
+            if (path.startsWith('/storage/')) return window.location.origin + path;
+            return window.location.origin + '/storage/' + path;
+        }
+
+        async function loadProfileUser() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            try {
+                const response = await fetch('/api/me', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const user = data.data?.user ?? data.data ?? data;
+
+                    const nameEl = document.getElementById('profileUsername');
+                    const avatarEl = document.getElementById('profileAvatar');
+
+                    console.log('nameEl:', nameEl); // ← cek null atau ada
+                    console.log('avatarEl:', avatarEl); // ← cek null atau ada
+                    console.log('user.name:', user.name);
+
+                    if (nameEl) nameEl.textContent = user.name || 'User';
+                    if (avatarEl) avatarEl.src = avatarUrl(user.avatar);
+                }
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        // Panggil sekali, handle dua kondisi
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadProfileUser);
+        } else {
+            loadProfileUser();
+        }
+
+        // Dipanggil dari halaman profil setelah simpan
+        function setUser(userData) {
+            const nameEl = document.getElementById('profileUsername');
+            const avatarEl = document.getElementById('profileAvatar');
+
+            if (nameEl && userData.name) nameEl.textContent = userData.name;
+            if (avatarEl && userData.avatar) avatarEl.src = userData.avatar;
+        }
+    </script>
 @endsection

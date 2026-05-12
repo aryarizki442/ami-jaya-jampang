@@ -26,48 +26,6 @@
     }
 
 
-    .notif-icon {
-        font-size: 20px;
-        /* icon saja */
-        line-height: 1;
-    }
-
-    .notif-icon {
-        font-size: 20px;
-    }
-
-    .cart-icon {
-        font-size: 22px;
-    }
-
-    /* Area action */
-    .action-group {
-        gap: 12px;
-    }
-
-    /* Ruang khusus cart */
-    .cart-wrap {
-        padding-right: 16px;
-    }
-
-    /* Garis pemisah */
-    .action-divider {
-        width: 1px;
-        height: 28px;
-        background-color: rgba(255, 255, 255, 0.6);
-    }
-
-    /* CART BADGE */
-    .cart-badge {
-        position: absolute;
-        top: -6px;
-        right: -6px;
-        background: red;
-        color: #fff;
-        font-size: 10px;
-        padding: 2px 6px;
-        border-radius: 50%;
-    }
 
     /* ACTION DIVIDER */
     .action-divider {
@@ -100,8 +58,6 @@
         height: 35px;
         border-radius: 50%;
         margin-right: 8px;
-        border: 2px solid #fff;
-        /* optional jika navbar gelap */
     }
 
     /* DROPDOWN MENU */
@@ -178,7 +134,9 @@
             <div class="d-flex gap-3">
                 <a href="#"
                     class="text-white text-decoration-none small d-flex align-items-center gap-2 position-relative">
-                    <span class="iconify notif-icon" data-icon="mingcute:notification-line"></span>
+
+                    <iconify-icon icon="mingcute:notification-line" width="20" height="20"></iconify-icon>
+
                     Notifikasi
                 </a>
 
@@ -241,15 +199,11 @@
                 <div class="d-flex align-items-center gap-3 ms-lg-4 action-group">
 
                     <!-- Cart -->
-                    <a href="#" class="text-white fs-5 position-relative cart-wrap">
-                        <span class="iconify cart-icon" data-icon="tdesign:cart"></span>
-                        {{-- <span class="cart-badge" id="cartBadge">3</span> --}}
-                    </a>
+                    @include('frontend.components.cart-badge')
 
                     <!-- Divider -->
                     <span class="action-divider"></span>
 
-                    <!-- Auth (BEFORE LOGIN) -->
                     <!-- Auth (BEFORE LOGIN) -->
                     <div id="authButtons" class="d-flex gap-4">
                         <a href="/login" class="btn btn-masuk">Masuk</a>
@@ -259,7 +213,7 @@
                     <!-- User (AFTER LOGIN) -->
                     <div class="user-dropdown" id="userDropdown" style="display:none">
                         <div class="user-trigger" onclick="toggleDropdown(event)">
-                            <img src="https://i.pravatar.cc/100?img=3" class="user-avatar">
+                            <img src="{{ asset('images/home/user/user-group.png') }}" class="user-avatar">
                             <span class="username">Username</span>
                         </div>
 
@@ -301,14 +255,16 @@
         </div>
     </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
 <script>
     const authButtons = document.getElementById('authButtons');
     const userDropdown = document.getElementById('userDropdown');
     const usernameSpan = userDropdown.querySelector('.username');
     const userAvatar = userDropdown.querySelector('.user-avatar');
 
+    function setUser(userData) {
+        if (usernameSpan && userData.name) usernameSpan.textContent = userData.name;
+        if (userAvatar && userData.avatar) userAvatar.src = userData.avatar;
+    }
     /**
      * Ambil token dari localStorage
      */
@@ -316,50 +272,134 @@
         return localStorage.getItem('token');
     }
 
+
     /**
      * Render navbar sesuai status login
      */
     async function renderNavbar() {
-        const token = getToken();
 
+        const token = localStorage.getItem('token');
+
+        console.log('TOKEN:', token);
+
+        // =========================
+        // BELUM LOGIN
+        // =========================
         if (!token) {
-            // Belum login → tampilkan tombol Masuk/Daftar, sembunyikan dropdown
-            authButtons.style.setProperty('display', 'flex', 'important');
-            userDropdown.style.setProperty('display', 'none', 'important');
+
+            authButtons.style.display = 'flex';
+            userDropdown.style.display = 'none';
+
             return;
         }
 
         try {
-            // Ambil data user dari API /api/me
-            const response = await fetch('{{ url('/api/me') }}', {
+
+            const response = await fetch('/api/me', {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': 'Bearer ' + token
                 }
             });
 
             const data = await response.json();
 
-            if (response.ok && data.success && data.data.user) {
-                // Login valid → tampilkan dropdown, sembunyikan tombol
+            console.log('ME:', JSON.stringify(data, null, 2));
+
+            // =========================
+            // LOGIN VALID
+            // =========================
+            if (response.ok) {
                 authButtons.style.setProperty('display', 'none', 'important');
                 userDropdown.style.setProperty('display', 'flex', 'important');
 
-                // Set username & avatar
-                usernameSpan.textContent = data.data.user.name || 'User';
-                userAvatar.src = data.data.user.avatar_url || 'https://i.pravatar.cc/100?img=3';
-            } else {
-                // Token invalid → reset navbar
-                localStorage.removeItem('access_token');
-                authButtons.style.setProperty('display', 'flex', 'important');
-                userDropdown.style.setProperty('display', 'none', 'important');
+                const localUser = JSON.parse(localStorage.getItem('user'));
+                const user = data.data?.user || localUser;
+
+                // username
+                usernameSpan.textContent = user?.name || 'User';
+
+                // avatar - pakai avatarUrl() helper jika tersedia, fallback manual
+                const rawAvatar = user?.avatar || null;
+                if (typeof avatarUrl === 'function') {
+                    userAvatar.src = avatarUrl(rawAvatar);
+                } else {
+                    if (!rawAvatar) {
+                        userAvatar.src = "{{ asset('images/home/user/user-group.png') }}";
+                    } else if (rawAvatar.startsWith('http')) {
+                        userAvatar.src = rawAvatar;
+                    } else if (rawAvatar.startsWith('/storage/')) {
+                        userAvatar.src = window.location.origin + rawAvatar;
+                    } else {
+                        userAvatar.src = window.location.origin + '/storage/' + rawAvatar;
+                    }
+                }
             }
+            // =========================
+            // TOKEN INVALID
+            // =========================
+            else {
+
+                authButtons.style.setProperty(
+                    'display',
+                    'flex',
+                    'important'
+                );
+
+                userDropdown.style.setProperty(
+                    'display',
+                    'none',
+                    'important'
+                );
+
+            }
+
         } catch (err) {
-            console.error('Error fetching user:', err);
-            localStorage.removeItem('access_token');
-            authButtons.style.setProperty('display', 'flex', 'important');
-            userDropdown.style.setProperty('display', 'none', 'important');
+
+            console.error(err);
+
+            // fallback tetap tampilkan user jika token ada
+            const localUser = JSON.parse(
+                localStorage.getItem('user')
+            );
+
+            if (localUser) {
+
+                authButtons.style.setProperty(
+                    'display',
+                    'none',
+                    'important'
+                );
+
+                userDropdown.style.setProperty(
+                    'display',
+                    'flex',
+                    'important'
+                );
+
+                usernameSpan.textContent =
+                    localUser?.name || 'User';
+
+                userAvatar.src =
+                    localUser?.avatar ||
+                    "{{ asset('images/home/user/user-group.png') }}";
+
+            } else {
+
+                authButtons.style.setProperty(
+                    'display',
+                    'flex',
+                    'important'
+                );
+
+                userDropdown.style.setProperty(
+                    'display',
+                    'none',
+                    'important'
+                );
+
+            }
         }
     }
 
@@ -447,13 +487,14 @@
      * Login user (panggil saat submit login form)
      */
     async function loginUser(email_or_phone, password) {
+
         try {
-            const res = await fetch('{{ url('/api/login') }}', {
+
+            const res = await fetch('/api/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({
                     email_or_phone,
@@ -463,23 +504,35 @@
 
             const data = await res.json();
 
-            if (res.ok && data.success && data.data.access_token) {
-                // Simpan token → render navbar
-                localStorage.setItem('access_token', data.data.access_token);
-                renderNavbar();
+            console.log('LOGIN:', data);
+
+            // sesuaikan dengan response API kamu
+            const token =
+                data.token ||
+                data.access_token ||
+                data.data?.token ||
+                data.data?.access_token;
+
+            if (res.ok && token) {
+
+                localStorage.setItem('token', token);
+
+                await renderNavbar();
+
             } else {
-                alert(data.message || 'Login gagal');
+
+                alert('Login gagal');
+
             }
+
         } catch (err) {
-            console.error('Login error:', err);
-            alert('Terjadi kesalahan saat login');
+
+            console.error(err);
+
         }
     }
 
-    // Tutup dropdown saat klik di luar atau scroll
     document.addEventListener('click', () => userDropdown.classList.remove('open'));
     window.addEventListener('scroll', () => userDropdown.classList.remove('open'));
-
-    // Render navbar saat page load
     document.addEventListener('DOMContentLoaded', renderNavbar);
 </script>

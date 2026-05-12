@@ -31,9 +31,7 @@ class CartController extends Controller
     {
         $cart = $this->getCart();
 
-        $cart->load([
-            'items.product.primaryImage'
-        ]);
+   $cart->load(['items.product']);
 
         $selectedTotal = $cart->items
             ->where('is_selected', true)
@@ -43,13 +41,13 @@ class CartController extends Controller
             'success' => true,
             'data' => [
 
-               
+
                 'items' => $cart->items->map(function ($item) {
                     return [
                         'id' => $item->id,
                         'product_id' => $item->product_id,
                         'product_name' => $item->product->name,
-                        'image' => $item->product->primaryImage?->url,
+                       'image' => $item->product->image_url,
                         'price' => $item->price,
                         'quantity' => $item->quantity,
                         'subtotal' => $item->price * $item->quantity, // ⭐ TAMBAHAN
@@ -57,7 +55,7 @@ class CartController extends Controller
                     ];
                 }),
 
-                
+
                 'summary' => [
                     'total_items' => $cart->items->count(), // ⭐ TAMBAHAN
                     'total_quantity' => $cart->items->sum('quantity'), // ⭐ TAMBAHAN
@@ -85,7 +83,7 @@ class CartController extends Controller
             ], 422);
         }
 
-  
+
         if ($product->stock < $request->quantity) {
             return response()->json([
                 'success' => false,
@@ -105,7 +103,7 @@ class CartController extends Controller
 
                 $newQty = $item->quantity + $request->quantity;
 
-             
+
                 if ($product->stock < $newQty) {
                     return response()->json([
                         'success' => false,
@@ -121,13 +119,13 @@ class CartController extends Controller
 
                 $item = $cart->items()->create([
                     'product_id' => $product->id,
-                    'price' => $product->price, 
+                    'price' => $product->price,
                     'quantity' => $request->quantity,
                     'is_selected' => true
                 ]);
             }
 
-            $item->load('product.primaryImage');
+                 $item->load('product');
 
             return response()->json([
                 'success' => true,
@@ -167,7 +165,7 @@ class CartController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Cart diperbarui',
-            'data' => $item->fresh('product.primaryImage')
+           'data'    => $item->fresh('product')
         ]);
     }
 

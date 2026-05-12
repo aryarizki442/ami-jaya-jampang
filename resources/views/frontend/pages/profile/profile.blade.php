@@ -39,6 +39,7 @@
             box-shadow: none;
         }
 
+
         .profile-value {
             width: 220px;
             /* mengatur posisi kolom teks */
@@ -156,7 +157,7 @@
         }
 
         /* =========================
-                                                                                                                                                                                                                                                                                                                                                    /* tablet */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            /* tablet */
         @media (max-width: 992px) {
 
             .profile-value {
@@ -414,11 +415,17 @@
             {{-- FOTO KANAN --}}
             <div class="col-md-4 profile-divider text-center mt-4 pt-4">
 
-                <img id="profileAvatar" src="{{ asset('images/home/category/beras-medium.png') }}"
-                    class="rounded-circle mb-3 w-50" alt="Foto Profil">
+                <!-- Preview Avatar -->
+                <img id="profileAvatarForm" src="{{ asset('images/home/user/user-group.png') }}"
+                    class="rounded-circle mb-3 w-40" alt="Foto Profil">
+
+                <!-- Hidden Input -->
+                <input type="file" id="avatarInput" accept="image/png, image/jpeg" hidden>
 
                 <div>
-                    <button class="btn btn-save">Pilih Gambar</button>
+                    <button type="button" class="btn btn-save" id="chooseImageBtn">
+                        Pilih Gambar
+                    </button>
                 </div>
 
                 <div class="upload-info" style="color: #B8B9BA">
@@ -439,16 +446,16 @@
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 
     <script>
+        /* =========================
+                                                           UTILS
+                                                        ========================= */
         function formatBirthDate(dateString) {
             if (!dateString) return '-';
-
             const [y, m, d] = dateString.split('-');
-
             const months = [
                 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
                 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
             ];
-
             return `${parseInt(d)} ${months[parseInt(m) - 1]} ${y}`;
         }
 
@@ -458,22 +465,31 @@
 
         async function apiFetch(url, options = {}) {
             const token = getToken();
+            const headers = {
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + token,
+                ...(options.headers || {})
+            };
+
+            // Jangan set Content-Type jika FormData (biar browser yg handle boundary)
+            if (!(options.body instanceof FormData)) {
+                headers['Content-Type'] = 'application/json';
+            }
 
             const res = await fetch(url, {
                 ...options,
-                headers: {
-                    'Content-Type': options.body instanceof FormData ? undefined : 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': 'Bearer ' + token,
-                    ...(options.headers || {})
-                }
+                headers
             });
-
             const data = await res.json();
-
             if (!res.ok) throw data;
-
             return data;
+        }
+
+        function avatarUrl(path) {
+            if (!path) return DEFAULT_AVATAR;
+            if (path.startsWith('http')) return path;
+            if (path.startsWith('/storage/')) return window.location.origin + path;
+            return window.location.origin + '/storage/' + path;
         }
 
         /* =========================
@@ -488,152 +504,204 @@
                 document.getElementById('profileEmail').textContent = user.email ?? '-';
                 document.getElementById('profilePhone').textContent = user.phone ?? '-';
 
+                if (user?.email) sessionStorage.setItem('profile_email', user.email);
+                if (user?.phone) sessionStorage.setItem('profile_phone', user.phone);
 
-                if (user?.email) {
-                    sessionStorage.setItem('profile_email', user.email);
-                }
+                // Avatar di form profil
+                const avatarForm = document.getElementById('profileAvatarForm');
+                if (avatarForm) avatarForm.src = avatarUrl(user.avatar);
 
-                if (user?.phone) {
-                    sessionStorage.setItem('profile_phone', user.phone);
-                }
+                // Avatar di sidebar
+                const avatarSidebar = document.getElementById('profileAvatar');
+                if (avatarSidebar) avatarSidebar.src = avatarUrl(user.avatar);
 
-                const avatar = document.getElementById('profileAvatar');
-                if (avatar && user.avatar) {
-                    avatar.src = user.avatar;
-                }
-
+                // Gender
                 if (user.gender) {
-                    const radio = document.querySelector(
-                        `input[name="jenis_kelamin"][value="${user.gender}"]`
-                    );
+                    const radio = document.querySelector(`input[name="jenis_kelamin"][value="${user.gender}"]`);
                     if (radio) radio.checked = true;
                 }
+
+                // Birth date selects
                 if (user.birth_date) {
-                    const parts = user.birth_date.split('-');
-                    if (parts.length === 3) {
-                        const [year, month, day] = parts;
-
-                        const birthDay = document.getElementById('birthDay');
-                        const birthMonth = document.getElementById('birthMonth');
-                        const birthYear = document.getElementById('birthYear');
-
-                        if (birthDay) birthDay.value = Number(day);
-                        if (birthMonth) birthMonth.value = Number(month);
-                        if (birthYear) birthYear.value = Number(year);
-                    }
+                    const [year, month, day] = user.birth_date.split('-');
+                    const birthDay = document.getElementById('birthDay');
+                    const birthMonth = document.getElementById('birthMonth');
+                    const birthYear = document.getElementById('birthYear');
+                    if (birthDay) birthDay.value = Number(day);
+                    if (birthMonth) birthMonth.value = Number(month);
+                    if (birthYear) birthYear.value = Number(year);
                 }
+
+                // Birth date text vs selects
                 const birthText = document.getElementById('profileBirthText');
                 const birthSelects = document.getElementById('birthSelects');
-
                 if (user.birth_date) {
                     birthText.textContent = formatBirthDate(user.birth_date);
-
                     birthText.classList.remove('d-none');
                     birthSelects.classList.add('d-none');
                 } else {
                     birthText.textContent = '-';
-
                     birthText.classList.add('d-none');
                     birthSelects.classList.remove('d-none');
+                }
+
+                // Update navbar/sidebar jika ada helper setUser
+                if (typeof setUser === 'function') {
+                    setUser({
+                        name: user.name ?? 'User',
+                        avatar: avatarUrl(user.avatar), // ← kirim URL final, bukan raw path
+                        email: user.email ?? null
+                    });
                 }
 
             } catch (err) {
-                console.log(err);
+                console.error('loadProfile error:', err);
             }
         }
-
         /* =========================
            INLINE EDIT NAME
         ========================= */
-        const nameText = document.getElementById('profileName');
-        const editInput = document.getElementById('editName');
-        const btnEdit = document.getElementById('btnEditName');
-        const btnSaveProfile = document.getElementById('btnSaveProfile');
+        document.addEventListener('DOMContentLoaded', function() {
 
-        if (btnEdit) {
-            btnEdit.addEventListener('click', function(e) {
-                e.preventDefault();
+            const nameText = document.getElementById('profileName');
+            const editInput = document.getElementById('editName');
+            const btnEdit = document.getElementById('btnEditName');
+            const btnSave = document.getElementById('btnSaveProfile');
+            const avatarInput = document.getElementById('avatarInput');
+            const profileAvatar = document.getElementById('profileAvatarForm');
+            const chooseImageBtn = document.getElementById('chooseImageBtn');
 
-                editInput.value = nameText.textContent;
+            // Simpan preview sementara (belum diupload)
+            window.selectedAvatar = null;
 
-                nameText.classList.add('d-none');
-                editInput.classList.remove('d-none');
+            /* --- Tombol Edit Nama --- */
+            if (btnEdit) {
+                btnEdit.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    editInput.value = nameText.textContent;
+                    nameText.classList.add('d-none');
+                    editInput.classList.remove('d-none');
+                    btnEdit.classList.add('d-none');
+                    btnSave.classList.remove('d-none');
 
-                btnEdit.classList.add('d-none');
-                btnSaveProfile.classList.remove('d-none');
+                    // Tampilkan selects birth date saat mode edit
+                    document.getElementById('profileBirthText').classList.add('d-none');
+                    document.getElementById('birthSelects').classList.remove('d-none');
+                });
+            }
 
-                const birthText = document.getElementById('profileBirthText');
-                const birthSelects = document.getElementById('birthSelects');
+            /* --- Pilih Gambar → Preview Saja, Belum Upload --- */
+            if (chooseImageBtn) {
+                chooseImageBtn.addEventListener('click', function() {
+                    avatarInput.click();
+                });
+            }
 
-                // kalau belum ada data → tetap tampil select
-                if (birthText.textContent === '-' || !birthText.textContent) {
-                    birthText.classList.add('d-none');
-                    birthSelects.classList.remove('d-none');
-                } else {
-                    birthText.classList.add('d-none');
-                    birthSelects.classList.remove('d-none');
-                }
-            });
-        }
+            if (avatarInput) {
+                avatarInput.addEventListener('change', function() {
+                    const file = this.files[0];
+                    if (!file) return;
 
-        if (btnSaveProfile) {
-            btnSaveProfile.addEventListener('click', async function(e) {
-                e.preventDefault();
-
-                try {
-
-                    // =========================
-                    // NAME
-                    // =========================
-                    const name = document.getElementById('editName')?.value ||
-                        document.getElementById('profileName')?.textContent;
-
-                    // =========================
-                    // GENDER
-                    // =========================
-                    const gender = document.querySelector('input[name="jenis_kelamin"]:checked')?.value;
-
-                    // =========================
-                    // BIRTH DATE
-                    // =========================
-                    const tanggal = document.getElementById('birthDay')?.value;
-                    const bulan = document.getElementById('birthMonth')?.value;
-                    const tahun = document.getElementById('birthYear')?.value;
-
-                    let birth_date = null;
-
-                    if (tanggal && bulan && tahun) {
-                        birth_date =
-                            `${tahun}-${String(bulan).padStart(2,'0')}-${String(tanggal).padStart(2,'0')}`;
+                    if (file.size > 1024 * 1024) {
+                        alert('Ukuran gambar maksimal 1 MB');
+                        avatarInput.value = '';
+                        return;
                     }
 
-                    // =========================
-                    // HIT API UPDATE PROFILE
-                    // =========================
-                    const res = await apiFetch('/api/profile', {
-                        method: 'PUT',
-                        body: JSON.stringify({
-                            name,
-                            gender,
-                            birth_date
-                        })
-                    });
+                    if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
+                        alert('Format harus JPG atau PNG');
+                        avatarInput.value = '';
+                        return;
+                    }
 
-                    alert(res.message);
+                    // Preview langsung di form profil
+                    profileAvatar.src = URL.createObjectURL(file);
+                    window.selectedAvatar = file;
+                });
+            }
 
-                    // refresh UI setelah save
-                    loadProfile();
+            /* --- Tombol Simpan --- */
+            if (btnSave) {
+                btnSave.addEventListener('click', async function(e) {
+                    e.preventDefault();
 
-                } catch (err) {
-                    console.log(err);
-                    alert(err.message || 'Gagal menyimpan profil');
-                }
-            });
-        }
+                    try {
+                        // Name
+                        const name = editInput?.value || nameText?.textContent;
 
-        /* =========================
-           AUTO LOAD
-        ========================= */
-        document.addEventListener('DOMContentLoaded', loadProfile);
+                        // Gender
+                        const gender = document.querySelector('input[name="jenis_kelamin"]:checked')
+                            ?.value;
+
+                        // Birth date
+                        const tanggal = document.getElementById('birthDay')?.value;
+                        const bulan = document.getElementById('birthMonth')?.value;
+                        const tahun = document.getElementById('birthYear')?.value;
+
+                        let birth_date = null;
+                        if (tanggal && bulan && tahun) {
+                            birth_date =
+                                `${tahun}-${String(bulan).padStart(2, '0')}-${String(tanggal).padStart(2, '0')}`;
+                        }
+
+                        // 1. Update profil (nama, gender, birth_date)
+                        const res = await apiFetch('/api/profile', {
+                            method: 'PUT',
+                            body: JSON.stringify({
+                                name,
+                                gender,
+                                birth_date
+                            })
+                        });
+
+                        // 2. Upload avatar jika ada yang dipilih
+                        if (window.selectedAvatar) {
+                            const formData = new FormData();
+                            formData.append('avatar', window.selectedAvatar);
+
+                            const avatarRes = await apiFetch('/api/avatar', {
+                                method: 'POST',
+                                body: formData
+                            });
+
+                            // Update avatar dari response server (URL final)
+                            if (avatarRes.data?.avatar) {
+                                const finalUrl = avatarUrl(avatarRes.data.avatar);
+
+                                // Update avatar di form profil
+                                const avatarForm = document.getElementById('profileAvatarForm');
+                                if (avatarForm) avatarForm.src = finalUrl;
+
+                                // Update avatar di sidebar
+                                const avatarSidebar = document.getElementById('profileAvatar');
+                                if (avatarSidebar) avatarSidebar.src = finalUrl;
+                            }
+                        }
+
+                        alert(res.message || 'Profil berhasil diperbarui');
+
+                        // Reset state
+                        window.selectedAvatar = null;
+                        avatarInput.value = '';
+
+                        // Reload profil (sekaligus update navbar/sidebar via setUser di loadProfile)
+                        await loadProfile();
+
+                        // Kembalikan UI ke mode tampil
+                        nameText.classList.remove('d-none');
+                        editInput.classList.add('d-none');
+                        btnEdit?.classList.remove('d-none');
+                        btnSave.classList.add('d-none');
+
+                    } catch (err) {
+                        console.error('saveProfile error:', err);
+                        alert(err.message || 'Gagal menyimpan profil');
+                    }
+                });
+            }
+
+            // Load profil saat halaman siap
+            loadProfile();
+        });
     </script>
 @endsection

@@ -229,12 +229,12 @@
                                 Simpan
                             </button>
                         </div>
-
                     </div>
-
                 </div>
+
             </div>
         </div>
+    </div>
     </div>
 
 
@@ -344,7 +344,7 @@
 
             <h6 class="mb-1 fw-semibold">Anda Belum Memiliki Alamat</h6>
         </div>
-    `;
+             `;
                         return [];
                     }
 
@@ -576,14 +576,22 @@
                         'Berhasil Menambah Alamat';
 
                     setTimeout(() => {
-                        successModal.hide();
+                        bootstrap.Modal.getOrCreateInstance(
+                            document.getElementById('modalSuccess')
+                        ).hide();
                     }, 1500);
 
                     await loadAddresses();
 
                     // close modal
-                    const instance = bootstrap.Modal.getInstance(modal);
-                    if (instance) instance.hide();
+                    const instance = bootstrap.Modal.getOrCreateInstance(modal);
+                    instance.hide();
+
+                    setTimeout(() => {
+                        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                        document.body.classList.remove('modal-open');
+                        document.body.style = '';
+                    }, 300);
 
                     // reset form
                     modal.querySelectorAll('input, textarea')

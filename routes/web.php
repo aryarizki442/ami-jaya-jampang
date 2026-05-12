@@ -48,13 +48,12 @@ Route::redirect('/', '/home');
 Route::get('/home', [HomeController::class, 'index'])->name('home');
 Route::get('/product/{slug}', [HomeController::class, 'detail'])->name('detail-product');
 Route::get('/all-product', [HomeController::class, 'productAll'])->name('all-product');
+Route::get('/cart', [HomeController::class, 'cart'])->name('cart');
+Route::get('/checkout', [HomeController::class, 'checkout'])->name('checkout');
 
-Route::get('/cart', function () {
-    return view('frontend.pages.cart');
-})->name('cart');
-Route::get('/checkout', function () {
-    return view('frontend.pages.checkout');
-})->name('checkout');
+// Route::get('/checkout', function () {
+//     return view('frontend.pages.checkout');
+// })->name('checkout');
 Route::get('/payment', function () {
     return view('frontend.pages.payment');
 })->name('payment');

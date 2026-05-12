@@ -13,7 +13,7 @@ class AdminDashboardController extends Controller
 
     public function index()
     {
-   
+
         $summary = [
             'total_users'        => User::where('role', 'customer')->count(),
             'total_products'     => Product::count(),
@@ -58,7 +58,7 @@ class AdminDashboardController extends Controller
             ->take(5)
             ->get(['id', 'order_number', 'user_id', 'status', 'total', 'created_at']);
 
-        
+
         $topProducts = Product::with('primaryImage')
             ->where('total_sold', '>', 0)
             ->orderByDesc('total_sold')

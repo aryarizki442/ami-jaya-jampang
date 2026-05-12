@@ -142,10 +142,9 @@
                     }
 
                     // SUCCESS
-                    const token = data.data.access_token;
                     const user = data.data.user;
+                    const token = data.data.access_token;
 
-                    // SIMPAN TOKEN (SATU NAMA SAJA)
                     localStorage.setItem('token', token);
 
                     // redirect

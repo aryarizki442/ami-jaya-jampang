@@ -8,10 +8,10 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-  
+
     public function index(Request $request)
     {
-        $query = Product::with(['primaryImage', 'category'])
+        $query = Product::with(['category'])
             ->where('is_active', 1);
 
         // Filter pencarian nama
@@ -50,13 +50,12 @@ class ProductController extends Controller
         ]);
     }
 
-  
+
     public function show(Product $product)
     {
         abort_if(! $product->is_active, 404, 'Produk tidak ditemukan');
 
         $product->load([
-            'images',
             'category'
             //'reviews' => fn($q) => $q->with('user:id,name,avatar')->latest('created_at')->take(5),
         ]);
@@ -67,19 +66,19 @@ class ProductController extends Controller
         ]);
     }
 
-  
+
     // GET /api/products/slug/{slug}
-    
+
     public function showBySlug(string $slug)
     {
         $product = Product::where('slug', $slug)->where('is_active', 1)->firstOrFail();
         return $this->show($product);
     }
 
-   
+
     // GET /api/products/{product}/reviews
     // Query params: rating, per_page
-  
+
     // public function reviews(Product $product, Request $request)
     // {
     //     $reviews = $product->reviews()

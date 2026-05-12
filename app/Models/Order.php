@@ -69,4 +69,6 @@ class Order extends Model
 
         return $prefix . str_pad($seq, 4, '0', STR_PAD_LEFT);
     }
+
+  
 }

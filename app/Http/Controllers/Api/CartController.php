@@ -125,7 +125,10 @@ class CartController extends Controller
                 ]);
             }
 
+<<<<<<< HEAD
                  $item->load('product');
+=======
+>>>>>>> 75b4a961347ef326327524b373954c40a668fd87
 
             return response()->json([
                 'success' => true,

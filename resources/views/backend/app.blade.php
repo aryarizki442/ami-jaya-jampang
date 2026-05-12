@@ -205,7 +205,10 @@
                 </a>
             </li>
             <li>
-                <a href="#"><i class="ri-wallet-3-line"></i><span>Pembayaran</span></a>
+                 <a href="">
+                    <i class="ri-wallet-3-line"></i>
+                    <span>Pembayaran</span>
+                </a>
             </li>
             <li>
                 <a href="{{ route('admin.category') }}"

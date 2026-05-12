@@ -403,14 +403,14 @@
   </div>
 
   <script>
-    var snapToken = 'b6ec1499-65bb-4368-acd4-4c07eb498cba';
+    var snapToken = 'ab3640ff-ba8b-47b7-8e58-e8c9b34eb8a1';
 
     document.getElementById('pay-button').onclick = function () {
       window.snap.pay(snapToken, {
         onSuccess: function(result) {
           console.log('SUKSES:', result);
           alert('✅ Pembayaran Berhasil!');
-          window.location.href = 'http://127.0.0.1:8000/api/orders/7';
+          window.location.href = 'http://127.0.0.1:8000/api/orders/10';
         },
         onPending: function(result) {
           console.log('PENDING:', result);

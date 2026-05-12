@@ -176,74 +176,67 @@
                 </thead>
 
                 <tbody>
-                    @for ($i = 1; $i <= 4; $i++)
-                        @php
-                            $statusList = ['Menunggu Pembayaran', 'Menunggu Konfirmasi', 'Dibatalkan', 'Berhasil'];
+    @forelse ($orders as $order)
+        @php
+            $badge = [
+                'awaiting_payment' => 'badge-waiting-payment',
+                'pending' => 'badge-confirmed',
+                'cancelled' => 'badge-cancelled',
+                'completed' => 'badge-completed',
+            ][$order->status] ?? 'badge-confirmed';
+        @endphp
 
-                            $status = $statusList[$i - 1];
+        <tr class="text-center align-middle">
+            <td>
+                <input type="checkbox" class="custom-check row-check" value="{{ $order->id }}">
+            </td>
 
-                            $badge = [
-                                'Menunggu Pembayaran' => 'badge-waiting-payment',
-                                'Menunggu Konfirmasi' => 'badge-confirmed',
-                                'Dibatalkan' => 'badge-cancelled',
-                                'Berhasil' => 'badge-completed',
-                            ][$status];
-                        @endphp
-                        <tr class="text-center align-middle">
+            <td class="text-start">
+                {{ $loop->iteration + ($orders->currentPage() - 1) * $orders->perPage() }}
+            </td>
 
-                            <!-- CHECKBOX -->
-                            <td>
-                                <input type="checkbox" class="custom-check row-check">
-                            </td>
+            <td class="text-start">
+                {{ $order->order_number }}
+            </td>
 
-                            <!-- NOMOR -->
-                            <td class="text-start">
-                                {{ $i }}
-                            </td>
+            <td class="text-start">
+                {{ $order->created_at->format('d M Y, H.i') }}
+            </td>
 
-                            <!-- PESANAN -->
-                            <td class="text-start">
-                                <div class="">
-                                    #ORD-00{{ $i }}
-                                </div>
-                            </td>
+            <td class="text-start">
+                {{ $order->user->name ?? '-' }}
+            </td>
 
-                            <!-- TANGGAL -->
-                            <td class="text-start">
-                                {{ \Carbon\Carbon::now()->subDays($i)->format('M j Y, H.i') }}
-                            </td>
+            <td class="text-center">
+                <span class="badge {{ $badge }}">
+                    {{ $order->status_label }}
+                </span>
+            </td>
 
-                            <!-- PELANGGAN -->
-                            <td class="text-start">
-                                <div class="">Pelanggan {{ $i }}</div>
-                            </td>
+            <td class="text-start">
+                {{ $order->total_format }}
+            </td>
 
-                            <!-- STATUS -->
-                            <td class="text-center">
-                                <span class="badge  {{ $badge }}">
-                                    {{ $status }}
-                                </span>
-                            </td>
+            <td class="text-center">
+                <a href=""
+                   class="btn-edit-admin text-decoration-none action-icon eye-action">
+                    <span class="iconify" data-icon="flowbite:edit-outline" style="font-size:20px;"></span>
+                </a>
 
-                            <!-- TOTAL -->
-                            <td class="text-start">
-                                Rp {{ number_format(150000 * $i, 0, ',', '.') }}
-                            </td>
-
-                            <!-- AKSI -->
-                            <td class="text-center">
-                                <a href="#" class="btn-edit-admin text-decoration-none action-icon eye-action">
-                                    <span class="iconify" data-icon="flowbite:edit-outline" style="font-size:20px;"></span>
-                                </a>
-
-                                <a href="#" class="btn-detail-admin text-decoration-none action-icon eye-action">
-                                    <span class="iconify" data-icon="heroicons-outline:eye" style="font-size:20px;"></span>
-                                </a>
-                            </td>
-
-                        </tr>
-                    @endfor
-                </tbody>
+                <a href="{{ route('admin.order.detail', $order->id) }}"
+                   class="btn-detail-admin text-decoration-none action-icon eye-action">
+                    <span class="iconify" data-icon="heroicons-outline:eye" style="font-size:20px;"></span>
+                </a>
+            </td>
+        </tr>
+    @empty
+        <tr>
+            <td colspan="8" class="text-center py-4">
+                Data pesanan belum tersedia.
+            </td>
+        </tr>
+    @endforelse
+</tbody>
             </table>
         </div>
 

@@ -170,6 +170,14 @@ Route::prefix('admin')->group(function () {
 // PUBLIC (tanpa auth) → untuk Midtrans webhook
 // ─────────────────────────────────────────────
 Route::post('/payment/notification', [PaymentController::class, 'notification']);
+Route::post('/test-webhook', function () {
+
+    \Log::info('WEBHOOK TEST MASUK');
+
+    return response()->json([
+        'success' => true
+    ]);
+});
 
 
 // ─────────────────────────────────────────────
@@ -188,7 +196,10 @@ Route::middleware(['auth:api'])->group(function () {
 
     // ── Upload Bukti Transfer ────────────────
     Route::post('/orders/{order}/payment/upload-proof', [PaymentController::class, 'upload Proof']);
+
+
 });
+    Route::get('/payment-list', [PaymentController::class, 'index']);
 
 //product
 

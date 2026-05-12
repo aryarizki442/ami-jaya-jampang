@@ -27,6 +27,9 @@ class AdminOrderController extends Controller
     // GET /api/admin/orders
     // Filter: status, search, date_from, date_to, per_page
     // ──────────────────────────────────────────────────────────────
+
+
+ 
     public function index(Request $request)
     {
         $query = Order::with(['user:id,name,email,phone', 'payment.paymentMethod'])
@@ -661,4 +664,40 @@ class AdminOrderController extends Controller
             default              => ucfirst($status),
         };
     }
+
+
+
+
+
+   
+    
+    public function frontendOrderDetail(Order $order)
+    {
+        $order->load([
+            'user:id,name,email,phone',
+            'items.product',
+            'address',
+            'payment.paymentMethod',
+        ]);
+
+        return view('backend.pages.order.detail', compact('order'));
+    }
+ public function frontendOrderIndex(Request $request)
+{
+    $orders = Order::with(['user:id,name,email,phone', 'payment.paymentMethod'])
+        ->withCount('items')
+        ->latest()
+        ->paginate(15);
+
+    $orders->getCollection()->transform(function ($order) {
+        $order->status_label = $this->statusLabel($order->status);
+        $order->total_format = 'Rp.' . number_format($order->total ?? 0, 0, ',', '.');
+
+        return $order;
+    });
+
+    return view('backend.pages.order.index', compact('orders'));
+}
+
+
 }

@@ -2,8 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Admin\AdminCategoryController;
+use App\Http\Controllers\Api\Admin\AdminOrderController;
 use App\Http\Controllers\Api\Admin\AdminProductController;
 use App\Http\Controllers\Frontend\HomeController;
+
 use Illuminate\Http\Request;
 
 
@@ -126,6 +128,9 @@ Route::get('/admin/product/edit/{product}', [AdminProductController::class, 'fro
 Route::get('/admin/product/detail/{product}', [AdminProductController::class, 'frontendProductDetail'])
     ->name('admin.product.detail');
 
+
+
+
 // TEST KALENDER
     Route::get('/admin/kalender', function () {
     return view('backend.pages.product.kalender');
@@ -151,8 +156,11 @@ Route::get('/admin/category/detail/{id}', function ($id) {
 })->name('admin.category.detail');
 
 // Admin Order
-Route::get('/admin/order', function () {
-    return view('backend.pages.order.index');
-})->name('admin.order');
 
+
+Route::get('/admin/order', [AdminOrderController::class, 'frontendOrderIndex'])
+    ->name('admin.order');
+Route::get('/admin/order/{order}', [AdminOrderController::class, 'frontendOrderDetail'])
+    ->name('admin.order.detail');
+   
 

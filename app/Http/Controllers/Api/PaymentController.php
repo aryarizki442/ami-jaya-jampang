@@ -140,94 +140,163 @@ class PaymentController extends Controller
     // Daftarkan di: Midtrans Dashboard → Settings → Configuration
     //               → Payment Notification URL
     // ──────────────────────────────────────────────────────────────
-    public function notification(Request $request)
-    {
-        try {
-            $notification = new \Midtrans\Notification();
+  public function notification(Request $request)
+{
+    try {
+        Log::info('WEBHOOK MIDTRANS DITERIMA', [
+            'headers' => $request->headers->all(),
+            'raw'     => $request->getContent(),
+            'all'     => $request->all(),
+        ]);
 
-            $orderId           = $notification->order_id;
-            $transactionStatus = $notification->transaction_status;
-            $fraudStatus       = $notification->fraud_status ?? null;
-            $paymentType       = $notification->payment_type;
-            $grossAmount       = $notification->gross_amount;
-            $transactionId     = $notification->transaction_id ?? null;
+        // ✅ DIPERBAIKI: ambil payload dari raw JSON dulu
+        $payload = json_decode($request->getContent(), true);
 
-            // ── 1. Verifikasi signature (anti-tamper) ─────────────
-            $expectedSignature = hash('sha512',
-                $orderId .
-                $notification->status_code .
-                $grossAmount .
-                config('midtrans.server_key')
+        // ✅ DIPERBAIKI: fallback kalau raw JSON kosong
+        if (empty($payload)) {
+            $payload = $request->all();
+        }
+
+        Log::info('MIDTRANS FINAL PAYLOAD', [
+            'payload' => $payload,
+        ]);
+
+        $orderId           = $payload['order_id'] ?? null;
+        $transactionStatus = $payload['transaction_status'] ?? null;
+        $fraudStatus       = $payload['fraud_status'] ?? null;
+        $paymentType       = $payload['payment_type'] ?? null;
+        $grossAmount       = $payload['gross_amount'] ?? null;
+        $transactionId     = $payload['transaction_id'] ?? null;
+        $statusCode        = $payload['status_code'] ?? null;
+        $signatureKey      = $payload['signature_key'] ?? null;
+
+        // ✅ DIPERBAIKI: validasi field wajib
+        if (! $orderId || ! $transactionStatus || ! $grossAmount || ! $statusCode) {
+    Log::warning('Midtrans: payload tidak lengkap', [
+        'payload' => $payload,
+        'raw' => $request->getContent(),
+    ]);
+
+    return response()->json([
+        'message' => 'OK - test notification received'
+    ], 200);
+}
+
+        // ✅ BYPASS SIGNATURE UNTUK LOCAL DEBUG
+        if (app()->environment('local')) {
+            Log::warning('SIGNATURE BYPASSED LOCAL DEBUG', [
+                'order_id' => $orderId,
+                'received_signature' => $signatureKey,
+            ]);
+        } else {
+            // ✅ DIPERBAIKI: validasi signature untuk production
+            $expectedSignature = hash(
+                'sha512',
+                $orderId . $statusCode . $grossAmount . config('midtrans.server_key')
             );
 
-            if ($notification->signature_key !== $expectedSignature) {
-                Log::warning('Midtrans: signature tidak valid', ['order_id' => $orderId]);
-                return response()->json(['message' => 'Invalid signature'], 403);
-            }
-
-            // ── 2. Cari order ─────────────────────────────────────
-            $order = Order::where('order_number', $orderId)
-                          ->with('items.product', 'user')
-                          ->first();
-
-            if (! $order) {
-                Log::warning('Midtrans: order tidak ditemukan', ['order_number' => $orderId]);
-                return response()->json(['message' => 'Order not found'], 404);
-            }
-
-            $payment = $order->payment;
-
-            // Idempotency — skip jika status sudah paid (hindari proses dobel)
-            if ($payment->status === 'paid' && $transactionStatus !== 'refund') {
-                return response()->json(['message' => 'Already processed'], 200);
-            }
-
-            // ── 3. Tentukan status pembayaran ─────────────────────
-            $paymentStatus = match(true) {
-                $transactionStatus === 'capture' && $fraudStatus === 'accept'     => 'paid',
-                $transactionStatus === 'capture' && $fraudStatus === 'challenge'  => 'pending',
-                $transactionStatus === 'settlement'                               => 'paid',
-                in_array($transactionStatus, ['cancel', 'deny', 'failure'])       => 'failed',
-                $transactionStatus === 'expire'                                   => 'expired',
-                default                                                           => 'pending',
-            };
-
-            // ── 4. Simpan perubahan ke DB ─────────────────────────
-            DB::transaction(function () use (
-                $order, $payment, $paymentStatus,
-                $paymentType, $transactionId, $notification
-            ) {
-                // Update payments
-                $payment->update([
-                    'status'         => $paymentStatus,
-                    'payment_type'   => $paymentType,
-                    'transaction_id' => $transactionId,
-                    'paid_at'        => $paymentStatus === 'paid' ? now() : $payment->paid_at,
-                    // Simpan nomor VA jika metode VA
-                    'virtual_account_number' =>
-                        $notification->va_numbers[0]->va_number
-                        ?? $notification->permata_va_number
-                        ?? $payment->virtual_account_number,
+            if ($signatureKey !== $expectedSignature) {
+                Log::warning('Midtrans: signature tidak valid', [
+                    'order_id' => $orderId,
+                    'expected' => $expectedSignature,
+                    'received' => $signatureKey,
                 ]);
 
-                if ($paymentStatus === 'paid') {
-                    $this->handlePaymentSuccess($order);
-                } elseif (in_array($paymentStatus, ['failed', 'expired'])) {
-                    $this->handlePaymentFailed($order, $paymentStatus);
-                }
-            });
-
-            return response()->json(['message' => 'OK'], 200);
-
-        } catch (\Exception $e) {
-            Log::error('Midtrans: error notifikasi', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-            return response()->json(['message' => 'Error'], 500);
+                return response()->json([
+                    'message' => 'Invalid signature',
+                ], 403);
+            }
         }
-    }
 
+        $order = Order::where('order_number', $orderId)
+            ->with(['items.product', 'user', 'payment'])
+            ->first();
+
+        if (! $order) {
+            Log::warning('Midtrans: order tidak ditemukan', [
+                'order_number' => $orderId,
+            ]);
+
+            return response()->json([
+                'message' => 'Order not found',
+            ], 404);
+        }
+
+        $payment = $order->payment;
+
+        if (! $payment) {
+            Log::warning('Midtrans: payment tidak ditemukan', [
+                'order_number' => $orderId,
+                'order_id'     => $order->id,
+            ]);
+
+            return response()->json([
+                'message' => 'Payment not found',
+            ], 404);
+        }
+
+        if ($payment->status === 'paid' && $transactionStatus !== 'refund') {
+            return response()->json([
+                'message' => 'Already processed',
+            ], 200);
+        }
+
+        $paymentStatus = match (true) {
+            $transactionStatus === 'capture' && $fraudStatus === 'accept'    => 'paid',
+            $transactionStatus === 'capture' && $fraudStatus === 'challenge' => 'pending',
+            $transactionStatus === 'settlement'                              => 'paid',
+            in_array($transactionStatus, ['cancel', 'deny', 'failure'])      => 'failed',
+            $transactionStatus === 'expire'                                  => 'expired',
+            default                                                          => 'pending',
+        };
+
+        DB::transaction(function () use (
+            $order,
+            $payment,
+            $paymentStatus,
+            $paymentType,
+            $transactionId,
+            $payload
+        ) {
+            $virtualAccountNumber =
+                $payload['va_numbers'][0]['va_number']
+                ?? $payload['permata_va_number']
+                ?? $payment->virtual_account_number;
+
+            if ($paymentStatus === 'paid') {
+    $order->update([
+        'status' => 'paid',
+    ]);
+
+    Log::info('ORDER DIPAKSA UPDATE PAID', [
+        'order_number' => $order->order_number,
+        'order_status' => $order->fresh()->status,
+        'payment_status' => $payment->fresh()->status,
+    ]);
+}
+        });
+
+        Log::info('Midtrans: webhook berhasil diproses', [
+            'order_number'   => $orderId,
+            'payment_status' => $paymentStatus,
+        ]);
+
+        return response()->json([
+            'message' => 'OK',
+        ], 200);
+
+    } catch (\Exception $e) {
+        Log::error('Midtrans: error notifikasi', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+        ]);
+
+        return response()->json([
+            'message' => 'Error',
+            'error'   => config('app.debug') ? $e->getMessage() : null,
+        ], 500);
+    }
+}
     // ──────────────────────────────────────────────────────────────
     // POST /api/orders/{order}/payment/upload-proof
     // Upload bukti transfer manual (untuk COD / transfer bank manual)
@@ -385,25 +454,32 @@ class PaymentController extends Controller
     }
 
     /** Handle saat pembayaran berhasil */
-    private function handlePaymentSuccess(Order $order): void
-    {
-        $order->update(['status' => 'paid']);
+  private function handlePaymentSuccess(Order $order): void
+{
+    Log::info('HANDLE PAYMENT SUCCESS DIPANGGIL', [
+        'order_before' => $order->status,
+    ]);
 
+    $order->update([
+        'status' => 'paid',
+    ]);
+
+    $order->refresh();
+
+    Log::info('ORDER UPDATED', [
+        'order_after' => $order->status,
+    ]);
+
+    if ($order->user) {
         $order->user->notifications()->create([
             'type'     => 'payment',
-            'title'    => 'Pembayaran Berhasil ✅',
-            'message'  => "Pembayaran order {$order->order_number} sebesar Rp." .
-                          number_format($order->total, 0, ',', '.') . " telah diterima.",
+            'title'    => 'Pembayaran Berhasil',
+            'message'  => "Pembayaran order {$order->order_number} berhasil.",
             'ref_type' => 'order',
             'ref_id'   => $order->id,
         ]);
-
-        Log::info('Midtrans: pembayaran berhasil', [
-            'order_number' => $order->order_number,
-            'amount'       => $order->total,
-        ]);
     }
-
+}
     /** Handle saat pembayaran gagal atau expired */
     private function handlePaymentFailed(Order $order, string $paymentStatus): void
     {

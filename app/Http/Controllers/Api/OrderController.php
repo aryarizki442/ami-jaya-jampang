@@ -46,7 +46,7 @@ class OrderController extends Controller
         abort_if($order->user_id !== $this->user()->id, 403, 'Akses ditolak');
 
         $order->load([
-            'items.product.primaryImage',
+            'items.product',
             'address',
             'payment.paymentMethod',
         ]);
@@ -132,7 +132,7 @@ class OrderController extends Controller
             ->where('user_id', $user->id)
             ->firstOrFail();
 
-        $cart = $user->cart()->with('items.product.primaryImage')->first();
+        $cart = $user->cart()->with('items.product')->first();
 
         if (! $cart) {
             return response()->json([
@@ -142,7 +142,7 @@ class OrderController extends Controller
         }
 
         // Ambil item yang akan dicheckout
-        $itemsQuery = $cart->items()->with('product.primaryImage');
+        $itemsQuery = $cart->items()->with('product');
         if (! empty($request->item_ids)) {
             $itemsQuery->whereIn('id', $request->item_ids);
         } else {
@@ -220,7 +220,7 @@ class OrderController extends Controller
                 $order->items()->create([
                     'product_id'    => $ci->product_id,
                     'product_name'  => $ci->product->name,
-                    'product_image' => $ci->product->primaryImage?->image_url,
+                    'product_image' => $ci->product->image_url,
                     'product_unit'  => $ci->product->unit,
                     'quantity'      => $ci->quantity,
                     'unit_price'    => $ci->product->price,

@@ -19,11 +19,12 @@ class NotificationController extends Controller
     {
         $notifications = $this->user()
             ->notifications()
+            ->latest()
             ->paginate($request->get('per_page', 15));
 
         return response()->json([
-            'success' => true,
-            'data' => $notifications,
+            'success'      => true,
+            'data'         => $notifications,
             'unread_count' => $this->user()->unreadNotifications()->count(),
         ]);
     }
@@ -32,7 +33,7 @@ class NotificationController extends Controller
     public function unreadCount()
     {
         return response()->json([
-            'success' => true,
+            'success'      => true,
             'unread_count' => $this->user()->unreadNotifications()->count(),
         ]);
     }

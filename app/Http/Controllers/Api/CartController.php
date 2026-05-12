@@ -31,9 +31,6 @@ class CartController extends Controller
     {
         $cart = $this->getCart();
 
-        $cart->load([
-            'items.product.primaryImage'
-        ]);
 
         $selectedTotal = $cart->items
             ->where('is_selected', true)
@@ -127,7 +124,6 @@ class CartController extends Controller
                 ]);
             }
 
-            $item->load('product.primaryImage');
 
             return response()->json([
                 'success' => true,

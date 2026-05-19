@@ -123,8 +123,8 @@ class CartController extends Controller
                     'is_selected' => true
                 ]);
             }
-
                  $item->load('product');
+
 
             return response()->json([
                 'success' => true,

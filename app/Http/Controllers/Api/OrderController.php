@@ -592,4 +592,99 @@ class OrderController extends Controller
             default              => ucfirst($status),
         };
     }
+
+    public function accept(Order $order)
+{
+    if ($order->status !== 'paid') {
+        return response()->json([
+            'success' => false,
+            'message' => 'Order hanya bisa di-ACC setelah pembayaran lunas',
+        ], 422);
+    }
+
+    $status = $order->delivery_method === 'delivery'
+        ? 'shipped'
+        : 'ready_to_pickup';
+
+    $order->update(['status' => $status]);
+
+    return response()->json([
+        'success' => true,
+        'message' => $status === 'shipped'
+            ? 'Order di-ACC dan sedang dikirim'
+            : 'Order di-ACC dan siap dijemput',
+        'data' => $order->fresh(),
+    ]);
+}
+
+public function reject(Request $request, Order $order)
+{
+    $request->validate([
+        'reason' => 'required|string|max:255',
+    ], [
+        'reason.required' => 'Alasan pembatalan wajib diisi',
+    ]);
+
+    if ($order->status !== 'paid') {
+        return response()->json([
+            'success' => false,
+            'message' => 'Order tidak bisa direfund',
+        ], 422);
+    }
+
+    DB::transaction(function () use ($request, $order) {
+
+        // ubah status order
+        $order->update([
+            'status'        => 'refunded',
+            'cancel_reason' => $request->reason,
+        ]);
+
+        // balikin stok
+        foreach ($order->items as $item) {
+
+            $item->product->increment('stock', $item->quantity);
+
+            $item->product->decrement('total_sold', $item->quantity);
+        }
+
+        // notif customer
+        $order->user->notifications()->create([
+            'type'     => 'order',
+            'title'    => 'Pesanan Direfund 💰',
+            'message'  => "Pesanan {$order->order_number} direfund oleh admin. Alasan: {$request->reason}. Untuk proses pengembalian dana silakan hubungi CS melalui WhatsApp.",
+            'ref_type' => 'order',
+            'ref_id'   => $order->id,
+        ]);
+    });
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Pesanan berhasil direfund',
+        'data'    => $order->fresh([
+            'items',
+            'payment',
+        ]),
+    ]);
+}
+
+public function complete(Order $order)
+{
+    if (! in_array($order->status, ['shipped', 'ready_to_pickup'])) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Order belum bisa diselesaikan',
+        ], 422);
+    }
+
+    $order->update([
+        'status' => 'completed'
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Order berhasil diselesaikan',
+        'data' => $order->fresh(),
+    ]);
+}
 }

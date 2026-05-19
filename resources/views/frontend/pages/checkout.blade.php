@@ -18,6 +18,10 @@
             /* tetap putih */
         }
 
+        /* .card:hover {
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            background: #F6F6F6;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        } */
+
         .form-check-pengiriman {
             background-color: #fff;
             padding: 10px 0px;
@@ -191,7 +195,6 @@
 
 
 
-
         /* OPTIONAL: Ukuran lebih kecil di layar mobile */
         @media (max-width: 576px) {
             .qty-group {
@@ -211,65 +214,147 @@
         }
     </style>
     <section>
-        <h5 class="fw-bold title-checkout py-4 mb-0">Checkout</h5>
+        <h5 class="fw-bold mb-4 title-checkout">Checkout</h5>
 
-        <div class="row g-4 ">
+        <div class="row g-4">
             <!-- Kiri: Alamat & Produk -->
             <div class="col-lg-8">
                 <!-- Alamat Pengiriman -->
-                <div class="card mb-3 p-3" id="addressCard">
-                    <h6 class="text-custom-gray text-uppercase mb-3 fw-semibold">
-                        Alamat Pengiriman
-                    </h6>
-
+                <div class="card mb-3 p-3">
+                    <h6 class="text-custom-gray text-uppercase mb-3 fw-semibold">Alamat Pengiriman</h6>
                     <div class="d-flex justify-content-between align-items-start">
-
-                        <!-- LEFT -->
-                        <div id="addressContent">
-                            <div class="text-muted">Loading alamat...</div>
+                        <!-- Bagian kiri: ikon + nama rumah di atas -->
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class='bx bxs-map' style="color: #1F7D53; font-size: 1.8rem;"></i>
+                                <div class="fw-bold">Rumah . Malik Hassan</div>
+                            </div>
+                            <!-- Alamat di bawah kanan -->
+                            <p class="small text-start mb-0">
+                                Perumahan Cibinong Rt111 Rw222 Cibinong, Kabupaten Bogor,<br>
+                                Jawa Barat 16345 <span class="text-muted">(0812002211122)</span>
+                            </p>
                         </div>
 
-                        <!-- RIGHT BUTTON -->
-                        <button class="btn btn-custom-gray align-self-start mb-0" id="addressActionBtn">
-                            ...
-                        </button>
-
+                        <!-- Tombol Ganti tetap di kanan -->
+                        <button class="btn btn-custom-gray align-self-start mb-0">Ganti</button>
                     </div>
+
+
+
                 </div>
 
 
                 <!-- Produk -->
-                @foreach ($items as $item)
-                    <div class="card mb-2 p-5 py-4 mt-2">
-                        <div class="d-flex gap-3 mb-3">
+                <div class="card mb-3 p-3">
+                    <div class="d-flex gap-3 mb-3">
+                        <!-- KIRI: Gambar -->
+                        <img src="{{ asset('images/home/category/beras-putih.png') }}" alt="Beras"
+                            class="rounded-circle flex-shrink-0" width="100" height="100">
 
-                            <img src="{{ $item->product->image_url }}" class="rounded-circle flex-shrink-0" width="100"
-                                height="100">
+                        <!-- KANAN: Konten -->
+                        <div class="flex-grow-1">
+                            <!-- Baris produk -->
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <p class="mt-4">1 Karung Beras Putih Premium</p>
 
-                            <div class="flex-grow-1">
+                                <div class="text-end">
+                                    <h6 class="fw-semibold mb-3">Rp.100.000</h6>
+                                    <div class="input-group input-group-sm qty-group">
+                                        <button class="btn qty-btn fw-bold" data-action="minus">-</button>
+                                        <input type="text" class="form-control text-center fw-semibold qty-input"
+                                            value="1">
+                                        <button class="btn qty-btn fw-bold" data-action="plus">+</button>
+                                    </div>
+                                </div>
+                            </div>
 
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <p class="mt-4">
-                                        {{ $item->product->name }}
-                                    </p>
+                            <!-- CARD PENGIRIMAN (sejajar teks produk) -->
+                            <h6 class="fw-semibold ">Jenis Pengiriman</h6>
+                            <div class="card border p-2 mb-2">
 
-                                    <div class="text-end">
-                                        <h6 class="fw-semibold mb-3">
-                                            Rp.{{ number_format($item->price, 0, ',', '.') }}
-                                        </h6>
+                                <!-- Antar -->
+                                <div class="form-check-pengiriman d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-check-label " for="antar">
+                                        Di Antar Oleh Penjual Ke Alamat Pembeli
+                                    </label>
+                                    <input class="form-check-input ms-2" type="radio" name="shipping" id="antar"
+                                        checked>
+                                </div>
+
+                                <!-- Pickup -->
+                                <div class="form-check-pengiriman d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-check-label" for="pickup">
+                                        Pick Up (Pembeli Ambil Barang Ke Lokasi Penjual)
+                                    </label>
+                                    <input class="form-check-input ms-2" type="radio" name="shipping" id="pickup">
+                                </div>
+                                <div class="d-flex flex-column gap-2 small mb-1">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="iconify" data-icon="bx:map" style="font-size: 20px;">
+                                        </span>
+                                        <span>
+                                            Dikirim Dari
+                                            <span class="fw-medium">Kabupaten Bogor</span>
+                                        </span>
+
+                                    </div>
+
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="iconify" data-icon="hugeicons:pickup-01" style="font-size: 20px;">
+                                        </span>
+                                        <span class="fw-medium">Ongkos Kirim (Rp.25.000–Rp.50.000)</span>
                                     </div>
                                 </div>
 
+
+                                <small class="d-block mb-2 mt-2">
+                                    Estimasi Tiba Hari ini – Besok
+                                </small>
                             </div>
+                            <div class="note-wrapper position-relative mb-2">
+
+                                <!-- Icon (SELALU ADA) -->
+                                <div class="note-icon text-muted">
+                                    <span class="iconify" data-icon="streamline:hand-held-tablet-writing"
+                                        style="font-size:18px;"></span>
+                                </div>
+
+                                <!-- Placeholder text -->
+                                <div class="note-placeholder text-muted small">
+                                    Beri Catatan
+                                </div>
+
+                                <!-- Counter -->
+                                <div class="note-counter text-muted small">
+                                    0/200
+                                </div>
+
+                                <textarea class="note-textarea" maxlength="200"
+                                    onfocus="this.parentElement.querySelector('.note-placeholder').style.opacity='0'"
+                                    onblur="if(!this.value) this.parentElement.querySelector('.note-placeholder').style.opacity='1'"
+                                    oninput="this.parentElement.querySelector('.note-counter').innerText = this.value.length + '/200'">
+    </textarea>
+
+                                <small class="text-muted fst-italic d-block mt-0">
+                                    * Pengiriman Khusus Wilayah Bogor dan Sekitarnya
+                                </small>
+                            </div>
+
+
+
+
+
+
                         </div>
                     </div>
-                @endforeach
+                </div>
 
             </div>
 
             <!-- Kanan: Metode Pembayaran & Ringkasan -->
-            <div class="col-lg-4  mb-4 ">
-                <div class="card p-3 ">
+            <div class="col-lg-4">
+                <div class="card p-3">
 
                     <!-- Metode Pembayaran -->
                     <h6 class="fw-bold mb-2">Metode Pembayaran</h6>
@@ -371,140 +456,5 @@
 
         </div>
     </section>
-
-    @include('frontend.components.address-modal')
-    @include('frontend.components.address-list-modal')
-
-
-    <script>
-        async function loadUserAddress() {
-            const token = localStorage.getItem('token');
-
-            if (!token) {
-                renderEmptyAddress();
-                return;
-            }
-
-            try {
-                const res = await fetch('/api/addresses', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Accept': 'application/json'
-                    }
-                });
-
-                if (!res.ok) throw new Error();
-
-                const json = await res.json();
-                const addresses = json.data || [];
-
-                if (addresses.length === 0) {
-                    renderEmptyAddress();
-                    return;
-                }
-
-                const primaryAddress = addresses.find(addr => addr.is_primary);
-
-                renderAddress(primaryAddress || addresses[0]);
-
-            } catch (e) {
-                renderEmptyAddress();
-            }
-        }
-
-        function renderEmptyAddress() {
-            const content = document.getElementById('addressContent');
-            const btn = document.getElementById('addressActionBtn');
-
-            content.innerHTML = `
-    <div class="d-flex align-items-center gap-2 mb-2">
-        <i class='bx bxs-map' style="font-size: 1.8rem; color: #1F7D53;"></i>
-
-        <div>
-            <div class="fw-semibold text-dark">
-                Anda belum memiliki alamat
-            </div>
-        </div>
-    </div>
-`;
-            btn.innerHTML = `
-            <span class="iconify" data-icon="ic:round-plus"></span>
-            <span>Tambah Alamat</span>
-`;
-
-            btn.className = 'btn btn-main align-self-start mb-0';
-
-            btn.onclick = function() {
-                openAlamatModal();
-            };
-        }
-
-        function renderAddress(address) {
-            const content = document.getElementById('addressContent');
-            const btn = document.getElementById('addressActionBtn');
-            const labelText = {
-                home: 'Rumah',
-                office: 'Kantor'
-            };
-
-            const fullAddress = `
-        ${address.detail ?? ''},
-        ${address.village ?? ''},
-        ${address.district},
-        ${address.city},
-        ${address.province}
-        ${address.postal_code ? address.postal_code : ''}
-         `;
-
-            content.innerHTML = `
-        <div class="d-flex align-items-center gap-2 mb-2">
-            <i class='bx bxs-map' style="color: #1F7D53; font-size: 1.8rem;"></i>
-            <div class="fw-bold">
-              ${labelText[address.label] ?? 'Alamat'} . ${address.recipient_name}
-            </div>
-        </div>
-
-        <p class="small mb-0">
-            ${fullAddress}
-            <span class="text-muted">(${address.phone})</span>
-        </p>
-        `;
-
-            btn.textContent = 'Ganti';
-            btn.onclick = function() {
-                openAddressListModal();
-            };
-        }
-        document.addEventListener('DOMContentLoaded', function() {
-            loadUserAddress();
-        });
-
-        function openAddressListModal() {
-
-            // tutup modal alamat kalau masih kebuka
-            const alamatModalEl = document.getElementById('alamatModal');
-
-            if (alamatModalEl) {
-                const alamatInstance = bootstrap.Modal.getInstance(alamatModalEl);
-
-                if (alamatInstance) {
-                    alamatInstance.hide();
-                }
-            }
-
-            // buka modal list
-            const modalEl = document.getElementById('addressListModal');
-
-            if (!modalEl) return;
-
-            loadAddressList();
-
-            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-
-            setTimeout(() => {
-                modal.show();
-            }, 200);
-        }
-    </script>
 
 @endsection

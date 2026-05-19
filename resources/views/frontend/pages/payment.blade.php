@@ -1,9 +1,76 @@
-@extends('app')
+<!DOCTYPE html>
+<html lang="en">
 
-@section('title', 'Payment')
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Ami Jaya Jampang</title>
 
-@section('content')
+    <!-- BOOTSTRAP -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+
+
+    <!-- GOOGLE FONT -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"rel="stylesheet">
+
+    <!-- CUSTOM CSS -->
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/color.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/login/login.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/home.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/button.css') }}">
+
+
+</head>
+
+<body>
     <style>
+        .navbar-bg {
+            background: linear-gradient(90deg, #0D3523, #1F7D53);
+            padding: 10px 0;
+            transition: .3s ease;
+            z-index: 999;
+        }
+
+        .navbar-logo {
+            width: 150px;
+            height: auto;
+        }
+
+        /* Nav Link */
+        .navbar .nav-link {
+            color: white !important;
+            font-weight: 500;
+            transition: .3s;
+        }
+
+        .navbar .nav-link:hover {
+            opacity: .8;
+        }
+
+        /* Mobile */
+        @media (max-width: 991px) {
+            .navbar-collapse {
+                background: rgba(13, 53, 35, 0.98);
+                margin-top: 12px;
+                padding: 15px;
+                border-radius: 12px;
+            }
+
+            .navbar-nav {
+                gap: 10px;
+            }
+
+            .navbar-logo {
+                width: 120px;
+            }
+        }
+
         .section-payment {
             min-height: 100vh;
             display: flex;
@@ -97,6 +164,14 @@
             }
         }
     </style>
+    <nav class="navbar navbar-expand-lg navbar-bg fixed-top">
+        <div class="container">
+            <!-- Logo -->
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="{{ asset('images/logo/logo-putih.png') }}" alt="Logo" class="img-fluid navbar-logo">
+            </a>
+        </div>
+    </nav>
     <section class="section-payment d-flex align-items-center justify-content-center">
         <div class="payment-card position-relative bg-white">
 
@@ -171,16 +246,12 @@
                     <a href="#" class="text-custom-green small fw-semibold">Lihat Detail</a>
                 </div>
             </div>
-
             <hr>
-
             <!-- Notes -->
             <ul class="note-list small mb-4">
                 <li>Transfer Virtual Account hanya bisa dilakukan dari <br> Bank yang kamu pilih</li>
                 <li>Transaksi kamu baru akan diteruskan ke penjual setelah <br>pembayaran berhasil diverifikasi</li>
             </ul>
-
-
             <!-- Buttons -->
             <div class="d-flex justify-content-center gap-5">
                 <button class="btn btn-custom-green fw-medium px-4 py-2">
@@ -190,12 +261,10 @@
                     Cek Status Bayar
                 </button>
             </div>
-
-
-
-
         </div>
     </section>
+    @include('frontend.partials.footer')
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
@@ -237,4 +306,8 @@
     <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
 
 
-@endsection
+
+
+</body>
+
+</html>

@@ -128,7 +128,7 @@
 }
 
 .text-neutral-custom {
-    color: var(--neutral-200);
+    color: var(--neutral-300);
 }
 
 .text-white-custom {
@@ -216,4 +216,39 @@
     background-color: var(--danger-50);
     color: var(--danger-500);
     font-weight: 500;
+}
+
+/* Order User */
+.status-waiting,
+.status-process,
+.status-shipped,
+.status-finished,
+.status-cancelled {
+
+    padding: 10px 18px;
+    border-bottom-left-radius: 16px;
+    border-top-left-radius: 0;
+    border-bottom-right-radius: 0;
+    font-size: 12px;
+    z-index: 10;
+}
+
+.status-waiting {
+    background: var(--neutral-500);
+}
+
+.status-process {
+    background: var(--warning-500);
+}
+
+.status-shipped {
+    background: var(--info-500);
+}
+
+.status-finished {
+    background: var(--success-500);
+}
+
+.status-cancelled {
+    background: var(--danger-500);
 }

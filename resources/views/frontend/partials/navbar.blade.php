@@ -1,8 +1,8 @@
 <style>
     /* Navbar Background */
+
     .navbar-bg {
         background: linear-gradient(90deg, #0D3523, #1F7D53);
-
     }
 
     .btn-search {
@@ -24,8 +24,6 @@
         background-color: #fff;
         color: #1F7D53;
     }
-
-
 
     /* ACTION DIVIDER */
     .action-divider {
@@ -60,52 +58,71 @@
         margin-right: 8px;
     }
 
-    /* DROPDOWN MENU */
+    /* ================= USER DROPDOWN ================= */
+
     .dropdown-menu-custom {
         display: none;
-        /* default hidden */
         position: absolute;
-        top: 42px;
-        /* tinggi trigger */
+        top: 62px;
         right: 0;
         background: #fff;
-        border-radius: 6px;
-        min-width: 160px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-        flex-direction: column;
-        padding: 8px 0;
-        z-index: 999;
+        border-radius: 14px;
+        min-width: 190px;
+        padding: 8px;
+        box-shadow:
+            0 12px 35px rgba(0, 0, 0, 0.12);
+
+        z-index: 99999;
+        overflow: visible;
     }
 
-    /* ARROW DI ATAS DROPDOWN */
-    .dropdown-arrow {
+    /* MODERN ARROW */
+    .dropdown-menu-custom::before {
+        content: "";
         position: absolute;
-        top: -8px;
+        top: -10px;
         right: 18px;
-        border-left: 8px solid transparent;
-        border-right: 8px solid transparent;
-        border-bottom: 8px solid #fff;
+        width: 18px;
+        height: 18px;
+        background: white;
+        transform: rotate(45deg);
     }
 
-    /* SHOW DROPDOWN KETIKA OPEN */
+    /* HIDE OLD ARROW */
+    .dropdown-arrow {
+        display: none;
+    }
+
+    /* SHOW */
     .user-dropdown.open .dropdown-menu-custom {
         display: block;
     }
 
-    /* LINK DROPDOWN */
+    /* LINK */
     .dropdown-menu-custom a {
-        display: block;
-        padding: 8px 14px;
+
+        display: flex;
+
+        align-items: center;
+
+        padding: 12px 14px;
+
         font-size: 14px;
+
         color: #333;
+
         text-decoration: none;
+
+        border-radius: 10px;
+
+        transition: .2s;
     }
 
     .dropdown-menu-custom a:hover {
-        background: #f3f3f3;
+        background: #f5f7f8;
     }
 
-    /* LOGOUT LINK */
+    /* LOGOUT */
     .dropdown-menu-custom .logout {
         color: #e74c3c;
         font-weight: 600;
@@ -119,6 +136,329 @@
     .modal-content {
         border: none !important;
         box-shadow: none !important;
+    }
+
+
+    /* =========================================================
+   RESPONSIVE NAVBAR - MODERN MOBILE UI
+========================================================= */
+
+    @media (max-width: 992px) {
+
+        /* container */
+        .container-fluid.px-5 {
+            padding-left: 18px !important;
+            padding-right: 18px !important;
+        }
+
+        /* ================= TOP BAR ================= */
+
+        header .border-bottom .container-fluid {
+            padding-top: 10px !important;
+            padding-bottom: 10px !important;
+
+            flex-direction: column;
+            align-items: center !important;
+            gap: 10px;
+            text-align: center;
+        }
+
+        header .border-bottom .container-fluid .d-flex {
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 14px !important;
+        }
+
+        /* ================= NAVBAR ================= */
+
+        .navbar {
+            padding-top: 14px;
+            padding-bottom: 14px;
+        }
+
+        .navbar-brand img {
+            width: 125px;
+        }
+
+        /* hamburger */
+        .navbar-toggler {
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0;
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: none !important;
+        }
+
+        /* collapse area */
+        .navbar-collapse {
+
+            margin-top: 18px;
+
+            background: rgba(255, 255, 255, 0.08);
+
+            backdrop-filter: blur(14px);
+
+            border: 1px solid rgba(255, 255, 255, 0.08);
+
+            border-radius: 22px;
+
+            padding: 18px;
+
+            animation: fadeSlide .25s ease;
+        }
+
+        @keyframes fadeSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ================= SEARCH ================= */
+
+        .navbar form {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            margin: 0 !important;
+        }
+
+        .navbar .input-group {
+            position: relative;
+        }
+
+        .navbar form input {
+
+            height: 52px;
+
+            border-radius: 16px !important;
+
+            border: none !important;
+
+            font-size: 14px;
+
+            padding-left: 16px;
+
+            padding-right: 58px !important;
+
+            box-shadow: none !important;
+        }
+
+        .navbar form input:focus {
+            box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12) !important;
+        }
+
+        .btn-search {
+
+            width: 42px;
+
+            height: 42px;
+
+            border-radius: 12px !important;
+
+            padding: 0 !important;
+
+            right: 5px !important;
+
+            transition: .2s;
+        }
+
+        .btn-search:hover {
+            transform: translateY(-50%) scale(1.03);
+        }
+
+        /* ================= ACTION GROUP ================= */
+
+        .action-group {
+
+            margin-top: 18px;
+
+            width: 100%;
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 14px !important;
+
+            align-items: stretch !important;
+        }
+
+        .action-divider {
+            display: none;
+        }
+
+        /* ================= CART ================= */
+
+        .cart-wrap {
+
+            width: 100%;
+
+            margin-right: 0 !important;
+
+            background: rgba(255, 255, 255, 0.08);
+
+            border-radius: 16px;
+
+            padding: 14px 18px;
+
+            justify-content: center;
+
+            transition: .2s;
+        }
+
+        .cart-wrap:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        /* ================= AUTH BUTTON ================= */
+
+        #authButtons {
+
+            width: 100%;
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 12px !important;
+        }
+
+        #authButtons .btn {
+
+            width: 100%;
+
+            height: 48px;
+
+            border-radius: 14px;
+
+            font-weight: 600;
+        }
+
+        /* ================= USER DROPDOWN ================= */
+
+        .user-dropdown {
+            width: 100%;
+        }
+
+        .user-trigger {
+
+            width: 100%;
+
+            padding: 14px 16px;
+
+            background: rgba(255, 255, 255, 0.08);
+
+            border-radius: 16px;
+
+            justify-content: space-between;
+
+            transition: .2s;
+        }
+
+        .user-trigger:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .user-avatar {
+            width: 38px;
+            height: 38px;
+        }
+
+        .dropdown-menu-custom {
+
+            position: static;
+
+            display: none;
+
+            width: 100%;
+
+            margin-top: 12px;
+
+            background: #fff;
+
+            border-radius: 16px;
+
+            overflow: hidden;
+
+            box-shadow:
+                0 10px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .dropdown-arrow {
+            display: none;
+        }
+
+        .dropdown-menu-custom a {
+
+            padding: 14px 16px;
+
+            font-size: 14px;
+
+            transition: .2s;
+        }
+
+        .dropdown-menu-custom a:hover {
+            background: #f6f6f6;
+        }
+
+        /* dropdown open */
+        .user-dropdown.open .dropdown-menu-custom {
+            display: block;
+        }
+    }
+
+    /* =========================================================
+   EXTRA SMALL DEVICE
+========================================================= */
+
+    @media (max-width: 576px) {
+
+        .container-fluid.px-5 {
+            padding-left: 14px !important;
+            padding-right: 14px !important;
+        }
+
+        header .small {
+            font-size: 11px !important;
+        }
+
+        .navbar-brand img {
+            width: 112px;
+        }
+
+        .navbar-collapse {
+            padding: 16px;
+            border-radius: 18px;
+        }
+
+        .navbar form input {
+            height: 50px;
+            font-size: 13px;
+        }
+
+        .btn-search {
+            width: 40px;
+            height: 40px;
+        }
+
+        .cart-wrap {
+            padding: 13px 16px;
+        }
+
+        .user-trigger {
+            padding: 13px 14px;
+        }
+
+        .dropdown-menu-custom a {
+            padding: 13px 14px;
+        }
     }
 </style>
 
@@ -207,7 +547,7 @@
                     <!-- Auth (BEFORE LOGIN) -->
                     <div id="authButtons" class="d-flex gap-4">
                         <a href="/login" class="btn btn-masuk">Masuk</a>
-                        <a href="/register" class="btn btn-register">Daftar</a>
+                        <a href="/send-email" class="btn btn-register">Daftar</a>
                     </div>
 
                     <!-- User (AFTER LOGIN) -->
@@ -220,7 +560,7 @@
                         <div class="dropdown-menu-custom">
                             <span class="dropdown-arrow"></span>
                             <a href="{{ route('profile') }}">Akun Saya</a>
-                            <a href="#">Pesanan Saya</a>
+                            <a href="{{ route('order-all') }}">Pesanan Saya</a>
                             <a href="#" id="logoutBtn" class="logout">
                                 Keluar
                             </a>

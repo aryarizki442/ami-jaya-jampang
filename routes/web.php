@@ -96,15 +96,21 @@ Route::get('/address', function () {
 Route::get('/order-all', function () {
     return view('frontend.pages.profile.order-all');
 })->name('order-all');
-Route::get('/order-sent', function () {
-    return view('frontend.pages.profile.order-sent');
-})->name('order-sent');
-Route::get('/order-done', function () {
-    return view('frontend.pages.profile.order-done');
-})->name('order-done');
-Route::get('/order-canceled', function () {
-    return view('frontend.pages.profile.order-canceled');
-})->name('order-canceled');
+Route::get('/order-waiting', function () {
+    return view('frontend.pages.profile.order-waiting');
+})->name('order-waiting');
+Route::get('/order-process', function () {
+    return view('frontend.pages.profile.order-process');
+})->name('order-process');
+Route::get('/order-shipped', function () {
+    return view('frontend.pages.profile.order-shipped');
+})->name('order-shipped');
+Route::get('/order-finished', function () {
+    return view('frontend.pages.profile.order-finished');
+})->name('order-finished');
+Route::get('/order-cancelled', function () {
+    return view('frontend.pages.profile.order-cancelled');
+})->name('order-cancelled');
 Route::get('/invoice', function () {
     return view('frontend.pages.profile.invoice');
 })->name('invoice');
@@ -161,5 +167,5 @@ Route::get('/admin/order', [AdminOrderController::class, 'frontendOrderIndex'])
     ->name('admin.order');
 Route::get('/admin/order/{order}', [AdminOrderController::class, 'frontendOrderDetail'])
     ->name('admin.order.detail');
-   
+
 

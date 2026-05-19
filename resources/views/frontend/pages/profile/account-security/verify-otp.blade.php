@@ -114,9 +114,11 @@
                     <input id="kode" type="text" name="kode" class="form-control"
                         placeholder="Masukkan Kode Verifikasi Anda" required>
                 </div>
-                <div class="text-muted text-center mb-3">
+                <div class="text-muted text-center">
                     Belum menerima kode?
-                    <a href="#" class="forgot-link">Kirim Kode</a>
+                    <a href="#" id="resend-code" class="text-primary fw-normal text-decoration-none">
+                        Kirim Kode
+                    </a>
                 </div>
 
                 <button type="submit" id="verifyOtpBtn"
@@ -229,6 +231,68 @@
             verifyOtpBtn.innerText = 'BERIKUTNYA';
         }
     });
+</script>
+<script>
+    document.getElementById('resend-code')
+        .addEventListener('click', async function(e) {
+
+            e.preventDefault();
+
+            const token = localStorage.getItem('token');
+            const target = sessionStorage.getItem('verify_target');
+
+            let purpose = '';
+
+            if (target === 'email') purpose = 'update_email';
+            if (target === 'phone') purpose = 'update_phone';
+            if (target === 'password') purpose = 'forgot_password';
+
+            try {
+
+                const btn = this;
+
+                btn.innerText = 'Mengirim...';
+                btn.style.pointerEvents = 'none';
+
+                const res = await fetch('/api/otp/request', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        purpose: purpose,
+                        email: sessionStorage.getItem('verify_email')
+                    })
+                });
+
+                const result = await res.json();
+
+                console.log(result);
+
+                if (!res.ok) {
+                    alert(result.message || 'Gagal mengirim ulang OTP');
+                    return;
+                }
+
+                alert('Kode OTP berhasil dikirim ulang');
+
+            } catch (err) {
+
+                console.error(err);
+
+                alert('Terjadi kesalahan server');
+
+            } finally {
+
+                const btn = document.getElementById('resend-code');
+
+                btn.innerText = 'Kirim Kode';
+                btn.style.pointerEvents = 'auto';
+            }
+
+        });
 </script>
 
 </html>

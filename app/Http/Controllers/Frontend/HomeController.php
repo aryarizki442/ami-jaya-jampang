@@ -9,7 +9,9 @@ use App\Models\Product;
 use App\Models\Order;
 use App\Models\UserAddress;
 use App\Models\Cart;
+use App\Models\CartItem;
 use Illuminate\Support\Facades\Auth;
+
 class HomeController extends Controller
 {
 public function index()
@@ -88,27 +90,23 @@ public function index()
     return view('frontend.pages.cart', compact('recommendedProducts'));
 }
 
+// BTN BELI dan KERANJANG di kirim ke Checkout
 public function checkout(Request $request)
 {
-    $user = Auth::user();
+    $itemIds = json_decode($request->query('items', '[]'), true);
 
-    if (!$user) {
-        return redirect()->route('login');
+    if (empty($itemIds) || !is_array($itemIds)) {
+        return redirect()->route('cart')->with('error', 'Pilih produk terlebih dahulu');
     }
 
-    $cart = Cart::where('user_id', $user->id)
-        ->with(['items.product'])
-        ->first();
+    $items = CartItem::with('product')
+        ->whereIn('id', $itemIds)
+        ->get();
 
-    if (!$cart) {
-        return view('checkout', [
-            'items' => collect()
-        ]);
+    if ($items->isEmpty()) {
+        return redirect()->route('cart')->with('error', 'Item tidak valid');
     }
-
-    $items = $cart->items()->where('is_selected', 1)->get();
 
     return view('frontend.pages.checkout', compact('items'));
 }
-
 }

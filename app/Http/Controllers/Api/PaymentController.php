@@ -382,7 +382,8 @@ class PaymentController extends Controller
 
         return [
             'transaction_details' => [
-                'order_id'     => $order->order_number,
+                // 'order_id'     => $order->order_number,
+                'order_id'     => $order->order_number . '-' . $order->id,
                 'gross_amount' => (int) $order->total,
             ],
             'item_details'     => $itemDetails,

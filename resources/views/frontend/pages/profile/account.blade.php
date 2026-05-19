@@ -92,9 +92,90 @@
             font-weight: 500;
         }
 
+        .order-title {
+            background: #2a7b4f;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-weight: 600;
+        }
+
+        .order-search {
+            background: #E8E8E9;
+            border: 1px solid #e5e5e5;
+        }
+
+        .order-card {
+            border-radius: 16px;
+            border: 1px solid #B8B9BA;
+            overflow: hidden;
+        }
+
+        .order-card .card-body {
+            padding: 20px 24px 24px;
+        }
+
+        .status-waiting~.card-body .row {
+            margin-top: 20px;
+
+        }
+
+        .status-process~.card-body .row,
+        .status-shipped~.card-body .row,
+        .status-finished~.card-body .row,
+        .status-cancelled~.card-body .row {
+            margin-top: 50px;
+        }
+
+        .order-product {
+            flex-wrap: wrap;
+        }
+
+        .order-product img {
+            max-width: 100px;
+            max-height: 100px;
+            object-fit: contain;
+            border-radius: 12px;
+        }
+
+        .order-divider {
+            border-left: 1px solid #B8B9BA;
+            min-height: 80px;
+            padding-left: 30px;
+        }
+
+        .case {
+            background: #fff;
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+
+            .order-card .card-body {
+                padding: 70px 18px 18px;
+            }
+
+            .order-product {
+                flex-direction: column;
+                align-items: flex-start !important;
+            }
+
+            .order-divider {
+                border-left: 0;
+                margin-top: 20px;
+                text-align: left !important;
+            }
+
+            .status-process {
+                padding: 8px 14px;
+                font-size: 11px;
+            }
+
+        }
+
         /* ======================
-                                                                                                                                                                                                                   RESPONSIVE PROFILE
-                                                                                                                                                                                                                ====================== */
+                                                                                                                                                                                                                                                                                                                           RESPONSIVE PROFILE
+                                                                                                                                                                                                                                                                                                                        ====================== */
 
         /* tablet */
         @media (max-width: 992px) {
@@ -225,9 +306,11 @@
                         <ul id="pesananMenu"
                             class="collapse list-unstyled mt-2
                             {{ request()->is('order-all') ||
-                            request()->is('order-sent') ||
-                            request()->is('order-done') ||
-                            request()->is('order-canceled')
+                            request()->is('order-waiting') ||
+                            request()->is('order-process') ||
+                            request()->is('order-shipped') ||
+                            request()->is('order-finished') ||
+                            request()->is('order-cancelled')
                                 ? 'show'
                                 : '' }}"
                             style="padding-left:2rem;">
@@ -237,19 +320,28 @@
                                     Semua Pesanan
                                 </a>
                             </li>
-
-                            <li class="{{ request()->is('order-sent') ? 'active' : '' }}">
-                                <a href="{{ url('/order-sent') }}" class="text-decoration-none text-dark">
+                            <li class="{{ request()->is('order-waiting') ? 'active' : '' }}">
+                                <a href="{{ url('/order-waiting') }}" class="text-decoration-none text-dark">
+                                    Menunggu Pembayaran
+                                </a>
+                            </li>
+                            <li class="{{ request()->is('order-process') ? 'active' : '' }}">
+                                <a href="{{ url('/order-process') }}" class="text-decoration-none text-dark">
+                                    Pesanan Diproses
+                                </a>
+                            </li>
+                            <li class="{{ request()->is('order-shipped') ? 'active' : '' }}">
+                                <a href="{{ url('/order-shipped') }}" class="text-decoration-none text-dark">
                                     Pesanan Dikirim
                                 </a>
                             </li>
-                            <li class="{{ request()->is('order-done') ? 'active' : '' }}">
-                                <a href="{{ url('/order-done') }}" class="text-decoration-none text-dark">
+                            <li class="{{ request()->is('order-finished') ? 'active' : '' }}">
+                                <a href="{{ url('/order-finished') }}" class="text-decoration-none text-dark">
                                     Pesanan Selesai
                                 </a>
                             </li>
-                            <li class="{{ request()->is('order-canceled') ? 'active' : '' }}">
-                                <a href="{{ url('/order-canceled') }}" class="text-decoration-none text-dark">
+                            <li class="{{ request()->is('order-cancelled') ? 'active' : '' }}">
+                                <a href="{{ url('/order-cancelled') }}" class="text-decoration-none text-dark">
                                     Pesanan Dibatalkan
                                 </a>
                             </li>

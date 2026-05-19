@@ -30,8 +30,7 @@ class CartController extends Controller
     public function index()
     {
         $cart = $this->getCart();
-
-   $cart->load(['items.product']);
+        $cart->load(['items.product']);
 
         $selectedTotal = $cart->items
             ->where('is_selected', true)
@@ -125,10 +124,7 @@ class CartController extends Controller
                 ]);
             }
 
-<<<<<<< HEAD
                  $item->load('product');
-=======
->>>>>>> 75b4a961347ef326327524b373954c40a668fd87
 
             return response()->json([
                 'success' => true,

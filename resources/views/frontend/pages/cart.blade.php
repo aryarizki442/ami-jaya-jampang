@@ -6,15 +6,15 @@
 
     <style>
         /* =======================
-                         TYPOGRAPHY
-                        ======================= */
+                                                                         TYPOGRAPHY
+                                                                        ======================= */
         .title-cart {
             font-size: 28px;
         }
 
         /* =======================
-                           CART ITEM & CARD
-                        ======================= */
+                                                                           CART ITEM & CARD
+                                                                        ======================= */
         .cart-item,
         .card {
             background-color: #fff;
@@ -32,8 +32,8 @@
         }
 
         /* =======================
-                        FORM CHECKBOX
-                        ======================= */
+                                                                        FORM CHECKBOX
+                                                                        ======================= */
         .form-check {
             background-color: #fff;
             border: 1px solid #F6F6F6;
@@ -61,8 +61,8 @@
         }
 
         /* =======================
-                         QUANTITY CONTROL
-                        ======================= */
+                                                                         QUANTITY CONTROL
+                                                                        ======================= */
         .qty-group {
             border: 1px solid #adadad;
             border-radius: 5px;
@@ -99,8 +99,8 @@
         }
 
         /* =======================
-                                                                                                                                                               CART CONTAINER
-                                                                                                                                                            ======================= */
+                                                                                                                                                                                                               CART CONTAINER
+                                                                                                                                                                                                            ======================= */
         .cart-scroll {
             max-height: 650px;
             overflow-y: auto;
@@ -114,8 +114,8 @@
         }
 
         /* =======================
-                                                                                                                                                               SKELETON LOADING
-                                                                                                                                                            ======================= */
+                                                                                                                                                                                                               SKELETON LOADING
+                                                                                                                                                                                                            ======================= */
         .skeleton {
             background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
             background-size: 200% 100%;
@@ -134,8 +134,8 @@
         }
 
         /* =======================
-                                                                                                                                                               TOAST NOTIFICATION
-                                                                                                                                                            ======================= */
+                                                                                                                                                                                                               TOAST NOTIFICATION
+                                                                                                                                                                                                            ======================= */
         #cartToast {
             position: fixed;
             bottom: 24px;
@@ -153,8 +153,8 @@
         }
 
         /* =======================
-                                                                                                                                                               RESPONSIVE
-                                                                                                                                                            ======================= */
+                                                                                                                                                                                                               RESPONSIVE
+                                                                                                                                                                                                            ======================= */
         @media (max-width: 576px) {
             .qty-group {
                 max-width: 80px;
@@ -220,7 +220,7 @@
                         <span class="text-muted">Total</span>
                         <span class="fw-bold" id="totalAmount">Rp.0</span>
                     </div>
-                    <button class="btn btn-custom-green w-100" id="btnBeli">Beli</button>
+                    <button class="btn btn-custom-green w-100" id="btnBeliKeranjang">Beli</button>
                 </div>
             </div>
 
@@ -664,34 +664,32 @@
                 addToCart(this.dataset.productId, this);
             });
         });
+        loadCart();
+
 
         // =============================================
         //  BELI LANGSUNG
         // =============================================
-        document.getElementById('btnBeli').addEventListener('click', function() {
+        document.getElementById('btnBeliKeranjang').addEventListener('click', function() {
 
             const selectedItems = Array.from(
                 document.querySelectorAll('#cartItems .item-checkbox:checked')
             ).map(cb => parseInt(cb.closest('.cart-item').dataset.itemId));
+
+            console.log('selectedItems:', selectedItems); // 👈 cek di F12 console
+            console.log('redirect to:', '/checkout?items=' + JSON.stringify(selectedItems)); // 👈
 
             if (selectedItems.length === 0) {
                 alert('Pilih produk terlebih dahulu');
                 return;
             }
 
-            const data = {
-                item_ids: selectedItems
-            };
-
-            sessionStorage.setItem('checkout_data', JSON.stringify(data));
-
-            window.location.href = '/checkout';
+            window.location.href = '/checkout?items=' + JSON.stringify(selectedItems);
         });
 
 
         // =============================================
         //  INIT
         // =============================================
-        loadCart();
     </script>
 @endsection

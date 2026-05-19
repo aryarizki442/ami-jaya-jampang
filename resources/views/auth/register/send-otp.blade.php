@@ -3,6 +3,18 @@
 @section('title', 'Daftar')
 
 @section('auth')
+    <style>
+        .send-code {
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            color: var(--info-button-700);
+        }
+
+        .send-code:hover {
+            color: var(--info-button-500);
+        }
+    </style>
     <div class="login-page">
         <div class="login-card text-center">
 
@@ -29,7 +41,9 @@
 
                 <div class="text-muted text-center">
                     Belum menerima kode?
-                    <a href="#" class="forgot-link">Kirim Kode</a>
+                    <a href="#" id="resend-code" class="text-primary fw-normal text-decoration-none">
+                        Kirim Kode
+                    </a>
                 </div>
 
                 <!-- BUTTON -->
@@ -115,6 +129,65 @@
                     console.error(err);
 
                     alert('Terjadi kesalahan server');
+                }
+
+            });
+    </script>
+    <script>
+        document.getElementById('resend-code')
+            .addEventListener('click', async function(e) {
+
+                e.preventDefault();
+
+                const email = localStorage.getItem('register_email');
+
+                if (!email) {
+                    alert('Email tidak ditemukan');
+                    return;
+                }
+
+                try {
+
+                    const btn = this;
+
+                    btn.innerText = 'Mengirim...';
+                    btn.style.pointerEvents = 'none';
+
+                    const res = await fetch('/api/otp/request', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            purpose: 'register',
+                            email: email
+                        })
+                    });
+
+                    const result = await res.json();
+
+                    console.log(result);
+
+                    if (!res.ok) {
+                        alert(result.message || 'Gagal mengirim ulang OTP');
+                        return;
+                    }
+
+                    alert('Kode OTP berhasil dikirim ulang');
+
+                } catch (err) {
+
+                    console.error(err);
+
+                    alert('Terjadi kesalahan server');
+
+                } finally {
+
+                    const btn = document.getElementById('resend-code');
+
+                    btn.innerText = 'Kirim Kode';
+                    btn.style.pointerEvents = 'auto';
                 }
 
             });

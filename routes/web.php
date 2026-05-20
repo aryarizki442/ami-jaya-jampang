@@ -168,4 +168,6 @@ Route::get('/admin/order', [AdminOrderController::class, 'frontendOrderIndex'])
 Route::get('/admin/order/{order}', [AdminOrderController::class, 'frontendOrderDetail'])
     ->name('admin.order.detail');
 
+Route::view('/scalar', 'scalar');    
+
 

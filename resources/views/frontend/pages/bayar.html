@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Checkout Ami Jaya Jampang</title>
 
-    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="Mid-client-Cg9mcCLdcKjErnCg">
-    </script>
+    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="Mid-client-Cg9mcCLdcKjErnCg"></script>
 
     <style>
         * {
@@ -198,6 +196,7 @@
             padding: 13px 0;
             border-bottom: 1px solid #ddd;
             font-size: 16px;
+            cursor: pointer;
         }
 
         .payment-left {
@@ -281,12 +280,9 @@
         Ami Jaya Jampang
     </div>
 
-
     <div class="container">
         <h1>Checkout</h1>
 
-  <script>
-    var snapToken = '3be4e5bf-a745-4366-b8af-d43ab9af457f';
         <div class="checkout">
             <div>
                 <div class="card">
@@ -325,8 +321,7 @@
                         </div>
 
                         <div class="shipping-option">
-                            <strong>Pick Up <span style="color:#999">(Pembeli Ambil Barang Ke Lokasi
-                                    Penjual)</span></strong>
+                            <strong>Pick Up <span style="color:#999">(Pembeli Ambil Barang Ke Lokasi Penjual)</span></strong>
                             <span class="radio"></span>
                         </div>
 
@@ -346,33 +341,28 @@
                 <div class="card">
                     <div class="payment-title">Metode Pembayaran</div>
 
-                    <div class="payment-row">
+                    <div class="payment-row" data-method="cod">
                         <div class="payment-left"><span class="logo">COD</span> Cash On Delivery</div>
                         <span class="radio active"></span>
                     </div>
 
-                    <div class="payment-row">
+                    <div class="payment-row" data-method="bca_va">
                         <div class="payment-left"><span class="logo">BCA</span> BCA Virtual Account</div>
                         <span class="radio"></span>
                     </div>
 
-                    <div class="payment-row">
+                    <div class="payment-row" data-method="bni_va">
                         <div class="payment-left"><span class="logo">BNI</span> BNI Virtual Account</div>
                         <span class="radio"></span>
                     </div>
 
-                    <div class="payment-row">
+                    <div class="payment-row" data-method="bri_va">
                         <div class="payment-left"><span class="logo">BRI</span> BRI Virtual Account</div>
                         <span class="radio"></span>
                     </div>
 
-                    <div class="payment-row">
+                    <div class="payment-row" data-method="mandiri_va">
                         <div class="payment-left"><span class="logo">MDR</span> Mandiri Virtual Account</div>
-                        <span class="radio"></span>
-                    </div>
-
-                    <div class="payment-row">
-                        <div class="payment-left"><span class="logo">QRIS</span> Qris</div>
                         <span class="radio"></span>
                     </div>
 
@@ -405,28 +395,50 @@
         </div>
     </div>
 
-    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="Mid-client-Cg9mcCLdcKjErnCg"></script>
     <script>
-        var snapToken = 'a2e6e95e-6eaf-45c3-8053-f1cf153c60ff';
+        const snapToken = '066eb75a-c061-46e7-9af8-c6b84543f307';
+        let selectedPaymentMethod = 'va bni';
+
+        document.querySelectorAll('.payment-row').forEach(function (row) {
+            row.addEventListener('click', function () {
+                document.querySelectorAll('.payment-row .radio').forEach(function (radio) {
+                    radio.classList.remove('active');
+                });
+
+                row.querySelector('.radio').classList.add('active');
+                selectedPaymentMethod = row.dataset.method;
+            });
+        });
 
         document.getElementById('pay-button').onclick = function () {
+            if (selectedPaymentMethod === 'cod') {
+                alert('Pesanan berhasil dibuat dengan metode COD.');
+                return;
+            }
+
+            if (!snapToken) {
+                alert('Snap token belum tersedia.');
+                return;
+            }
+
             window.snap.pay(snapToken, {
                 onSuccess: function (result) {
                     console.log('SUKSES:', result);
                     alert('✅ Pembayaran Berhasil!');
-                    window.location.href = 'http://127.0.0.1:8000/api/orders/10';
                 },
                 onPending: function (result) {
                     console.log('PENDING:', result);
-                    alert('⏳ Menunggu pembayaran');
+                    alert('⏳ Menunggu pembayaran.');
                 },
                 onError: function (result) {
                     console.log('ERROR:', result);
-                    alert('❌ Pembayaran gagal');
+                    alert('❌ Pembayaran gagal.');
+                },
+                onClose: function () {
+                    alert('Popup pembayaran ditutup.');
                 }
             });
         };
     </script>
 </body>
-
 </html>

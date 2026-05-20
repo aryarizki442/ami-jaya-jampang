@@ -199,7 +199,13 @@ Route::middleware(['auth:api'])->group(function () {
 
 
 });
-    Route::get('/payment-list', [PaymentController::class, 'index']);
+Route::prefix('admin')->group(function () {
+
+    Route::get('/payments', [PaymentController::class, 'index']);
+
+    Route::get('/payments/{id}', [PaymentController::class, 'adminShow']);
+
+});
 
 //product
 

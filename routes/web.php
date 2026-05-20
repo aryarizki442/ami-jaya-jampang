@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\Admin\AdminCategoryController;
 use App\Http\Controllers\Api\Admin\AdminOrderController;
 use App\Http\Controllers\Api\Admin\AdminProductController;
 use App\Http\Controllers\Frontend\HomeController;
+use App\Http\Controllers\Frontend\AdminPaymentController;
 
 use Illuminate\Http\Request;
 
@@ -161,11 +162,13 @@ Route::get('/admin/category/detail/{id}', function ($id) {
 })->name('admin.category.detail');
 
 // Admin Order
-
-
 Route::get('/admin/order', [AdminOrderController::class, 'frontendOrderIndex'])
     ->name('admin.order');
 Route::get('/admin/order/{order}', [AdminOrderController::class, 'frontendOrderDetail'])
     ->name('admin.order.detail');
 
-
+// Admin Payment
+Route::get('/admin/payment', [AdminPaymentController::class, 'index'])
+    ->name('admin.payment.index');
+Route::get('/admin/payment/detail/{id}', [AdminPaymentController::class, 'detail'])
+    ->name('admin.payment.detail');

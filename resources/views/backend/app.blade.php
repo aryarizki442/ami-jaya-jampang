@@ -205,7 +205,8 @@
                 </a>
             </li>
             <li>
-                 <a href="">
+                <a href="{{ route('admin.payment.index') }}"
+                    class="{{ request()->routeIs('admin.payment.index') ? 'active' : '' }}">
                     <i class="ri-wallet-3-line"></i>
                     <span>Pembayaran</span>
                 </a>

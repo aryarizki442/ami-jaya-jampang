@@ -176,67 +176,63 @@
                 </thead>
 
                 <tbody>
-    @forelse ($orders as $order)
-        @php
-            $badge = [
-                'awaiting_payment' => 'badge-waiting-payment',
-                'pending' => 'badge-confirmed',
-                'cancelled' => 'badge-cancelled',
-                'completed' => 'badge-completed',
-            ][$order->status] ?? 'badge-confirmed';
-        @endphp
+                    @forelse ($orders as $order)
+                        @php
+                            $badge =
+                                [
+                                    'awaiting_payment' => 'badge-waiting-payment',
+                                    'pending' => 'badge-confirmed',
+                                    'cancelled' => 'badge-cancelled',
+                                    'completed' => 'badge-completed',
+                                ][$order->status] ?? 'badge-confirmed';
+                        @endphp
 
-        <tr class="text-center align-middle">
-            <td>
-                <input type="checkbox" class="custom-check row-check" value="{{ $order->id }}">
-            </td>
+                        <tr class="text-center align-middle">
+                            <td>
+                                <input type="checkbox" class="custom-check row-check" value="{{ $order->id }}">
+                            </td>
 
-            <td class="text-start">
-                {{ $loop->iteration + ($orders->currentPage() - 1) * $orders->perPage() }}
-            </td>
+                            <td class="text-start">
+                                {{ $loop->iteration + ($orders->currentPage() - 1) * $orders->perPage() }}
+                            </td>
 
-            <td class="text-start">
-                {{ $order->order_number }}
-            </td>
+                            <td class="text-start">
+                                {{ $order->order_number }}
+                            </td>
 
-            <td class="text-start">
-                {{ $order->created_at->format('d M Y, H.i') }}
-            </td>
+                            <td class="text-start">
+                                {{ $order->created_at->format('d M Y, H.i') }}
+                            </td>
 
-            <td class="text-start">
-                {{ $order->user->name ?? '-' }}
-            </td>
+                            <td class="text-start">
+                                {{ $order->user->name ?? '-' }}
+                            </td>
 
-            <td class="text-center">
-                <span class="badge {{ $badge }}">
-                    {{ $order->status_label }}
-                </span>
-            </td>
+                            <td class="text-center">
+                                <span class="badge {{ $badge }}">
+                                    {{ $order->status_label }}
+                                </span>
+                            </td>
 
-            <td class="text-start">
-                {{ $order->total_format }}
-            </td>
+                            <td class="text-start">
+                                {{ $order->total_format }}
+                            </td>
 
-            <td class="text-center">
-                <a href=""
-                   class="btn-edit-admin text-decoration-none action-icon eye-action">
-                    <span class="iconify" data-icon="flowbite:edit-outline" style="font-size:20px;"></span>
-                </a>
-
-                <a href="{{ route('admin.order.detail', $order->id) }}"
-                   class="btn-detail-admin text-decoration-none action-icon eye-action">
-                    <span class="iconify" data-icon="heroicons-outline:eye" style="font-size:20px;"></span>
-                </a>
-            </td>
-        </tr>
-    @empty
-        <tr>
-            <td colspan="8" class="text-center py-4">
-                Data pesanan belum tersedia.
-            </td>
-        </tr>
-    @endforelse
-</tbody>
+                            <td class="text-center">
+                                <a href="{{ route('admin.order.detail', $order->id) }}"
+                                    class="btn-detail-admin text-decoration-none action-icon eye-action">
+                                    <span class="iconify" data-icon="heroicons-outline:eye" style="font-size:20px;"></span>
+                                </a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="text-center py-4">
+                                Data pesanan belum tersedia.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
             </table>
         </div>
 

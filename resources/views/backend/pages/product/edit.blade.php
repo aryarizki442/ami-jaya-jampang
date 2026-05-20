@@ -167,7 +167,7 @@
 
         <!-- BUTTON -->
         <div class="mt-3 border-top pt-3 d-flex justify-content-end gap-2">
-            <a href="/admin/product" class="btn btn-second">Batal</a>
+            <a href="/admin/product/index" class="btn btn-second">Batal</a>
             <button type="submit" id="btnSubmit" class="btn btn-main">Simpan</button>
         </div>
     </form>

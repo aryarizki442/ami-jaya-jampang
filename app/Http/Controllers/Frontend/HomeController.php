@@ -109,4 +109,13 @@ public function checkout(Request $request)
 
     return view('frontend.pages.checkout', compact('items'));
 }
+public function orderCustomerAll(Request $request)
+    {
+        $orders = Order::with('orderItems.product')
+            ->where('user_id', auth()->id())
+            ->latest()
+            ->get();
+
+        return view('frontend.pages.profile.order-all', compact('orders'));
+    }
 }

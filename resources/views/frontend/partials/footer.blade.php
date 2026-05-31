@@ -126,7 +126,7 @@
             <div class="col-lg-3 col-md-6 mb-4">
                 <h5 class="footer-title">Tentang kami</h5>
                 <p class="footer-text">
-                    Ami Jaya Jampang adalah toko online yang menjual beras berkualitas untuk kebutuhan sehari-hari.
+                    Toko Beras Jampang adalah toko online yang menjual beras berkualitas untuk kebutuhan sehari-hari.
                     Kami berkomitmen memberikan produk yang baik dengan pelayanan yang cepat dan terpercaya.
                 </p>
 
@@ -196,7 +196,7 @@
 
     <div class="footer-bottom">
         <div class="container">
-            <span class="copyright-icon">©</span> Ami Jaya Jampang 2026. Hak Cipta Dilindungi
+            <span class="copyright-icon">©</span> Toko Beras Jampang 2026. Hak Cipta Dilindungi
         </div>
     </div>
 

@@ -116,11 +116,17 @@
                     }
 
                     // simpan register token
-                    localStorage.setItem(
-                        'register_token',
-                        result.data.register_token
-                    );
+                    const token =
+                        result?.data?.register_token ||
+                        result?.register_token ||
+                        null;
 
+                    if (!token) {
+                        alert('Token dari server tidak valid');
+                        return;
+                    }
+
+                    localStorage.setItem('register_token', token);
                     // redirect halaman password
                     window.location.href = '/register';
 
@@ -169,6 +175,15 @@
 
                     console.log(result);
 
+                    // ✔ FIX DI SINI (setelah result ada)
+                    const token =
+                        result?.data?.register_token ||
+                        result?.register_token;
+
+                    if (token) {
+                        localStorage.setItem('register_token', token);
+                    }
+
                     if (!res.ok) {
                         alert(result.message || 'Gagal mengirim ulang OTP');
                         return;
@@ -179,7 +194,6 @@
                 } catch (err) {
 
                     console.error(err);
-
                     alert('Terjadi kesalahan server');
 
                 } finally {

@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="icon" type="image/png" href="{{ asset('images/logo/icon-title.png') }}">
     <title>Keamanan Akun</title>
 
 
@@ -114,7 +115,7 @@
                     <input id="kode" type="text" name="kode" class="form-control"
                         placeholder="Masukkan Kode Verifikasi Anda" required>
                 </div>
-                <div class="text-muted text-center">
+                <div class="text-muted text-center mb-3">
                     Belum menerima kode?
                     <a href="#" id="resend-code" class="text-primary fw-normal text-decoration-none">
                         Kirim Kode

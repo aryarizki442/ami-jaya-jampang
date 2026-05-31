@@ -1,6 +1,6 @@
 @extends('auth.auth')
 
-@section('title', 'Login')
+@section('title', 'Login Toko Beras Jampang')
 
 @section('auth')
     <div class="login-page">

@@ -26,6 +26,7 @@
                 <div class="mb-3 text-start">
                     <label class="form-label">Kode Verifikasi</label>
                     <input id="code" type="text" class="form-control" placeholder="Masukan Kode Verifikasi Anda">
+                    <div class="invalid-feedback"></div>
                 </div>
 
                 <div class="text-muted text-center">
@@ -46,6 +47,8 @@
         </div>
     </div>
 
+
+
     <script>
         document.getElementById('btn-next').addEventListener('click', async function(e) {
             e.preventDefault();
@@ -53,8 +56,14 @@
             const otp = document.getElementById('code').value.trim();
             const email = localStorage.getItem('forgot_email');
 
+            const otpInput = document.getElementById('code');
+            const otpFeedback = otpInput.parentNode.querySelector('.invalid-feedback');
+
+            otpInput.classList.remove('is-invalid');
+            otpFeedback.textContent = '';
             if (!otp) {
-                alert('Kode OTP wajib diisi');
+                otpInput.classList.add('is-invalid');
+                otpFeedback.textContent = 'Kode OTP wajib diisi';
                 return;
             }
 
@@ -77,24 +86,24 @@
                     })
                 });
 
-                const result = await res.json(); // ✅ hanya sekali
+                const result = await res.json();
 
-                console.log(result);
 
                 if (!res.ok) {
-                    alert(result.message);
+                    otpInput.classList.add('is-invalid');
+
+                    if (result.errors?.otp) {
+                        otpFeedback.textContent = result.errors.otp[0];
+                    } else {
+                        otpFeedback.textContent = result.message || 'Kode OTP tidak valid';
+                    }
+
                     return;
                 }
 
                 // 🔥 SIMPAN SESSION RESET
                 localStorage.setItem('reset_email', result.data.email);
                 localStorage.setItem('reset_token', result.data.reset_token);
-
-                console.log('ORIGIN:', window.location.origin);
-                console.log('STORAGE FULL:', localStorage);
-                console.log('reset_email:', localStorage.getItem('reset_email'));
-                console.log('reset_token:', localStorage.getItem('reset_token'));
-
                 // lanjut ke halaman password baru
                 window.location.href = "{{ route('new-password') }}";
 
@@ -112,10 +121,21 @@
 
                 const email = localStorage.getItem('forgot_email');
 
+                const otpInput = document.getElementById('code');
+                const otpFeedback = otpInput.parentNode.querySelector('.invalid-feedback');
+
+                const btn = this;
+
+                // RESET UI ERROR
+                otpInput.classList.remove('is-invalid');
+                otpFeedback.textContent = '';
+
                 if (!email) {
-                    alert('Email tidak ditemukan');
+                    otpInput.classList.add('is-invalid');
+                    otpFeedback.textContent = 'Email tidak ditemukan';
                     return;
                 }
+
 
                 try {
 
@@ -141,9 +161,13 @@
                     console.log(result);
 
                     if (!res.ok) {
-                        alert(result.message || 'Gagal mengirim ulang OTP');
+                        otpInput.classList.add('is-invalid');
+                        otpFeedback.textContent = result.message || 'Gagal kirim ulang OTP';
                         return;
                     }
+
+                    btn.innerText = 'Kode terkirim ulang';
+                    btn.style.color = 'green';
 
                     alert('Kode OTP berhasil dikirim ulang');
 

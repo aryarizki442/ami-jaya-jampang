@@ -54,110 +54,150 @@
                     return;
                 }
 
-                orders.forEach(order => {
+                for (const order of orders) {
+
+                    let paymentDetail = null;
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | FETCH PAYMENT DETAIL
+                    |--------------------------------------------------------------------------
+                    */
+                    try {
+
+                        const paymentResponse = await fetch(
+                            `/api/orders/${order.id}/payment`, {
+                                headers: {
+                                    Accept: 'application/json',
+                                    Authorization: `Bearer ${token}`
+                                }
+                            }
+                        );
+
+                        const paymentResult = await paymentResponse.json();
+
+                        console.log('PAYMENT DETAIL:', paymentResult);
+
+                        if (paymentResult.success) {
+                            paymentDetail = paymentResult.data;
+                        }
+
+                    } catch (err) {
+
+                        console.log('PAYMENT ERROR:', err);
+
+                    }
 
                     container.innerHTML += `
-                    <div class="card order-card mb-3 position-relative">
+    <div class="card order-card mb-3 position-relative">
 
-                        <!-- Badge -->
-                        <span class="badge status-waiting text-white position-absolute top-0 end-0">
-                            Menunggu Pembayaran
-                        </span>
+        <span class="badge status-waiting text-white position-absolute top-0 end-0">
+            Menunggu Pembayaran
+        </span>
 
-                        <div class="card-body">
+        <div class="card-body">
 
-                            <div class="d-flex justify-content-between align-items-center mb-0">
+            <div class="d-flex justify-content-between align-items-center mb-0">
 
-                                <div class="order-meta gap-3 d-flex align-items-center text-neutral-custom">
-                                    Bayar Sebelum
+                <div class="order-meta gap-3 d-flex align-items-center text-neutral-custom">
+                    Bayar Sebelum
 
-                                    <span class="text-warning">
-                                        <span class="iconify" data-icon="iconoir:clock-solid"></span>
+                    <span class="text-warning">
+                        <span class="iconify" data-icon="iconoir:clock-solid"></span>
 
-                              ${order.expired_at
-                                ? formatDate(order.expired_at)
-                                : '-'}
-                                    </span>
-                                </div>
+                        ${
+                            paymentDetail?.expired_at
+                                ? formatDate(paymentDetail.expired_at)
+                                : '-'
+                        }
+                    </span>
+                </div>
 
+            </div>
+
+            <div class="row align-items-center mb-5">
+
+                <div class="col-md-8">
+
+                    <div class="d-flex align-items-center gap-4 order-product flex-nowrap">
+
+                        <img
+                            src="${getPaymentImage(order.payment_method)}"
+                            style="width:100px; height:100px; flex-shrink:0; object-fit:contain; background:#f5f5f5;"
+                        >
+
+                        <div style="min-width:140px;">
+                            <div class="order-meta text-neutral-custom">
+                                Metode Pembayaran
                             </div>
 
-                            <div class="row align-items-center mb-5">
-
-                                <div class="col-md-8">
-
-                                    <div class="d-flex align-items-center gap-5 order-product">
-
-                                   <img src="${getPaymentImage(getPaymentCode(order.payment_method))}">
-
-                                        <div>
-                                            <div class="order-meta text-neutral-custom">
-                                                Metode Pembayaran
-                                            </div>
-
-                                           <strong class="small">
-                                            ${order.payment_method || '-'}
-                                        </strong>
-                                        </div>
-
-                                        <div>
-                                            <div class="order-meta text-neutral-custom">
-                                                Nomor Virtual Account
-                                            </div>
-
-                                            <strong>
-                                               ${order.virtual_account_number || '-'}
-                                            </strong>
-                                        </div>
-
-                                    </div>
-
-                                </div>
-
-                                <div class="col-md-4 order-divider d-flex flex-column justify-content-center text-end">
-
-                                    <div class="order-meta text-neutral-custom">
-                                        Total Pembayaran
-                                    </div>
-
-                                    <strong>
-                                     ${order.total_format || '-'}
-                                    </strong>
-
-                                </div>
-
-                            </div>
-
-                            <div class="d-flex justify-content-between align-items-center">
-
-                                <div class="d-flex align-items-center gap-2">
-
-                                    <strong>Pembelian</strong>
-
-                                    <span class="order-meta ms-2 text-neutral-custom">
-                                        ${order.created_at}
-                                    </span>
-
-                                </div>
-
-                                <div class="d-flex gap-2">
-
-                                    <button class="btn btn-second btn-sm">
-                                        Cara Pembayaran
-                                    </button>
-
-                                    <button class="btn btn-main btn-sm">
-                                        Lihat Detail
-                                    </button>
-
-                                </div>
-
-                            </div>
-
+                            <strong class="small">
+                                ${order.payment_method || '-'}
+                            </strong>
                         </div>
+
+                        <div class="flex-grow-1">
+                            <div class="order-meta text-neutral-custom">
+                                Nomor Virtual Account
+                            </div>
+
+                            <strong class="va-number">
+                                ${
+                                    paymentDetail?.virtual_account_number
+                                        ?.split(': ')
+                                        ?.pop() || '-'
+                                }
+                            </strong>
+                        </div>
+
                     </div>
-                `;
-                });
+
+                </div>
+
+                <div class="col-md-4 order-divider d-flex flex-column justify-content-center text-end">
+
+                    <div class="order-meta text-neutral-custom">
+                        Total Pembayaran
+                    </div>
+
+                    <strong>
+                        ${order.total_format || '-'}
+                    </strong>
+
+                </div>
+
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div class="d-flex align-items-center gap-2">
+
+                    <strong>Pembelian</strong>
+
+                    <span class="order-meta ms-2 text-neutral-custom">
+                        ${order.created_at}
+                    </span>
+
+                </div>
+
+                <div class="d-flex gap-2">
+
+                    <button class="btn btn-second btn-sm">
+                        Cara Pembayaran
+                    </button>
+
+                    <button class="btn btn-main btn-sm">
+                        Lihat Detail
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+    `;
+                }
 
             } catch (e) {
 
@@ -209,137 +249,3 @@
         document.addEventListener('DOMContentLoaded', loadWaitingOrders);
     </script>
 @endsection
-{{-- CONSOLE LOG --}}
-{{-- async function loadWaitingOrders() {
-
-    const token = localStorage.getItem('token');
-
-    try {
-
-        const res = await fetch('/api/orders?status=awaiting_payment', {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                Accept: 'application/json'
-            }
-        });
-
-        const json = await res.json();
-
-        // 🔥 LOG 1: RESPONSE FULL
-        console.log('📦 RAW RESPONSE:', json);
-
-        const orders = json.data.data || [];
-
-        // 🔥 LOG 2: ORDERS LIST
-        console.log('📋 ORDERS:', orders);
-
-        const container = document.getElementById('orderList');
-
-        container.innerHTML = '';
-
-        if (orders.length === 0) {
-            console.log('⚠️ No orders found');
-
-            container.innerHTML = `
-                <div class="text-center py-5">
-                    Belum ada pesanan menunggu pembayaran
-                </div>
-            `;
-            return;
-        }
-
-        orders.forEach((order, index) => {
-
-            // 🔥 LOG 3: PER ORDER
-            console.log(`\n🧾 ORDER ${index + 1}:`, order);
-
-            console.log('💳 payment:', order.payment);
-            console.log('💰 payment_method:', order.payment_method);
-            console.log('📅 expired_at:', order.payment?.expired_at);
-            console.log('🏦 virtual_account:', order.payment?.virtual_account_number);
-
-            const code = getPaymentCode(order.payment_method);
-
-            console.log('🔑 payment code:', code);
-            console.log('🖼 image url:', getPaymentImage(code));
-
-            container.innerHTML += `
-                <div class="card order-card mb-3 position-relative">
-
-                    <span class="badge status-waiting text-white position-absolute top-0 end-0">
-                        Menunggu Pembayaran
-                    </span>
-
-                    <div class="card-body">
-
-                        <div class="d-flex justify-content-between align-items-center mb-0">
-
-                            <div class="order-meta gap-3 d-flex align-items-center text-neutral-custom">
-                                Bayar Sebelum
-
-                                <span class="text-warning">
-                                    <span class="iconify" data-icon="iconoir:clock-solid"></span>
-
-                                    ${order.payment?.expired_at
-                                        ? formatDate(order.payment.expired_at)
-                                        : '-'}
-                                </span>
-                            </div>
-
-                        </div>
-
-                        <div class="row align-items-center mb-5">
-
-                            <div class="col-md-8">
-
-                                <div class="d-flex align-items-center gap-5 order-product">
-
-                                    <img src="${getPaymentImage(code)}">
-
-                                    <div>
-                                        <div class="order-meta text-neutral-custom">
-                                            Metode Pembayaran
-                                        </div>
-
-                                        <strong class="small">
-                                            ${order.payment_method || '-'}
-                                        </strong>
-                                    </div>
-
-                                    <div>
-                                        <div class="order-meta text-neutral-custom">
-                                            Nomor Virtual Account
-                                        </div>
-
-                                        <strong>
-                                            ${order.payment?.virtual_account_number || '-'}
-                                        </strong>
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                            <div class="col-md-4 order-divider d-flex flex-column justify-content-center text-end">
-
-                                <div class="order-meta text-neutral-custom">
-                                    Total Pembayaran
-                                </div>
-
-                                <strong>
-                                    ${order.total_format || '-'}
-                                </strong>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-                </div>
-            `;
-        });
-
-    } catch (e) {
-        console.error('❌ ERROR FETCH:', e);
-    }
-} --}}

@@ -49,32 +49,59 @@
             color: #9ca3af;
         }
 
-        .badge-detail {
-            padding: 4px 10px;
-            border-radius: 5px;
+        /* BADGE STYLES */
+        .payment-waiting-payment {
+            background-color: var(--neutral-50);
+            color: var(--neutral-300);
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 12px;
             font-weight: 500;
-            font-size: 14px;
         }
 
-        .badge-pending {
-            background: #fff4df;
-            color: #ff9800;
+        .payment-paid {
+            background-color: var(--success-50);
+            color: var(--success-500);
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 500;
         }
 
-        .badge-paid {
-            background: #e8f7ef;
-            color: #15803d;
+        .payment-expired {
+            background-color: var(--warning-50);
+            color: var(--warning-500);
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 500;
         }
 
-        .badge-failed,
-        .badge-cancelled {
-            background: #ffecec;
-            color: #ef4444;
+        .payment-completed {
+            background-color: var(--success-50);
+            color: var(--success-500);
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 500;
         }
 
-        .badge-expired {
-            background: #e5e7eb;
-            color: #374151;
+        .payment-failed {
+            background-color: var(--danger-50);
+            color: var(--danger-500);
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .payment-rejected {
+            background-color: var(--danger-50);
+            color: var(--danger-500);
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 500;
         }
 
         .product-line {
@@ -204,8 +231,28 @@
 
                     <div class="detail-value">
 
-                        <span class="badge-detail badge-{{ $payment->status }}">
-                            {{ ucfirst($payment->status) }}
+                        @php
+                            $statusLabels = [
+                                'pending' => 'Menunggu Pembayaran',
+                                'paid' => 'Pembayaran Berhasil',
+                                'failed' => 'Pembayaran Gagal',
+                                'expired' => 'Pembayaran Kedaluwarsa',
+                                'refunded' => 'Dana Dikembalikan',
+                                'partially_refunded' => 'Refund Sebagian',
+                            ];
+
+                            $statusClasses = [
+                                'pending' => 'payment-waiting-payment',
+                                'paid' => 'payment-paid',
+                                'failed' => 'payment-failed',
+                                'expired' => 'payment-expired',
+                                'refunded' => 'payment-rejected',
+                                'partially_refunded' => 'payment-partially-refunded',
+                            ];
+                        @endphp
+
+                        <span class="badge-detail {{ $statusClasses[$payment->status] ?? 'badge-pending' }}">
+                            {{ $statusLabels[$payment->status] ?? '-' }}
                         </span>
 
                     </div>

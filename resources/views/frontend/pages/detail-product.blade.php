@@ -134,7 +134,7 @@
     <div class="row g-4 py-5">
 
         {{-- HEADER --}}
-        <div class="d-flex align-items-center gap-5 mb-3">
+        <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center gap-2 gap-md-5 mb-3">
             <h5 class="fw-bold mb-0 title-product">Deskripsi Produk</h5>
 
             <nav aria-label="breadcrumb">

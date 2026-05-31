@@ -468,7 +468,7 @@
     <div class="border-bottom border-light">
         <div class="container-fluid px-5 py-1 d-flex justify-content-between align-items-center pt-2 pb-2">
             <span class="text-white small">
-                Selamat Datang Di Toko Online Ami Jaya Jampang
+                Selamat Datang Di Toko Beras Jampang
             </span>
 
             <div class="d-flex gap-3">
@@ -560,7 +560,7 @@
                         <div class="dropdown-menu-custom">
                             <span class="dropdown-arrow"></span>
                             <a href="{{ route('profile') }}">Akun Saya</a>
-                            <a href="{{ route('order-all') }}">Pesanan Saya</a>
+                            <a href="{{ route('orders.all') }}">Pesanan Saya</a>
                             <a href="#" id="logoutBtn" class="logout">
                                 Keluar
                             </a>

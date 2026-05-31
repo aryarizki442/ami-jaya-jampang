@@ -119,12 +119,12 @@ Route::middleware('auth:api')->group(function () {
 
     // 📦 List order user
     Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/shipping-calculate', [OrderController::class, 'calculateShipping']);
 
     // 🔍 Detail order
     Route::get('/orders/{order}', [OrderController::class, 'show']);
 
     // 🚚 Hitung ongkir sebelum checkout
-    Route::get('/orders/shipping-calculate', [OrderController::class, 'calculateShipping']);
 
     // 🛒 Buat order (checkout)
     Route::post('/orders', [OrderController::class, 'store']);

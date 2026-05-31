@@ -26,6 +26,7 @@
                     <label class="form-label">Email</label>
                     <input id="email" type="text" class="form-control"
                         placeholder="Masukan Email/Nomor Telepon Anda">
+                    <div class="invalid-feedback"></div>
                 </div>
 
                 <!-- BUTTON -->
@@ -48,10 +49,13 @@
                 e.preventDefault();
 
                 const email = document.getElementById('email').value.trim();
+                const emailInput = document.getElementById('email');
+                const emailFeedback = emailInput.parentNode.querySelector('.invalid-feedback');
 
                 // validasi kosong
                 if (!email) {
-                    alert('Email wajib diisi');
+                    emailInput.classList.add('is-invalid');
+                    emailFeedback.textContent = 'Email wajib diisi';
                     return;
                 }
 
@@ -78,7 +82,8 @@
 
                         // tampilkan error validasi
                         if (result.errors?.email) {
-                            alert(result.errors.email[0]);
+                            emailInput.classList.add('is-invalid');
+                            emailFeedback.textContent = result.errors.email[0];
                             return;
                         }
 

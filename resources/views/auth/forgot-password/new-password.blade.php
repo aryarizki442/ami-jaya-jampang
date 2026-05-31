@@ -13,7 +13,7 @@
 
             <!-- TITLE -->
             <h2 class="login-title mt-4">Kata Sandi Baru</h2>
-            <p class="text-muted">Masukan Kata Sandi Baru Anda untuk Masuk ke dalam <br>Akun Toko Online Ami Jaya Jampang</p>
+            <p class="text-muted">Masukan Kata Sandi Baru Anda untuk Masuk ke dalam <br>Akun Toko Beras Jampang</p>
 
             <!-- FORM -->
             <form action="#" method="POST">
@@ -26,9 +26,10 @@
                     <div class="password-wrapper">
                         <input type="password" name="password" class="form-control"
                             placeholder="Masukan Kata Sandi Baru Anda" id="password">
+                        <div class="invalid-feedback"></div>
 
                         <span class="password-toggle" data-target="password">
-                            <span class="iconify" data-icon="weui:eyes-off-outlinedd"></span>
+                            <span class="iconify" data-icon="weui:eyes-off-outlined"></span>
                         </span>
 
                     </div>
@@ -41,6 +42,7 @@
                     <div class="password-wrapper">
                         <input type="password" name="password_confirmation" class="form-control"
                             placeholder="Masukan Konfirmasi Kata Sandi Baru Anda" id="password_confirmation">
+                        <div class="invalid-feedback"></div>
 
                         <span class="password-toggle" data-target="password_confirmation">
                             <span class="iconify" data-icon="weui:eyes-off-outlined"></span>
@@ -56,76 +58,141 @@
             </form>
         </div>
         <script>
-            document.getElementById('btn-next').addEventListener('click', async function(e) {
-                e.preventDefault();
+            document.addEventListener('DOMContentLoaded', function() {
 
-                const password = document.getElementById('password').value.trim();
-                const passwordConfirmation = document.getElementById('password_confirmation').value.trim();
+                const adjustIconPosition = (input) => {
+                    const icon = input.parentNode.querySelector('.password-toggle');
+                    if (!icon) return;
 
-                const email = localStorage.getItem('reset_email');
-                const resetToken = localStorage.getItem('reset_token');
+                    icon.style.marginTop = input.classList.contains('is-invalid') ?
+                        '-14px' :
+                        '0';
+                };
 
-                console.log('reset_email:', localStorage.getItem('reset_email'));
-                console.log('reset_token:', localStorage.getItem('reset_token'));
+                document.getElementById('btn-next').addEventListener('click', async function(e) {
+                    e.preventDefault();
 
-                // validasi frontend
-                if (!password || !passwordConfirmation) {
-                    alert('Password wajib diisi');
-                    return;
-                }
+                    const passwordInput = document.getElementById('password');
+                    const confirmInput = document.getElementById('password_confirmation');
 
-                if (password.length < 8) {
-                    alert('Password minimal 8 karakter');
-                    return;
-                }
+                    const password = passwordInput.value.trim();
+                    const passwordConfirmation = confirmInput.value.trim();
 
-                if (password !== passwordConfirmation) {
-                    alert('Konfirmasi password tidak cocok');
-                    return;
-                }
+                    const email = localStorage.getItem('reset_email');
+                    const resetToken = localStorage.getItem('reset_token');
 
-                if (!email || !resetToken) {
-                    alert('Session reset tidak ditemukan, ulangi dari awal');
-                    return;
-                }
+                    const passwordFeedback = passwordInput.parentNode.querySelector('.invalid-feedback');
+                    const confirmFeedback = confirmInput.parentNode.querySelector('.invalid-feedback');
 
-                try {
-                    const res = await fetch('/api/forgot-password/reset', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            email: email,
-                            reset_token: resetToken,
-                            password: password,
-                            password_confirmation: passwordConfirmation
-                        })
-                    });
+                    // RESET ERROR
+                    passwordInput.classList.remove('is-invalid');
+                    confirmInput.classList.remove('is-invalid');
 
-                    const result = await res.json();
+                    passwordFeedback.textContent = '';
+                    confirmFeedback.textContent = '';
 
-                    console.log(result);
+                    adjustIconPosition(passwordInput);
+                    adjustIconPosition(confirmInput);
 
-                    // gagal
-                    if (!res.ok) {
-                        alert(result.message || 'Gagal reset password');
+                    // VALIDASI
+                    if (!password) {
+                        passwordInput.classList.add('is-invalid');
+                        passwordFeedback.textContent = 'Password wajib diisi';
+                        adjustIconPosition(passwordInput);
                         return;
                     }
 
-                    // bersihkan storage
-                    localStorage.removeItem('reset_email');
-                    localStorage.removeItem('reset_token');
+                    if (!passwordConfirmation) {
+                        confirmInput.classList.add('is-invalid');
+                        confirmFeedback.textContent = 'Konfirmasi password wajib diisi';
+                        adjustIconPosition(confirmInput);
+                        return;
+                    }
 
-                    // redirect ke login
-                    alert('Password berhasil diubah');
-                    window.location.href = '/login';
+                    if (password.length < 8) {
+                        passwordInput.classList.add('is-invalid');
+                        passwordFeedback.textContent = 'Password minimal 8 karakter';
+                        adjustIconPosition(passwordInput);
+                        return;
+                    }
 
-                } catch (err) {
-                    console.error(err);
-                    alert('Server error');
-                }
+                    if (password !== passwordConfirmation) {
+                        confirmInput.classList.add('is-invalid');
+                        confirmFeedback.textContent = 'Konfirmasi password tidak cocok';
+                        adjustIconPosition(confirmInput);
+                        return;
+                    }
+
+                    if (!email || !resetToken) {
+                        confirmInput.classList.add('is-invalid');
+                        confirmFeedback.textContent = 'Session expired, redirecting...';
+
+                        setTimeout(() => {
+                            window.location.href = '/login';
+                        }, 1500);
+
+                        return;
+                    }
+
+                    try {
+                        const res = await fetch('/api/forgot-password/reset', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                email: email,
+                                reset_token: resetToken,
+                                password: password,
+                                password_confirmation: passwordConfirmation
+                            })
+                        });
+
+                        const result = await res.json();
+
+                        // ERROR RESPONSE
+                        if (!res.ok) {
+
+                            if (result.errors) {
+
+                                if (result.errors.password) {
+                                    passwordInput.classList.add('is-invalid');
+                                    passwordFeedback.textContent = result.errors.password[0];
+                                    adjustIconPosition(passwordInput);
+                                }
+
+                                if (result.errors.password_confirmation) {
+                                    confirmInput.classList.add('is-invalid');
+                                    confirmFeedback.textContent = result.errors.password_confirmation[0];
+                                    adjustIconPosition(confirmInput);
+                                }
+
+                            } else {
+                                confirmInput.classList.add('is-invalid');
+                                confirmFeedback.textContent = result.message || 'Gagal reset password';
+                                adjustIconPosition(confirmInput);
+                            }
+
+                            return;
+                        }
+
+                        // SUCCESS
+                        localStorage.removeItem('reset_email');
+                        localStorage.removeItem('reset_token');
+
+                        alert('Password berhasil diubah');
+                        window.location.href = '/login';
+
+                    } catch (err) {
+                        console.error(err);
+
+                        confirmInput.classList.add('is-invalid');
+                        confirmFeedback.textContent = 'Terjadi kesalahan server';
+                        adjustIconPosition(confirmInput);
+                    }
+                });
+
             });
         </script>
 

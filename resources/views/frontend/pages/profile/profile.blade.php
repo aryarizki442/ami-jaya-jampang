@@ -157,9 +157,8 @@
         }
 
         /* =========================
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            /* tablet */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        /* tablet */
         @media (max-width: 992px) {
-
             .profile-value {
                 width: 160px;
             }
@@ -176,9 +175,9 @@
         }
 
 
+
         /* mobile */
         @media (max-width: 768px) {
-
             .profile-divider::before {
                 display: none;
             }
@@ -247,6 +246,10 @@
                 gap: 10px;
             }
 
+            .link-response {
+                margin-left: -1px;
+            }
+
             .select-wrapper {
                 width: 100%;
             }
@@ -261,7 +264,7 @@
 
         }
     </style>
-    <section class="myProfile">
+    <section class="myProfile mt-5 mb-5">
         <div class="profile-header">
             <h5 class="mb-1">Profil Saya</h5>
             <small style="color: #B8B9BA">
@@ -323,13 +326,14 @@
                     </div>
                 </div>
 
-                <div class="row align-items-center mb-4">
+                <div class="row align-items-center profile-row mb-4">
                     <label class="col-sm-3 col-form-label text-end pe-4" style="color: #B8B9BA">
                         Kata Sandi
                     </label>
 
                     <div class="col-sm d-flex align-items-center">
-                        <a href="{{ route('verify-email', ['target' => 'password']) }}" class="ubah-link small">
+                        <a href="{{ route('verify-email', ['target' => 'password']) }}"
+                            class="ubah-link small link-response">
                             Ubah Kata Sandi
                         </a>
                     </div>
@@ -423,7 +427,7 @@
                 <input type="file" id="avatarInput" accept="image/png, image/jpeg" hidden>
 
                 <div>
-                    <button type="button" class="btn btn-save" id="chooseImageBtn">
+                    <button type="button" class="btn btn-main" id="chooseImageBtn">
                         Pilih Gambar
                     </button>
                 </div>
@@ -436,7 +440,7 @@
             </div>
 
             <div class="col-sm-9 offset-sm-2 mt-2">
-                <button class="btn btn-save" id="btnSaveProfile">
+                <button class="btn btn-main" id="btnSaveProfile">
                     Simpan
                 </button>
             </div>
@@ -447,8 +451,8 @@
 
     <script>
         /* =========================
-                                                           UTILS
-                                                        ========================= */
+                                                                                                                                                                       UTILS
+                                                                                                                                                                    ========================= */
         function formatBirthDate(dateString) {
             if (!dateString) return '-';
             const [y, m, d] = dateString.split('-');

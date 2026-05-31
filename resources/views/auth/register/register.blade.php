@@ -73,10 +73,40 @@
                 const name = document.getElementById('name').value.trim();
                 const email = document.getElementById('email').value.trim();
                 const phone = document.getElementById('phone').value.trim();
+                const nameInput = document.getElementById('name');
+                const emailInput = document.getElementById('email');
+                const phoneInput = document.getElementById('phone');
+
+                const nameFeedback = nameInput.parentNode.querySelector('.invalid-feedback');
+                const emailFeedback = emailInput.parentNode.querySelector('.invalid-feedback');
+                const phoneFeedback = phoneInput.parentNode.querySelector('.invalid-feedback');
+
+                nameInput.classList.remove('is-invalid');
+                emailInput.classList.remove('is-invalid');
+                phoneInput.classList.remove('is-invalid');
+
+                nameFeedback.textContent = '';
+                emailFeedback.textContent = '';
+                phoneFeedback.textContent = '';
 
                 // validasi
                 if (!name || !email || !phone) {
-                    alert('Semua field wajib diisi');
+
+                    if (!name) {
+                        nameInput.classList.add('is-invalid');
+                        nameFeedback.textContent = 'Nama wajib diisi';
+                    }
+
+                    if (!email) {
+                        emailInput.classList.add('is-invalid');
+                        emailFeedback.textContent = 'Email wajib diisi';
+                    }
+
+                    if (!phone) {
+                        phoneInput.classList.add('is-invalid');
+                        phoneFeedback.textContent = 'Nomor telepon wajib diisi';
+                    }
+
                     return;
                 }
 

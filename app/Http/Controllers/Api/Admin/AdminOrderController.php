@@ -29,7 +29,7 @@ class AdminOrderController extends Controller
     // ──────────────────────────────────────────────────────────────
 
 
- 
+
     public function index(Request $request)
     {
         $query = Order::with(['user:id,name,email,phone', 'payment.paymentMethod'])
@@ -669,8 +669,8 @@ class AdminOrderController extends Controller
 
 
 
-   
-    
+
+
     public function frontendOrderDetail(Order $order)
     {
         $order->load([
@@ -682,22 +682,64 @@ class AdminOrderController extends Controller
 
         return view('backend.pages.order.detail', compact('order'));
     }
- public function frontendOrderIndex(Request $request)
+public function frontendOrderIndex(Request $request)
 {
-    $orders = Order::with(['user:id,name,email,phone', 'payment.paymentMethod'])
-        ->withCount('items')
-        ->latest()
-        ->paginate(15);
+    $query = Order::with(['user:id,name,email,phone', 'payment.paymentMethod', 'items.product.category'])
+        ->withCount('items');
+
+    // Apply filter kategori produk
+    if ($request->filled('category_id')) {
+        $query->whereHas('items.product', function($q) use ($request) {
+            $q->where('category_id', $request->category_id);
+        });
+    }
+   if ($request->filled('start_date') && $request->filled('end_date')) {
+        $query->whereDate('created_at', '>=', $request->start_date)
+              ->whereDate('created_at', '<=', $request->end_date);
+    }
+
+    // Apply filter status pembayaran
+    if ($request->filled('payment_status')) {
+        $query->whereHas('payment', function($q) use ($request) {
+            $q->where('status', $request->payment_status);
+        });
+    }
+
+    $orders = $query->latest()->paginate(15);
 
     $orders->getCollection()->transform(function ($order) {
         $order->status_label = $this->statusLabel($order->status);
         $order->total_format = 'Rp.' . number_format($order->total ?? 0, 0, ',', '.');
 
+        // Tambahkan data payment status
+        if ($order->payment) {
+            $order->payment_status = $order->payment->status;
+        }
+
         return $order;
     });
 
-    return view('backend.pages.order.index', compact('orders'));
-}
+    // Jika request AJAX, return JSON
+    if ($request->ajax()) {
+        return response()->json([
+            'success' => true,
+            'data' => $orders->items(),
+            'pagination' => [
+                'current_page' => $orders->currentPage(),
+                'last_page' => $orders->lastPage(),
+                'total' => $orders->total(),
+                'per_page' => $orders->perPage(),
+                'from' => $orders->firstItem(),
+                'to' => $orders->lastItem()
+            ],
+            'total' => $orders->total()
+        ]);
+    }
 
+    // Ambil categories untuk filter
+    $categories = \App\Models\Category::all();
+
+    return view('backend.pages.order.index', compact('orders', 'categories'));
+}
 
 }

@@ -485,6 +485,20 @@ class OrderController extends Controller
                 'name'  => $order->items->first()->product_name,
                 'image' => $order->items->first()->product_image,
             ] : null,
+
+            // TAMBAHKAN INI ↓
+            'items'          => $order->items->map(function ($item) {
+                return [
+                    'name'           => $item->product_name,
+                    'image'          => $item->product_image,
+                    'quantity'       => $item->quantity,
+                    'price'          => $item->price,
+                    'price_format'   => 'Rp.' . number_format($item->price, 0, ',', '.'),
+                    'subtotal'       => $item->price * $item->quantity,
+                    'subtotal_format'=> 'Rp.' . number_format($item->price * $item->quantity, 0, ',', '.')
+                ];
+            }),
+
             'payment_status' => $order->payment?->status,
             'payment_method' => $order->payment?->paymentMethod?->name,
             'created_at'     => $order->created_at->format('d M Y H:i'),

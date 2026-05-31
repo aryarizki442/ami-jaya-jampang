@@ -174,8 +174,8 @@
         }
 
         /* ======================
-                                                                                                                                                                                                                                                                                                                           RESPONSIVE PROFILE
-                                                                                                                                                                                                                                                                                                                        ====================== */
+                                                                                                                                                                                                                                                                                                                                           RESPONSIVE PROFILE
+                                                                                                                                                                                                                                                                                                                                        ====================== */
 
         /* tablet */
         @media (max-width: 992px) {

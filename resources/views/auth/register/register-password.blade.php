@@ -70,130 +70,177 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.getElementById('btn-next')
-            .addEventListener('click', async function() {
+        document.addEventListener('DOMContentLoaded', function() {
 
-                const password = document.getElementById('password').value.trim();
+            const adjustIconPosition = (input) => {
+                const icon = input.parentNode.querySelector('.password-toggle');
+                if (!icon) return;
 
-                const passwordConfirmation =
-                    document.getElementById('password_confirmation')
-                    .value.trim();
+                icon.style.marginTop = input.classList.contains('is-invalid') ?
+                    '-14px' :
+                    '0';
+            };
 
-                // validasi
-                if (!password || !passwordConfirmation) {
-                    alert('Password wajib diisi');
-                    return;
-                }
+            document.getElementById('btn-next')
+                .addEventListener('click', async function() {
 
-                if (password.length < 8) {
-                    alert('Password minimal 8 karakter');
-                    return;
-                }
 
-                if (password !== passwordConfirmation) {
-                    alert('Konfirmasi password tidak cocok');
-                    return;
-                }
+                    const password = document.getElementById('password').value.trim();
+                    const registerToken = localStorage.getItem('register_token');
+                    const email = localStorage.getItem('register_email');
+                    const name = localStorage.getItem('register_name');
+                    const phone = localStorage.getItem('register_phone');
 
-                // ambil data dari proses sebelumnya
-                const email = localStorage.getItem('register_email');
-                const registerToken = localStorage.getItem('register_token');
-                const name = localStorage.getItem('register_name');
-                const phone = localStorage.getItem('register_phone');
+                    const passwordInput = document.getElementById('password');
+                    const confirmInput = document.getElementById('password_confirmation');
 
-                console.log({
-                    email,
-                    registerToken,
-                    name,
-                    phone
-                });
+                    const passwordFeedback = passwordInput.parentNode.querySelector('.invalid-feedback');
+                    const confirmFeedback = confirmInput.parentNode.querySelector('.invalid-feedback');
 
-                if (!email || !registerToken) {
-                    alert('Session registrasi tidak ditemukan');
-                    return;
-                }
 
-                try {
+                    const passwordConfirmation =
+                        document.getElementById('password_confirmation')
+                        .value.trim();
 
-                    const res = await fetch('/api/auth/register/complete', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            email: email,
-                            register_token: registerToken,
-                            name: name,
-                            phone: phone,
-                            password: password,
-                            password_confirmation: passwordConfirmation
-                        })
-                    });
+                    passwordInput.classList.remove('is-invalid');
+                    confirmInput.classList.remove('is-invalid');
 
-                    const result = await res.json();
+                    passwordFeedback.textContent = '';
+                    confirmFeedback.textContent = '';
 
-                    console.log(result);
+                    adjustIconPosition(passwordInput);
+                    adjustIconPosition(confirmInput);
 
-                    // gagal
-                    if (!res.ok) {
-
-                        if (result.errors) {
-
-                            if (result.errors.password) {
-                                alert(result.errors.password[0]);
-                                return;
-                            }
-
-                            if (result.errors.phone) {
-                                alert(result.errors.phone[0]);
-                                return;
-                            }
-
-                            if (result.errors.name) {
-                                alert(result.errors.name[0]);
-                                return;
-                            }
+                    // validasi
+                    if (!password || !passwordConfirmation) {
+                        if (!password) {
+                            passwordInput.classList.add('is-invalid');
+                            passwordFeedback.textContent = 'Password wajib diisi';
+                            adjustIconPosition(passwordInput);
                         }
 
-                        alert(result.message || 'Registrasi gagal');
+                        if (!passwordConfirmation) {
+                            confirmInput.classList.add('is-invalid');
+                            confirmFeedback.textContent = 'Konfirmasi password wajib diisi';
+                            adjustIconPosition(confirmInput);
+                        }
 
                         return;
                     }
 
-                    // simpan token login
-                    localStorage.setItem(
-                        'token',
-                        result.data.access_token
-                    );
+                    if (password.length < 8) {
+                        passwordInput.classList.add('is-invalid');
+                        passwordFeedback.textContent = 'Password minimal 8 karakter';
+                        return;
+                    }
 
-                    // tampilkan modal sukses
-                    const modal = new bootstrap.Modal(
-                        document.getElementById('successModal')
-                    );
+                    if (password !== passwordConfirmation) {
+                        confirmInput.classList.add('is-invalid');
+                        confirmFeedback.textContent = 'Konfirmasi password tidak cocok';
+                        return;
+                    }
 
-                    modal.show();
+                    // ambil data dari proses sebelumnya
 
-                    // hapus temporary register
-                    localStorage.removeItem('register_email');
-                    localStorage.removeItem('register_token');
-                    localStorage.removeItem('register_name');
-                    localStorage.removeItem('register_phone');
+                    console.log({
+                        email,
+                        registerToken,
+                        name,
+                        phone
+                    });
 
-                    // redirect login / home
-                    setTimeout(() => {
+                    if (!registerToken || !email) {
+                        alert('Session registrasi tidak ditemukan');
+                        return;
+                    }
 
-                        window.location.href = '/login';
+                    try {
 
-                    }, 3000);
+                        const res = await fetch('/api/auth/register/complete', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                email: email,
+                                register_token: registerToken,
+                                name: name,
+                                phone: phone,
+                                password: password,
+                                password_confirmation: passwordConfirmation
+                            })
+                        });
 
-                } catch (err) {
+                        const result = await res.json();
 
-                    console.error(err);
+                        console.log(result);
 
-                    alert('Terjadi kesalahan server');
-                }
+                        // gagal
+                        if (!res.ok) {
 
-            });
+                            if (result.errors) {
+
+                                if (result.errors.password) {
+                                    passwordInput.classList.add('is-invalid');
+                                    passwordFeedback.textContent = result.errors.password[0];
+                                }
+
+                                if (result.errors.password_confirmation) {
+                                    confirmInput.classList.add('is-invalid');
+                                    confirmFeedback.textContent = result.errors.password_confirmation[0];
+                                }
+
+                                if (result.errors.phone) {
+                                    alert(result.errors.phone[
+                                        0]); // kalau belum ada inputnya, masih boleh alert
+                                }
+
+                                if (result.errors.name) {
+                                    alert(result.errors.name[0]);
+                                }
+
+                                return;
+                            }
+
+                            alert(result.message || 'Registrasi gagal');
+                            return;
+                        }
+
+                        // simpan token login
+                        localStorage.setItem(
+                            'token',
+                            result.data.access_token
+                        );
+
+                        // tampilkan modal sukses
+                        const modal = new bootstrap.Modal(
+                            document.getElementById('successModal')
+                        );
+
+                        modal.show();
+
+                        // hapus temporary register
+                        localStorage.removeItem('register_email');
+                        localStorage.removeItem('register_token');
+                        localStorage.removeItem('register_name');
+                        localStorage.removeItem('register_phone');
+
+                        // redirect login / home
+                        setTimeout(() => {
+
+                            window.location.href = '/login';
+
+                        }, 3000);
+
+                    } catch (err) {
+
+                        console.error(err);
+
+                        alert('Terjadi kesalahan server');
+                    }
+
+                });
+        });
     </script>
 @endsection

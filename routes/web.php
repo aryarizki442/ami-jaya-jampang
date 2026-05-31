@@ -94,9 +94,11 @@ Route::get('/change-password', function () {
 Route::get('/address', function () {
     return view('frontend.pages.profile.address');
 })->name('address');
-Route::get('/order-all', function () {
-    return view('frontend.pages.profile.order-all');
-})->name('order-all');
+// Route::get('/order-all', function () {
+//     return view('frontend.pages.profile.order-all');
+// })->name('order-all');
+Route::get('/order-all', [HomeController::class, 'orderCustomerAll'])
+    ->name('orders.all');
 Route::get('/order-waiting', function () {
     return view('frontend.pages.profile.order-waiting');
 })->name('order-waiting');
@@ -115,8 +117,6 @@ Route::get('/order-cancelled', function () {
 Route::get('/invoice', function () {
     return view('frontend.pages.profile.invoice');
 })->name('invoice');
-
-
 
 
 //Admin Routes

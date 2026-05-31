@@ -55,7 +55,7 @@
                         <div class="col-md-6">
                             <h6 class="mb-2">Berat Produk</h6>
                             <input type="text" name="weight_kg" class="form-control"
-                                placeholder="Masukan Berat Produk Kg" min="0" step="0.01">
+                                placeholder="Masukan Berat Produk Kg/Liter" min="0" step="0.01">
                         </div>
                     </div>
                     <div class="row mt-3 border-top pt-3">
@@ -118,7 +118,7 @@
 
         <!-- BUTTON -->
         <div class="mt-3 border-top pt-3 d-flex justify-content-end gap-2">
-            <a href="/admin/product/index" class="btn btn-second">Batal</a>
+            <a href="/admin/product" class="btn btn-second">Batal</a>
             <button type="submit" id="btnSubmit" class="btn btn-main">Simpan</button>
         </div>
     </form>
@@ -159,7 +159,7 @@
             }
 
             // =========================
-            // 🚫 BLOCK DRAG GLOBAL (FIX TAB BARU)
+            // BLOCK DRAG GLOBAL
             // =========================
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => {
                 document.body.addEventListener(event, function(e) {
@@ -262,7 +262,6 @@
                         return;
                     }
 
-                    // WAJIB: pastikan masuk ke FormData
                     formData.append('image', file);
                 }
                 // set boolean
@@ -285,7 +284,7 @@
                 btnSubmit.innerText = 'Menyimpan...';
 
                 try {
-                    let response = await fetch('/api/admin/products', { // ✅ FIX ENDPOINT
+                    let response = await fetch('/api/admin/products', {
                         method: 'POST',
                         body: formData,
                         headers: {

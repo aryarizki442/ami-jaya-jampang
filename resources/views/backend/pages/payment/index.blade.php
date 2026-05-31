@@ -263,6 +263,61 @@
             display: inline-block;
         }
 
+        /* BADGE STYLES */
+        .payment-waiting-payment {
+            background-color: var(--neutral-50);
+            color: var(--neutral-300);
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .payment-paid {
+            background-color: var(--success-50);
+            color: var(--success-500);
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .payment-expired {
+            background-color: var(--warning-50);
+            color: var(--warning-500);
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .payment-completed {
+            background-color: var(--success-50);
+            color: var(--success-500);
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .payment-failed {
+            background-color: var(--danger-50);
+            color: var(--danger-500);
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .payment-rejected {
+            background-color: var(--danger-50);
+            color: var(--danger-500);
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
         /* MOBILE FIX */
         @media (max-width: 576px) {
 
@@ -512,6 +567,36 @@
 
                 statusFilter.dispatchEvent(new Event('change'));
             }
+            /* =========================
+                STATUS LABEL
+                ========================= */
+            function mapStatusLabel(status) {
+
+                const labels = {
+                    pending: 'Menunggu Pembayaran',
+                    paid: 'Pembayaran Berhasil',
+                    failed: 'Pembayaran Gagal',
+                    expired: 'Pembayaran Kedaluwarsa',
+                    refunded: 'Dana Dikembalikan',
+                    partially_refunded: 'Refund Sebagian'
+                };
+
+                return labels[status] || '-';
+            }
+
+            function mapStatusClass(status) {
+
+                const classes = {
+                    pending: 'payment-waiting-payment',
+                    paid: 'payment-paid',
+                    failed: 'payment-failed',
+                    expired: 'payment-expired',
+                    refunded: 'payment-refunded',
+                    partially_refunded: 'payment-partially-refunded'
+                };
+
+                return classes[status] || 'payment-waiting-payment';
+            }
 
             /* =========================
                TANGGAL SEKARANG
@@ -527,6 +612,24 @@
                     month: 'long',
                     year: 'numeric'
                 });
+            }
+
+            function formatTanggal(dateString) {
+
+                if (!dateString) return '-';
+
+                const date = new Date(dateString);
+
+                return date.toLocaleDateString('id-ID', {
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric'
+                    }) + ', ' +
+
+                    date.toLocaleTimeString('id-ID', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
             }
 
             /* =========================
@@ -570,6 +673,19 @@
                 });
             }
 
+            function formatPaymentMethod(method) {
+
+                if (!method) return '-';
+
+                return method
+                    .replace('Virtual Account', '')
+                    .replace('VA', '')
+                    .trim();
+            }
+
+            /* =========================
+               SEARCH
+            ========================== */
             /* =========================
                SEARCH
             ========================== */
@@ -579,11 +695,34 @@
 
                 const filtered = allPayments.filter(item =>
                     item.order_number?.toLowerCase().includes(q) ||
-                    item.customer_name?.toLowerCase().includes(q)
+                    item.customer_name?.toLowerCase().includes(q) ||
+                    item.payment?.status_label?.toLowerCase().includes(q)
                 );
 
-                renderTableBody(filtered);
-                renderCardList(filtered);
+                // DESKTOP
+                if (window.innerWidth >= 768) {
+
+                    renderTableBody(filtered);
+
+                    // kosongkan mobile
+                    const paymentList = document.getElementById('paymentList');
+
+                    if (paymentList) {
+                        paymentList.innerHTML = '';
+                    }
+
+                } else {
+
+                    // MOBILE
+                    renderCardList(filtered);
+
+                    // kosongkan table
+                    const tbody = document.getElementById('PaymentTableBody');
+
+                    if (tbody) {
+                        tbody.innerHTML = '';
+                    }
+                }
             });
 
             /* =========================
@@ -726,21 +865,37 @@
 
                         allPayments = pagination.data;
 
-                        // Desktop
                         if (window.innerWidth >= 768) {
 
-                            renderTableBody(pagination.data);
+                            // DESKTOP
+                            renderTableBody(allPayments);
 
-                            // kosongkan mobile list
-                            paymentList.innerHTML = '';
+                            // kosongkan mobile
+                            if (paymentList) {
+                                paymentList.innerHTML = '';
+                            }
+
+                            // tampilkan table
+                            const tableWrapper = document.querySelector('.table-responsive');
+                            if (tableWrapper) {
+                                tableWrapper.style.display = 'block';
+                            }
 
                         } else {
 
-                            // Mobile
-                            renderCardList(pagination.data);
+                            // MOBILE
+                            renderCardList(allPayments);
 
                             // kosongkan table
-                            tbody.innerHTML = '';
+                            if (tbody) {
+                                tbody.innerHTML = '';
+                            }
+
+                            // hide table
+                            const tableWrapper = document.querySelector('.table-responsive');
+                            if (tableWrapper) {
+                                tableWrapper.style.display = 'none';
+                            }
                         }
 
                         renderPagination(pagination);
@@ -776,7 +931,7 @@
                         </td>
 
                         <td>
-                            ${item.created_at ?? '-'}
+                            ${formatTanggal(item.created_at)}
                         </td>
 
                         <td>
@@ -784,13 +939,13 @@
                         </td>
 
                         <td class="text-center">
-                            <span class="badge ${item.status_class}">
-                                ${item.status_label}
-                            </span>
+                          <span class="badge ${mapStatusClass(item.payment?.status)}">
+                            ${mapStatusLabel(item.payment?.status)}
+                        </span>
                         </td>
 
                         <td class="text-center">
-                            ${item.payment_method ?? '-'}
+                           ${formatPaymentMethod(item.payment?.method)}
                         </td>
 
                         <td class="text-center">
@@ -819,6 +974,7 @@
             ========================== */
             function renderCardList(data) {
 
+                const tbody = document.getElementById('PaymentTableBody');
                 const paymentList = document.getElementById('paymentList');
 
                 if (!paymentList) return;
@@ -851,9 +1007,9 @@
                                     ${item.order_number ?? '-'}
                                 </span>
 
-                                <span class="badge ${item.status_class}">
-                                    ${item.status_label}
-                                </span>
+                             <span class="badge ${mapStatusClass(item.payment?.status)}">
+                                ${mapStatusLabel(item.payment?.status)}
+                            </span>
 
                             </div>
 
@@ -864,7 +1020,7 @@
                                 </span>
 
                                 <span style="font-size:12px;">
-                                    ${item.payment_method ?? '-'}
+                                   ${formatPaymentMethod(item.payment?.method)}
                                 </span>
 
                                 <div class="cat-actions">

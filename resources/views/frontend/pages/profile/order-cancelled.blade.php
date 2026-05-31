@@ -3,7 +3,32 @@
 @section('title', 'Pesanan Dibatalkan')
 
 @section('account-content')
+    <style>
+        .scroll-items {
+            max-height: 116px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
 
+        /* Optional: custom scrollbar agar lebih bagus */
+        .scroll-items::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scroll-items::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .scroll-items::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+
+        .scroll-items::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
 
 
     <div class="order-title mb-3 mt-5">
@@ -17,67 +42,143 @@
     </div>
 
 
-    <div class="case">
-        {{-- <div class="card order-card mb-3 position-relative py-0">
+    <div class="case" id="orderList">
 
-            <!-- Badge -->
+    </div>
 
-            <div class="d-flex justify-content-between align-items-start">
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', fetchCancelledOrders);
 
-                <div class="ps-4 pt-2">
-                    <strong>Pembelian</strong>
-                    <span class="order-meta ms-2 text-neutral-custom">27 Januari 2026</span>
+        async function fetchCancelledOrders() {
+
+            try {
+
+                const token = localStorage.getItem('token');
+
+                const response = await fetch(
+                    'http://127.0.0.1:8000/api/orders?status=cancelled', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        }
+                    }
+                );
+
+                const result = await response.json();
+
+                const orders = result?.data?.data || [];
+
+                let html = '';
+
+                if (orders.length === 0) {
+
+                    html = `
+                <div class="text-center py-5">
+                    <h6 class="text-muted">
+                        Tidak ada pesanan yang dibatalkan
+                    </h6>
                 </div>
+            `;
 
-                <span class="badge status-cancelled text-white top-0 end-0">
-                    Dibatalkan
-                </span>
+                } else {
 
+                    orders.forEach(order => {
+
+                        let allItemsHtml = '';
+
+                        (order.items || []).forEach(item => {
+                            allItemsHtml += `
+        <div class="d-flex align-items-center gap-3 order-product mb-3">
+            <img src="${item.image}" style="width:100px; height:100px; object-fit:cover;">
+
+            <div>
+                <strong>${item.name}</strong>
+
+                <div class="order-meta text-neutral-custom">
+                    x ${item.quantity}
+                </div>
             </div>
-            <div class="card-body">
+        </div>
+    `;
+                        });
 
-                <div class="row align-items-center mb-5">
+                        html += `
+                    <div class="card order-card mb-3 position-relative py-0">
 
-                    <div class="col-md-8">
+                        <div class="d-flex justify-content-between align-items-start">
 
-                        <div class="d-flex align-items-center gap-3 order-product">
+                            <div class="ps-4 pt-2">
+                                <strong>Pembelian</strong>
 
-                            <img src="{{ asset('images/home/category/beras-medium.png') }}" style="width:100px;">
+                                <span class="order-meta ms-2 text-neutral-custom">
+                                    ${order.created_at}
+                                </span>
+                            </div>
 
-                            <div>
-                                <strong>Beras Putih Premium</strong>
-                                <div class="order-meta text-neutral-custom">x 1</div>
+                            <span class="badge status-cancelled text-white top-0 end-0">
+                                Dibatalkan
+                            </span>
+
+                        </div>
+
+                        <div class="card-body">
+
+                            <div class="row align-items-start mb-5">
+
+                               <div class="col-md-8">
+                                <div class="scroll-items">
+                                    ${allItemsHtml}
+                                </div>
+                            </div>
+
+                                <div class="col-md-4 order-divider text-end">
+
+                                    <div class="order-meta text-neutral-custom">
+                                        Total Pembayaran
+                                    </div>
+
+                                    <strong>
+                                        ${order.total_format}
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                            <div class="d-flex justify-content-end gap-2">
+
+                                <button class="btn btn-second btn-sm">
+                                    Rincian Pembatalan
+                                </button>
+
+                                <button
+                                    class="btn btn-main btn-sm btn-reorder"
+                                    data-id="${order.id}">
+                                    Beli Lagi
+                                </button>
+
                             </div>
 
                         </div>
 
                     </div>
+                `;
+                    });
+                }
 
-                    <div class="col-md-4 order-divider d-flex flex-column justify-content-center text-end">
+                document.getElementById('orderList').innerHTML = html;
 
-                        <div class="order-meta text-neutral-custom">Total Pembayaran</div>
-                        <strong>Rp.153.000</strong>
+            } catch (error) {
 
-                    </div>
+                console.error('ERROR:', error);
 
-                </div>
-
-                <div class="d-flex justify-content-end gap-2">
-
-                    <button class="btn btn-second btn-sm">
-                        Rincian Pembatalan
-                    </button>
-
-                    <button class="btn btn-main btn-sm px-3">
-                        Beli Lagi
-                    </button>
-
-                </div>
-
+                document.getElementById('orderList').innerHTML = `
+            <div class="alert alert-danger">
+                Gagal memuat data pesanan.
             </div>
-        </div> --}}
-    </div>
-
-    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-
+        `;
+            }
+        }
+    </script>
 @endsection

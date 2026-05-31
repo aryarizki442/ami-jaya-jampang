@@ -93,7 +93,8 @@ class PaymentController extends Controller
         }
 
         try {
-            $expiredAt = now()->addHours(24);
+            $expiredAt = now()->addMinutes(1);
+            // $expiredAt = now()->addHours(24);
             $snapParams = $this->buildSnapParams($order, $user, $expiredAt);
 
             $snapToken = \Midtrans\Snap::getSnapToken($snapParams);
@@ -368,10 +369,16 @@ class PaymentController extends Controller
                 ],
             ],
 
+            // 'expiry' => [
+            //     'start_time' => now()->format('Y-m-d H:i:s O'),
+            //     'unit'       => 'hours',
+            //     'duration'   => 24,
+            // ],
+
             'expiry' => [
-                'start_time' => now()->format('Y-m-d H:i:s O'),
-                'unit'       => 'hours',
-                'duration'   => 24,
+            'start_time' => now()->format('Y-m-d H:i:s O'),
+            'unit'       => 'minute',
+            'duration'   => 1,
             ],
 
             'enabled_payments' => $this->enabledPayments($order),
@@ -547,116 +554,131 @@ class PaymentController extends Controller
     }
 
     public function index(Request $request)
-        {
-            $query = Payment::with([
-                'order.user',
-                'paymentMethod'
-            ])->latest();
+{
+    $query = Payment::with([
+        'order.user',
+        'order',
+        'paymentMethod'
+    ])->latest();
 
-            // Filter status
-            if ($request->filled('status')) {
-                $query->where('status', $request->status);
-            }
+$allowed = [
+    'pending',
+    'paid',
+    'failed',
+    'expired',
+    'refunded',
+    'partially_refunded'
+];
 
-            // Filter tanggal
-            if ($request->filled('start_date') && $request->filled('end_date')) {
+if ($request->filled('status') && $request->status !== 'all' && in_array($request->status, $allowed)) {
 
-                $query->whereDate('created_at', '>=', $request->start_date)
-                    ->whereDate('created_at', '<=', $request->end_date);
-            }
+    $query->where('status', $request->status);
+}
 
-            $payments = $query->paginate(10);
+    if ($request->filled('start_date') && $request->filled('end_date')) {
+        $query->whereDate('created_at', '>=', $request->start_date)
+              ->whereDate('created_at', '<=', $request->end_date);
+    }
 
-            $payments->getCollection()->transform(function ($payment) {
+    $payments = $query->paginate(10);
 
-                return [
-                    'id' => $payment->id,
+    $payments->getCollection()->transform(function ($payment) {
 
-                    'order_number' =>
-                        $payment->order?->order_number ?? '-',
+        return [
+            'id' => $payment->id,
 
-                    'customer_name' =>
-                        $payment->order?->user?->name ?? '-',
+            'order_number' => $payment->order?->order_number ?? '-',
 
-                    'payment_method' =>
-                        $payment->paymentMethod?->name ?? '-',
+            'customer_name' => $payment->order?->user?->name ?? '-',
 
-                    'status' =>
-                        $payment->status,
+            // 🔥 FIX UTAMA: jadikan NESTED payment (biar sama kayak frontend kamu)
+            'payment' => [
+                'method' => $payment->paymentMethod?->name ?? '-',
+                'method_code' => $payment->paymentMethod?->code ?? null,
 
-                    'status_label' =>
-                        $this->statusLabel($payment->status),
+                'virtual_account_number' => $payment->virtual_account_number ?? null,
+                'expired_at' => $payment->expired_at,
 
-                    'status_class' => match ($payment->status) {
-                        'paid'    => 'bg-success',
-                        'pending' => 'bg-warning text-dark',
-                        'failed'  => 'bg-danger',
-                        'expired' => 'bg-secondary',
-                        default   => 'bg-dark',
-                    },
+                'status' => $payment->status,
+                'status_label' => $this->statusLabel($payment->status),
+            ],
 
-                    'created_at' =>
-                        $payment->created_at
-                            ? $payment->created_at->translatedFormat('d M Y')
-                            : '-',
-                ];
-            });
+            'amount' => $payment->amount,
+            'amount_format' => 'Rp ' . number_format($payment->amount, 0, ',', '.'),
 
-            return response()->json([
-                'success' => true,
-                'data'    => $payments
-            ]);
-        }
+            'created_at' => $payment->created_at
+                ? $payment->created_at->translatedFormat('d M Y, H:i')
+                : '-',
+        ];
+    });
+
+    return response()->json([
+        'success' => true,
+        'data' => $payments
+    ]);
+}
 
     public function adminShow($id)
-        {
-            $payment = Payment::with([
-                'order.user',
-                'order.items.product',
-                'paymentMethod'
-            ])->find($id);
+{
+    $payment = Payment::with([
+        'order.user',
+        'order.items.product',
+        'paymentMethod'
+    ])->find($id);
 
-            if (! $payment) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Payment tidak ditemukan'
-                ], 404);
-            }
+    if (! $payment) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Payment tidak ditemukan'
+        ], 404);
+    }
 
-            return response()->json([
-                'success' => true,
-                'data' => [
+    return response()->json([
+        'success' => true,
+        'data' => [
 
-                    'id' => $payment->id,
-                    'order_number' =>
-                        $payment->order?->order_number ?? '-',
-                    'customer_name' =>
-                        $payment->order?->user?->name ?? '-',
-                    'customer_email' =>
-                        $payment->order?->user?->email ?? '-',
-                    'payment_method' =>
-                        $payment->paymentMethod?->name ?? '-',
-                    'payment_type' =>
-                        $payment->payment_type ?? '-',
-                    'status' =>
-                        $payment->status,
-                    'status_label' =>
-                        $this->statusLabel($payment->status),
-                    'amount' =>
-                        $payment->amount,
-                    'amount_format' =>
-                        'Rp ' . number_format($payment->amount, 0, ',', '.'),
-                    'transaction_id' =>
-                        $payment->transaction_id ?? '-',
-                    'created_at' =>
-                        $payment->created_at
-                            ? $payment->created_at->translatedFormat('d F Y H:i')
-                            : '-',
-                    'paid_at' =>
-                        $payment->paid_at
-                            ? $payment->paid_at->translatedFormat('d F Y H:i')
-                            : '-',
-                ]
-            ]);
-        }
+            'id' => $payment->id,
+
+            'order_number' => $payment->order?->order_number ?? '-',
+
+            'customer_name' => $payment->order?->user?->name ?? '-',
+            'customer_email' => $payment->order?->user?->email ?? '-',
+
+            'payment_method' => $payment->paymentMethod?->name ?? '-',
+            'payment_method_code' => $payment->paymentMethod?->code ?? null,
+
+            'payment_type' => $payment->payment_type ?? '-',
+
+            'status' => $payment->status,
+            'status_label' => $this->statusLabel($payment->status),
+
+            // 🔥 IMPORTANT
+            'virtual_account_number' => $payment->virtual_account_number ?? null,
+            'expired_at' => $payment->expired_at,
+            'paid_at' => $payment->paid_at,
+
+            'amount' => $payment->amount,
+            'amount_format' => 'Rp ' . number_format($payment->amount, 0, ',', '.'),
+
+            'transaction_id' => $payment->transaction_id ?? '-',
+
+            'items' => $payment->order?->items->map(function ($item) {
+                return [
+                    'name' => $item->product_name ?? $item->product?->name,
+                    'qty' => $item->quantity,
+                    'price' => $item->unit_price,
+                    'subtotal' => $item->subtotal,
+                ];
+            }) ?? [],
+
+            'created_at' => $payment->created_at
+                ? $payment->created_at->translatedFormat('d F Y H:i')
+                : '-',
+
+            'paid_at' => $payment->paid_at
+                ? $payment->paid_at->translatedFormat('d F Y H:i')
+                : '-',
+        ]
+    ]);
+}
 }

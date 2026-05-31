@@ -15,7 +15,7 @@
             <h2 class="login-title mt-4">Lupa Kata Sandi</h2>
 
             <!-- DESCRIPTION -->
-            <p class="text-muted">Masukan Email anda yang sudah terdaftar, kemudian <br>
+            <p class="text-muted">Masukan Email anda yang sudah terdaftar, kemudian
                 ikuti langkah pada Email yang kami kirimkan</p>
 
             <!-- FORM -->
@@ -26,6 +26,7 @@
                 <div class="mb-3 text-start">
                     <label class="form-label">Email</label>
                     <input id="email" type="text" class="form-control" placeholder="Masukan Email">
+                    <div class="invalid-feedback"></div>
                 </div>
 
                 <!-- BUTTON -->
@@ -46,12 +47,15 @@
             e.preventDefault();
 
             const email = document.getElementById('email').value.trim();
-
+            const emailInput = document.getElementById('email');
+            const emailFeedback = emailInput.parentNode.querySelector('.invalid-feedback');
+            emailInput.classList.remove('is-invalid');
+            emailFeedback.textContent = '';
             if (!email) {
-                alert('Email wajib diisi');
+                emailInput.classList.add('is-invalid');
+                emailFeedback.textContent = 'Email wajib diisi';
                 return;
             }
-
             try {
                 const res = await fetch('/api/otp/request', {
                     method: 'POST',
@@ -70,7 +74,15 @@
                 console.log(result);
 
                 if (!res.ok) {
-                    alert(result.message || 'Gagal mengirim OTP');
+
+                    emailInput.classList.add('is-invalid');
+
+                    if (result.errors && result.errors.email) {
+                        emailFeedback.textContent = result.errors.email[0];
+                    } else {
+                        emailFeedback.textContent = result.message || 'Gagal mengirim OTP';
+                    }
+
                     return;
                 }
 

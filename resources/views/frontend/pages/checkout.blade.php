@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Ami Jaya Jampang</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo/icon-title.png') }}">
+    <title>Toko Beras Jampang</title>
 
     <!-- BOOTSTRAP -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -256,7 +257,7 @@
     <nav class="navbar navbar-expand-lg navbar-bg fixed-top">
         <div class="container">
             <!-- Logo -->
-            <a class="navbar-brand d-flex align-items-center" href="/">
+            <a class="navbar-brand d-flex align-items-center" href="#">
                 <img src="{{ asset('images/logo/logo-putih.png') }}" alt="Logo" class="img-fluid navbar-logo">
             </a>
         </div>
@@ -433,27 +434,37 @@
 
 
                     <!-- Ringkasan Transaksi (HIJAU, TANPA CARD LAGI) -->
+                    <!-- Ringkasan Transaksi -->
                     <div class="p-3 mb-3 text-white" style="background-color:#198754; border-radius:8px;">
                         <h6 class="fw-bold mb-3">Ringkasan Transaksi Anda</h6>
 
                         <div class="d-flex justify-content-between mb-1">
-                            <span>Total Harga ({{ $items->sum('quantity') }} Barang)</span>
-                            <span>Rp.{{ number_format($items->sum(fn($i) => $i->price * $i->quantity), 0, ',', '.') }}</span>
+                            <span>Total Harga ({{ $items->sum('quantity') }} Sack)</span>
+
+                            <span>
+                                Rp.{{ number_format($items->sum(fn($i) => $i->price * $i->quantity), 0, ',', '.') }}
+                            </span>
                         </div>
+
                         <div class="d-flex justify-content-between mb-1">
                             <span>Total Ongkos Kirim</span>
+
                             <span id="ongkirDisplay">Rp.0</span>
                         </div>
+
                         <div class="d-flex justify-content-between">
                             <span>Total Lainnya</span>
+
                             <span>Rp.0</span>
                         </div>
                     </div>
 
                     <!-- Total -->
                     <div class="pt-3 mt-3" style="border-top:1.5px solid #B8B9BA;">
+
                         <div class="d-flex justify-content-between align-items-center mb-5">
                             <span>Total Tagihan</span>
+
                             <span class="fw-bold" id="totalTagihan">
                                 Rp.{{ number_format($items->sum(fn($i) => $i->price * $i->quantity), 0, ',', '.') }}
                             </span>
@@ -609,13 +620,13 @@
             }, 200);
         }
 
+        //   'cod': 'cod.png',
         // =============================================
         //  LOAD PAYMENT METHODS
         // =============================================
         async function loadPaymentMethods() {
             const token = localStorage.getItem('token');
             const paymentImages = {
-                'cod': 'cod.png',
                 'bca_va': 'bca.png',
                 'bni_va': 'bni.png',
                 'bri_va': 'bri.png',
@@ -637,12 +648,14 @@
                 const container = document.getElementById('paymentMethodList');
                 container.innerHTML = '';
 
-                methods.forEach((method, index) => {
-                    const div = document.createElement('div');
-                    const image = paymentImages[method.code] || 'images/payments/bank/default.png';
-                    div.className = 'form-check-payment d-flex justify-content-between align-items-center';
+                methods
+                    .filter(method => method.code !== 'cod')
+                    .forEach((method, index) => {
+                        const div = document.createElement('div');
+                        const image = paymentImages[method.code] || 'images/payments/bank/default.png';
+                        div.className = 'form-check-payment d-flex justify-content-between align-items-center';
 
-                    div.innerHTML = `
+                        div.innerHTML = `
                     <label class="d-flex align-items-center gap-2 mb-0" for="pay_${method.code}">
                         <div class="payment-logo">
                         <img
@@ -665,8 +678,8 @@
                     >
                 `;
 
-                    container.appendChild(div);
-                });
+                        container.appendChild(div);
+                    });
 
             } catch (e) {
                 console.error('Gagal load payment methods:', e);
@@ -799,39 +812,71 @@
         });
     </script>
     <script>
-        // =============================================
-        //  HITUNG ONGKIR & TOTAL TAGIHAN
-        // =============================================
-        function hitungTotal() {
-            const subtotal = {{ $items->sum(fn($i) => $i->price * $i->quantity) }};
-            const selectedDelivery = document.querySelector('input[name="shipping"]:checked');
-            const isAntar = selectedDelivery?.value === 'antar';
+        async function hitungTotal() {
 
-            // Sesuaikan ongkir dengan logika backend (per qty)
-            const totalQty = {{ $items->sum('quantity') }};
+            const token = localStorage.getItem('token');
+
+            const subtotal = {{ $items->sum(fn($i) => $i->price * $i->quantity) }};
+
+            const selectedDelivery =
+                document.querySelector('input[name="shipping"]:checked');
+
             let ongkir = 0;
 
-            if (isAntar) {
-                if (totalQty >= 15 && totalQty <= 30) ongkir = 25000;
-                else if (totalQty > 30) ongkir = 50000;
+            // default pickup
+            if (selectedDelivery?.value === 'antar') {
+
+                try {
+
+                    const response = await fetch('/api/orders/shipping-calculate', {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+
+                        if (!result.data.can_delivery) {
+
+                            alert(result.data.info);
+
+                            document.querySelector(
+                                'input[name="shipping"][value="pickup"]'
+                            ).checked = true;
+
+                            ongkir = 0;
+
+                        } else {
+
+                            ongkir = result.data.shipping_cost;
+                        }
+                    }
+
+                } catch (error) {
+
+                    console.error(error);
+                }
             }
 
-            const total = subtotal + ongkir;
-
+            // update UI
             document.getElementById('ongkirDisplay').textContent =
                 'Rp.' + ongkir.toLocaleString('id-ID');
 
             document.getElementById('totalTagihan').textContent =
-                'Rp.' + total.toLocaleString('id-ID');
+                'Rp.' + (subtotal + ongkir).toLocaleString('id-ID');
         }
 
-        // Panggil saat radio shipping berubah
+        // event shipping change
         document.querySelectorAll('input[name="shipping"]').forEach(radio => {
             radio.addEventListener('change', hitungTotal);
         });
 
-        // Panggil saat pertama load
-        document.addEventListener('DOMContentLoaded', hitungTotal);
+        // saat halaman selesai load
+        window.addEventListener('load', hitungTotal);
     </script>
 
 

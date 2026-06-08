@@ -28,6 +28,205 @@
         .scroll-items::-webkit-scrollbar-thumb:hover {
             background: #a8a8a8;
         }
+
+        /* ========== RESPONSIVE STYLES ========== */
+
+        /* Tablet (max-width: 768px) */
+        @media (max-width: 768px) {
+            .order-title {
+                font-size: 18px;
+                padding: 8px;
+                margin-top: 0.5rem !important;
+                margin-bottom: 0.5rem !important;
+            }
+
+            .order-search input {
+                font-size: 13px;
+                padding: 8px 0;
+            }
+
+            .case {
+                padding: 12px;
+            }
+
+            .order-card .card-body {
+                padding: 60px 16px 16px !important;
+            }
+
+            .order-card .badge {
+                font-size: 10px;
+                padding: 5px 12px;
+            }
+
+            .order-product {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                width: 100%;
+            }
+
+            .order-product img {
+                width: 70px !important;
+                height: 70px !important;
+            }
+
+            .order-product>div {
+                width: 100%;
+            }
+
+            .order-divider {
+                border-left: 0 !important;
+                margin-top: 16px;
+                padding-top: 12px;
+                border-top: 1px solid #B8B9BA;
+                text-align: left !important;
+            }
+
+            .order-card .d-flex.justify-content-between {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 10px;
+            }
+
+            .order-card .d-flex.gap-2 {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .order-card .btn-sm {
+                width: 100%;
+                font-size: 12px;
+                padding: 8px 12px;
+            }
+
+            .va-number {
+                font-size: 12px;
+                word-break: break-all;
+                white-space: normal;
+            }
+
+            .scroll-items {
+                max-height: 200px;
+            }
+
+            .order-meta {
+                font-size: 11px;
+            }
+
+            .order-card strong {
+                font-size: 13px;
+            }
+
+            .ps-4 {
+                padding-left: 1rem !important;
+            }
+
+            .pt-2 {
+                padding-top: 0.5rem !important;
+            }
+        }
+
+        /* Mobile (max-width: 576px) */
+        @media (max-width: 576px) {
+            .order-title {
+                font-size: 16px;
+                padding: 8px;
+            }
+
+            .case {
+                padding: 8px;
+            }
+
+            .order-card .card-body {
+                padding: 55px 12px 12px !important;
+            }
+
+            .order-card .badge {
+                font-size: 9px;
+                padding: 4px 10px;
+            }
+
+            .order-product img {
+                width: 60px !important;
+                height: 60px !important;
+            }
+
+            .order-product {
+                gap: 0.75rem !important;
+            }
+
+            .order-product>div strong {
+                font-size: 12px;
+            }
+
+            .order-meta {
+                font-size: 10px;
+            }
+
+            .order-card strong {
+                font-size: 12px;
+            }
+
+            .btn-sm {
+                font-size: 11px !important;
+                padding: 6px 10px !important;
+            }
+
+            .va-number {
+                font-size: 11px;
+            }
+
+            .scroll-items {
+                max-height: 180px;
+            }
+
+            .gap-3 {
+                gap: 0.75rem !important;
+            }
+
+            .mb-5 {
+                margin-bottom: 1rem !important;
+            }
+
+            .ps-4 {
+                padding-left: 0.75rem !important;
+            }
+        }
+
+        /* Desktop (min-width: 769px) */
+        @media (min-width: 769px) {
+            .order-divider {
+                border-left: 1px solid #B8B9BA;
+            }
+
+            .order-product {
+                flex-wrap: nowrap !important;
+                align-items: center !important;
+            }
+
+            .order-product>div {
+                flex-shrink: 0;
+            }
+
+            .order-card .d-flex.gap-2 {
+                flex-direction: row;
+            }
+
+            .order-card .btn-sm {
+                width: auto;
+            }
+        }
+
+        /* Large Desktop (min-width: 1200px) */
+        @media (min-width: 1200px) {
+            .order-product img {
+                width: 100px !important;
+                height: 100px !important;
+            }
+
+            .case {
+                padding: 20px;
+            }
+        }
     </style>
 
 
@@ -116,7 +315,7 @@
                                 </span>
                             </div>
 
-                            <span class="badge status-cancelled text-white top-0 end-0">
+                            <span class="badge status-cancelled text-white position-absolute top-0 end-0">
                                 Dibatalkan
                             </span>
 

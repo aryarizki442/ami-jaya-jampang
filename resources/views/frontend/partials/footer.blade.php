@@ -145,9 +145,9 @@
 
                 <div class="d-flex justify-content-center">
                     <ul class="footer-list text-start">
-                        <li>Beras Putih Medium</li>
-                        <li>Beras Putih Premium</li>
-                        <li>Beras Ketan</li>
+                        @foreach (\App\Models\Category::all() as $category)
+                            <li>Beras {{ $category->name }}</li>
+                        @endforeach
                     </ul>
                 </div>
             </div>
@@ -157,9 +157,21 @@
 
                 <div class="d-flex justify-content-center">
                     <div class="text-start">
-                        <p class="mb-1">Senin - Kamis : <span class="fw-bold">17.30-16.30 WIB </span></p>
-                        <p class="mb-1">Jum’at : <span style="color:#EF4444;" class="fw-bold">Libur</span></p>
-                        <p class="mb-0">Sabtu - Minggu : <span class="fw-bold">17.30-16.30 WIB</span> </p>
+
+                        <div class="d-flex justify-content-between gap-3">
+                            <span>Senin - Kamis</span>
+                            <span class="fw-bold">07.30 - 16.30 WIB</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between gap-3">
+                            <span>Jum'at</span>
+                            <span class="fw-bold text-danger">Libur</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between gap-3">
+                            <span>Sabtu - Minggu</span>
+                            <span class="fw-bold">07.30 - 16.30 WIB</span>
+                        </div>
 
                     </div>
                 </div>
@@ -183,14 +195,14 @@
             </div>
 
         </div>
-        <div class="col-lg-3 col-md-6 mb-4">
+        {{-- <div class="col-lg-3 col-md-6 mb-4">
             <div class="footer-social">
                 <a href="#"><span class="iconify" data-icon="mdi:instagram"></span></a>
                 <a href="#"><span class="iconify" data-icon="mdi:facebook"></span></a>
                 <a href="#"><span class="iconify" data-icon="mdi:youtube"></span></a>
                 <a href="#"><span class="iconify" data-icon="prime:twitter"></span></a>
             </div>
-        </div>
+        </div> --}}
     </div>
 
 

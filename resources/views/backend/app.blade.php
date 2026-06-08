@@ -88,8 +88,16 @@
             background: rgba(255, 255, 255, 0.25);
         }
 
-        .menu i {
+        .menu a i,
+        .menu a iconify-icon {
+            width: 20px;
+            height: 20px;
             font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            line-height: 1;
         }
 
         /* ===== MAIN ===== */
@@ -189,27 +197,51 @@
             <li>
                 <a href="{{ route('admin.dashboard') }}"
                     class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                    <i class="ri-dashboard-line"></i>
+
+                    @if (request()->routeIs('admin.dashboard'))
+                        <iconify-icon icon="material-symbols:dashboard-rounded"></iconify-icon>
+                    @else
+                        <i class="ri-dashboard-line"></i>
+                    @endif
+
                     <span>Dashboard</span>
                 </a>
             </li>
             <li>
                 <a href="{{ route('admin.product.index') }}"
-                    class="{{ request()->routeIs('admin.product.index') ? 'active' : '' }}">
-                    <i class="ri-box-3-line"></i>
+                    class="{{ request()->routeIs('admin.product.*') ? 'active' : '' }}">
+
+                    @if (request()->routeIs('admin.product.*'))
+                        <i class="ri-box-3-fill"></i>
+                    @else
+                        <iconify-icon icon="fluent:box-32-regular"></iconify-icon>
+                    @endif
+
                     <span>Produk</span>
                 </a>
             </li>
             <li>
                 <a href="{{ route('admin.order') }}" class="{{ request()->routeIs('admin.order') ? 'active' : '' }}">
-                    <i class="ri-list-check"></i>
+
+                    @if (request()->routeIs('admin.order'))
+                        <iconify-icon icon="streamline-ultimate:warehouse-cart-packages-2-bold"></iconify-icon>
+                    @else
+                        <iconify-icon icon="streamline-ultimate:warehouse-cart-packages-2"></iconify-icon>
+                    @endif
+
                     <span>Pesanan</span>
                 </a>
             </li>
             <li>
                 <a href="{{ route('admin.payment.index') }}"
-                    class="{{ request()->routeIs('admin.payment.index') ? 'active' : '' }}">
-                    <i class="ri-wallet-3-line"></i>
+                    class="{{ request()->routeIs('admin.payment.*') ? 'active' : '' }}">
+
+                    <iconify-icon
+                        icon="{{ request()->routeIs('admin.payment.*')
+                            ? 'fluent:wallet-credit-card-16-filled'
+                            : 'fluent:wallet-credit-card-16-regular' }}">
+                    </iconify-icon>
+
                     <span>Pembayaran</span>
                 </a>
             </li>
@@ -221,15 +253,27 @@
                 </a>
             </li>
             <li>
-                <a href="{{ route('admin.report') }}"
-                    class="{{ request()->routeIs('admin.report') ? 'active' : '' }}">
-                    <i class="ri-list-check"></i>
+                <a href="{{ route('admin.report.index') }}"
+                    class="{{ request()->routeIs('admin.report.*') ? 'active' : '' }}">
+
+                    <iconify-icon
+                        icon="{{ request()->routeIs('admin.report.*') ? 'mdi:file-chart' : 'mdi:file-chart-outline' }}">
+                    </iconify-icon>
+
                     <span>Laporan</span>
                 </a>
             </li>
 
             <li>
-                <a href="#"><i class="ri-settings-3-line"></i><span>Pengaturan</span></a>
+                <a href="{{ route('admin.setting.index') }}"
+                    class="{{ request()->routeIs('admin.setting.*') ? 'active' : '' }}">
+
+                    <iconify-icon
+                        icon="{{ request()->routeIs('admin.setting.*') ? 'lets-icons:setting-fill' : 'lets-icons:setting-line' }}">
+                    </iconify-icon>
+
+                    <span>Pengaturan</span>
+                </a>
             </li>
         </ul>
     </div>
@@ -292,7 +336,7 @@
             overlay.classList.remove('active');
         });
     </script>
-
+    <script src="https://code.iconify.design/iconify-icon/2.3.0/iconify-icon.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('js/pagination.js') }}"></script>
     <script src="{{ asset('js/formatText.js') }}"></script>

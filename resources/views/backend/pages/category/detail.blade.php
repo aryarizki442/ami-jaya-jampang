@@ -34,7 +34,6 @@
             height: 100%;
         }
     </style>
-    </style>
 
     <form id="formKategori" enctype="multipart/form-data">
         <div class="row g-4 align-items-stretch">

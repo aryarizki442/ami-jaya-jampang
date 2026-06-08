@@ -4,11 +4,22 @@
 
     /* BACKGROUND */
     .login-page {
+        position: relative;
         height: 100vh;
-        background: url("/images/login/bg-login.jpg") center / cover no-repeat;
         display: flex;
         align-items: center;
         justify-content: center;
+        overflow: hidden;
+    }
+
+    .login-page::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: url("/images/login/login-bg.jpg") center / cover no-repeat;
+        filter: blur(1.5px);
+        transform: scale(1.05);
+        z-index: -1;
     }
 
     /* CARD */

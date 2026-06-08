@@ -35,51 +35,41 @@
             /* 5 kolom */
         }
 
-        .kategori-wrapper {
-            width: 180px;
-            position: relative;
-            margin-left: auto;
-        }
-
-        .kategori-selected {
-            border-width: 0px 1px 1px 1px;
-            border-style: solid;
-            border-color: #1F7D53;
-
-            padding: 8px 10px;
-
+        .kategori-tabs {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-
-            cursor: pointer;
-
-            color: #1F7D53;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 0;
         }
 
-        .kategori-dropdown {
-            display: none;
-            position: absolute;
-            width: 100%;
-            background: white;
+        .kategori-tab {
+            min-width: 110px;
+            padding: 10px 20px;
+
             border: 1px solid #1F7D53;
-            border-top: none;
-            z-index: 1000;
-        }
+            border-top: 0;
 
-        .kategori-item {
-            padding: 8px 10px;
-            text-align: center;
-            cursor: pointer;
-        }
+            border-radius: 0 0 8px 8px;
 
-        .kategori-item:hover {
-            background: #e9f7ef;
-        }
-
-        .kategori-item.active {
-            font-weight: bold;
+            background: #fff;
             color: #1F7D53;
+
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s ease;
+        }
+
+        .kategori-tab:hover {
+            background: #f3faf6;
+            transform: translateY(-1px);
+        }
+
+        .kategori-tab.active {
+            background: #1F7D53;
+            color: #fff;
+            border-color: #1F7D53;
         }
 
         /* tablet */
@@ -91,8 +81,31 @@
 
         /* mobile */
         @media (max-width: 576px) {
+            .kategori-tabs {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+                width: 100%;
+            }
+
+            .kategori-tab {
+                width: 100%;
+                min-width: unset;
+                padding: 10px 12px;
+                border: 1px solid #1F7D53;
+                border-radius: 8px;
+                font-size: 12px;
+                font-weight: 500;
+                text-align: center;
+                margin-top: 10px;
+            }
+
             .produk-item {
                 flex: 0 0 calc(50% - 12px);
+            }
+
+            #pageTitle {
+                font-size: 14px;
             }
         }
     </style>
@@ -115,26 +128,14 @@
         </div>
 
     </div>
-    <div class="kategori-wrapper">
-        <div class="kategori-selected fw-semibold" id="categoryBtn">
-            <span id="selectedText">Kategori</span>
+    <div class="kategori-tabs mt-0 gap-3">
+        <button class="kategori-tab active" data-value="">Semua</button>
 
-            <span class="icon" id="arrowIcon">
-                <iconify-icon icon="iconamoon:arrow-down-2-light"></iconify-icon>
-            </span>
-        </div>
-
-        <div class="kategori-dropdown" id="categoryDropdown">
-            <div class="kategori-item active fw-semibold" data-value="">
-                Semua
-            </div>
-
-            @foreach ($categories as $category)
-                <div class="kategori-item fw-semibold" data-value="{{ $category->id }}" data-name="{{ $category->name }}">
-                    {{ $category->name }}
-                </div>
-            @endforeach
-        </div>
+        @foreach ($categories as $category)
+            <button class="kategori-tab" data-value="{{ $category->id }}">
+                {{ $category->name }}
+            </button>
+        @endforeach
     </div>
 
     <div class="produk-grid mt-4 mb-5">
@@ -185,46 +186,81 @@
 
     </div>
 
+
     <script>
-        const btn = document.getElementById('categoryBtn');
-        const dropdown = document.getElementById('categoryDropdown');
-        const selectedText = document.getElementById('selectedText');
-        const arrowIcon = document.getElementById('arrowIcon');
         const pageTitle = document.getElementById('pageTitle');
 
-        let isOpen = false;
+        document.querySelectorAll('.kategori-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
 
-        /* =========================
-           TOKEN HELPER (BARU)
-        ========================= */
+                document.querySelectorAll('.kategori-tab')
+                    .forEach(btn => btn.classList.remove('active'));
+
+                this.classList.add('active');
+
+                const categoryId = this.dataset.value;
+                const categoryName = this.textContent.trim();
+
+                if (categoryId === "") {
+                    pageTitle.textContent = "Semua Produk Beras";
+                } else {
+                    if (categoryName.toLowerCase().includes("premium")) {
+                        pageTitle.textContent = "Beras Putih Premium";
+                    } else if (categoryName.toLowerCase().includes("medium")) {
+                        pageTitle.textContent = "Beras Putih Medium";
+                    } else if (categoryName.toLowerCase().includes("ketan")) {
+                        pageTitle.textContent = "Beras Ketan";
+                    } else {
+                        pageTitle.textContent = "Beras " + categoryName;
+                    }
+                }
+
+                filterProduk(categoryId);
+            });
+        });
+
+        function filterProduk(categoryId) {
+            document.querySelectorAll('.produk-item').forEach(item => {
+                const match =
+                    categoryId === "" ||
+                    item.dataset.category == categoryId;
+
+                item.style.display = match ? "block" : "none";
+            });
+        }
+        const selectedCategory = new URLSearchParams(window.location.search)
+            .get('category');
+
+        window.addEventListener('DOMContentLoaded', () => {
+
+            if (!selectedCategory) return;
+
+            const tab = document.querySelector(
+                `.kategori-tab[data-value="${selectedCategory}"]`
+            );
+
+            if (tab) {
+                tab.click();
+            }
+        });
+
+
         function getToken() {
             return localStorage.getItem('token');
         }
 
-        /* =========================
-           CONTOH CALL /api/me (BARU)
-        ========================= */
         async function loadMe() {
             const token = getToken();
 
-            if (!token) {
-                console.log("No token found");
-                return;
-            }
+            if (!token) return;
 
             try {
                 const res = await fetch('/api/me', {
-                    method: 'GET',
                     headers: {
                         'Authorization': 'Bearer ' + token,
                         'Accept': 'application/json'
                     }
                 });
-
-                if (res.status === 401) {
-                    console.log("Unauthorized - token invalid");
-                    return;
-                }
 
                 const data = await res.json();
                 console.log("User:", data);
@@ -234,82 +270,6 @@
             }
         }
 
-        /* =========================
-           DROPDOWN TOGGLE
-        ========================= */
-        btn.addEventListener('click', () => {
-            isOpen = !isOpen;
-            dropdown.style.display = isOpen ? 'block' : 'none';
-
-            arrowIcon.innerHTML = isOpen ?
-                `<iconify-icon icon="iconamoon:arrow-up-2-light"></iconify-icon>` :
-                `<iconify-icon icon="iconamoon:arrow-down-2-light"></iconify-icon>`;
-        });
-
-        /* =========================
-           CLICK CATEGORY
-        ========================= */
-        document.querySelectorAll('.kategori-item').forEach(item => {
-            item.addEventListener('click', function() {
-
-                const name = this.dataset.name;
-                const value = this.dataset.value;
-
-                selectedText.textContent = this.textContent;
-
-                if (value === "") {
-                    pageTitle.textContent = "Semua Produk Beras";
-                } else {
-                    if (name.toLowerCase().includes("premium")) {
-                        pageTitle.textContent = "Beras Putih Premium";
-                    } else if (name.toLowerCase().includes("medium")) {
-                        pageTitle.textContent = "Beras Putih Medium";
-                    } else if (name.toLowerCase().includes("ketan")) {
-                        pageTitle.textContent = "Beras Ketan";
-                    } else {
-                        pageTitle.textContent = "Beras " + name;
-                    }
-                }
-
-                dropdown.style.display = 'none';
-                isOpen = false;
-
-                arrowIcon.innerHTML =
-                    `<iconify-icon icon="iconamoon:arrow-down-2-light"></iconify-icon>`;
-
-                document.querySelectorAll('.kategori-item')
-                    .forEach(i => i.classList.remove('active'));
-
-                this.classList.add('active');
-
-                filterProduk(value);
-            });
-        });
-
-        /* =========================
-           FILTER PRODUK
-        ========================= */
-        function filterProduk(categoryId) {
-            document.querySelectorAll('.produk-item').forEach(item => {
-                const match = categoryId === "" || item.dataset.category == categoryId;
-                item.style.display = match ? "block" : "none";
-            });
-        }
-
-        /* =========================
-           CLOSE OUTSIDE CLICK
-        ========================= */
-        document.addEventListener('click', function(e) {
-            if (!btn.contains(e.target)) {
-                dropdown.style.display = 'none';
-                isOpen = false;
-
-                arrowIcon.innerHTML =
-                    `<iconify-icon icon="iconamoon:arrow-down-2-light"></iconify-icon>`;
-            }
-        });
-
-        /* OPTIONAL: auto load user */
         loadMe();
     </script>
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>

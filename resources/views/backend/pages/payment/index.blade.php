@@ -426,11 +426,11 @@
             </div>
 
             <!-- DELETE -->
-            <div class="col-6 col-md-auto">
+            {{-- <div class="col-6 col-md-auto">
                 <button class="btn btn-delete-admin w-100" id="deleteSelected">
                     <span class="iconify" data-icon="famicons:trash-outline"></span>
                 </button>
-            </div>
+            </div> --}}
 
         </div>
 
@@ -450,8 +450,8 @@
                 <thead>
                     <tr class="text-center align-middle small">
 
-                        <th style="width:40px;">
-                            <input type="checkbox" id="checkAll" class="custom-check">
+                        <th style="width:60px;" class="text-center">
+                            Nomor
                         </th>
 
                         <th class="text-start">Pesanan</th>
@@ -598,6 +598,16 @@
                 return classes[status] || 'payment-waiting-payment';
             }
 
+            function formatPaymentMethod(method) {
+
+                if (!method) return '-';
+
+                return method
+                    .replace('Virtual Account', '')
+                    .replace('VA', '')
+                    .trim();
+            }
+
             /* =========================
                TANGGAL SEKARANG
             ========================== */
@@ -635,53 +645,53 @@
             /* =========================
                UPDATE EYE ICON
             ========================== */
-            function updateEyeIcon() {
+            // function updateEyeIcon() {
 
-                const checkedCount = document.querySelectorAll(".row-check:checked").length;
+            //     const checkedCount = document.querySelectorAll(".row-check:checked").length;
 
-                document.querySelectorAll(".eye-action").forEach(el => {
-                    el.style.display = checkedCount > 1 ? "none" : "";
-                });
-            }
+            //     document.querySelectorAll(".eye-action").forEach(el => {
+            //         el.style.display = checkedCount > 1 ? "none" : "";
+            //     });
+            // }
 
-            /* =========================
-               RESET STATE
-            ========================== */
-            function resetState() {
+            // /* =========================
+            //    RESET STATE
+            // ========================== */
+            // function resetState() {
 
-                selectedIds = [];
+            //     selectedIds = [];
 
-                document.querySelectorAll('.row-check')
-                    .forEach(cb => cb.checked = false);
+            //     document.querySelectorAll('.row-check')
+            //         .forEach(cb => cb.checked = false);
 
-                if (checkAll) {
-                    checkAll.checked = false;
-                }
-            }
+            //     if (checkAll) {
+            //         checkAll.checked = false;
+            //     }
+            // }
 
-            /* =========================
-               CHECK ALL
-            ========================== */
-            if (checkAll) {
+            // /* =========================
+            //    CHECK ALL
+            // ========================== */
+            // if (checkAll) {
 
-                checkAll.addEventListener("change", function() {
+            //     checkAll.addEventListener("change", function() {
 
-                    document.querySelectorAll(".row-check")
-                        .forEach(cb => cb.checked = this.checked);
+            //         document.querySelectorAll(".row-check")
+            //             .forEach(cb => cb.checked = this.checked);
 
-                    updateEyeIcon();
-                });
-            }
+            //         updateEyeIcon();
+            //     });
+            // }
 
-            function formatPaymentMethod(method) {
+            // function formatPaymentMethod(method) {
 
-                if (!method) return '-';
+            //     if (!method) return '-';
 
-                return method
-                    .replace('Virtual Account', '')
-                    .replace('VA', '')
-                    .trim();
-            }
+            //     return method
+            //         .replace('Virtual Account', '')
+            //         .replace('VA', '')
+            //         .trim();
+            // }
 
             /* =========================
                SEARCH
@@ -728,16 +738,80 @@
             /* =========================
                TABLE CHECK EVENT
             ========================== */
-            tbody?.addEventListener("change", function(e) {
+            // tbody?.addEventListener("change", function(e) {
 
-                if (e.target.classList.contains("row-check")) {
-                    updateEyeIcon();
-                }
-            });
+            //     if (e.target.classList.contains("row-check")) {
+            //         updateEyeIcon();
+            //     }
+            // });
 
             /* =========================
                PAGINATION
             ========================== */
+            function renderPagination(pagination) {
+                const paginationContainer = document.getElementById('paginationContainer');
+                if (!paginationContainer) return;
+
+                const currentPage = pagination.current_page;
+                const lastPage = pagination.last_page;
+
+                if (lastPage <= 1) {
+                    paginationContainer.innerHTML = '';
+                    return;
+                }
+
+                let html = '';
+
+                // PREV SELALU TAMPIL
+                html += `
+        <a href="#"
+           data-page="prev"
+           class="nav-text ${currentPage === 1 ? 'disabled' : ''}">
+           &lt; Sebelumnya
+        </a>
+    `;
+
+                let startPage = Math.max(1, currentPage - 2);
+                let endPage = Math.min(lastPage, currentPage + 2);
+
+                if (startPage > 1) {
+                    html += `<a href="#" data-page="1">1</a>`;
+                    if (startPage > 2) html += `<span class="dots">...</span>`;
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                    html += `
+            <a href="#"
+               data-page="${i}"
+               class="${i === currentPage ? 'active' : ''}">
+               ${i}
+            </a>
+        `;
+                }
+
+                if (endPage < lastPage) {
+                    if (endPage < lastPage - 1) {
+                        html += `<span class="dots">...</span>`;
+                    }
+
+                    html += `<a href="#" data-page="${lastPage}">${lastPage}</a>`;
+                }
+
+                // NEXT SELALU TAMPIL
+                html += `
+        <a href="#"
+           data-page="next"
+           class="nav-text ${currentPage === lastPage ? 'disabled' : ''}">
+           Berikutnya &gt;
+        </a>
+    `;
+
+                paginationContainer.innerHTML = html;
+
+                // simpan state
+                window.currentPage = currentPage;
+                window.lastPage = lastPage;
+            }
             document.addEventListener('click', function(e) {
 
                 const el = e.target.closest('.custom-pagination a');
@@ -819,6 +893,38 @@
                 );
             });
 
+            function renderResponsiveView() {
+
+                const tbody = document.getElementById('PaymentTableBody');
+                const paymentList = document.getElementById('paymentList');
+                const tableWrapper = document.querySelector('.table-responsive');
+
+                if (window.innerWidth >= 768) {
+
+                    renderTableBody(allPayments);
+
+                    if (paymentList) {
+                        paymentList.innerHTML = '';
+                    }
+
+                    if (tableWrapper) {
+                        tableWrapper.style.display = 'block';
+                    }
+
+                } else {
+
+                    renderCardList(allPayments);
+
+                    if (tbody) {
+                        tbody.innerHTML = '';
+                    }
+
+                    if (tableWrapper) {
+                        tableWrapper.style.display = 'none';
+                    }
+                }
+            }
+
             /* =========================
                FETCH DATA
             ========================== */
@@ -865,45 +971,12 @@
 
                         allPayments = pagination.data;
 
-                        if (window.innerWidth >= 768) {
-
-                            // DESKTOP
-                            renderTableBody(allPayments);
-
-                            // kosongkan mobile
-                            if (paymentList) {
-                                paymentList.innerHTML = '';
-                            }
-
-                            // tampilkan table
-                            const tableWrapper = document.querySelector('.table-responsive');
-                            if (tableWrapper) {
-                                tableWrapper.style.display = 'block';
-                            }
-
-                        } else {
-
-                            // MOBILE
-                            renderCardList(allPayments);
-
-                            // kosongkan table
-                            if (tbody) {
-                                tbody.innerHTML = '';
-                            }
-
-                            // hide table
-                            const tableWrapper = document.querySelector('.table-responsive');
-                            if (tableWrapper) {
-                                tableWrapper.style.display = 'none';
-                            }
-                        }
+                        renderResponsiveView();
 
                         renderPagination(pagination);
 
                         filters.page = pagination.current_page;
 
-                        resetState();
-                        updateEyeIcon();
                     })
                     .catch(err => console.error(err));
             }
@@ -915,16 +988,12 @@
 
                 let html = '';
 
-                data.forEach(item => {
+                data.forEach((item, index) => {
 
                     html += `
                     <tr class="align-middle" data-id="${item.id}">
 
-                        <td class="text-center">
-                            <input type="checkbox"
-                                class="custom-check row-check"
-                                value="${item.id}">
-                        </td>
+                         <td class="text-center">${index + 1}</td>
 
                         <td class="fw-medium">
                             ${item.order_number ?? '-'}
@@ -990,16 +1059,14 @@
                     return;
                 }
 
-                paymentList.innerHTML = data.map(item => {
+                paymentList.innerHTML = data.map((item, index) => {
 
                     return `
                     <div class="cat-card" data-id="${item.id}">
 
-                        <input type="checkbox"
-                            class="custom-check row-check"
-                            value="${item.id}">
+                         <div class="cat-no">${index + 1}</div>
 
-                        <div class="cat-info">
+        <div class="cat-info">
 
                             <div class="cat-row1">
 
@@ -1045,133 +1112,145 @@
                 `;
                 }).join('');
 
-                bindCardChecks();
+
             }
 
             /* =========================
                MOBILE CHECKBOX
             ========================== */
-            function bindCardChecks() {
+            // function bindCardChecks() {
 
-                document.querySelectorAll('#paymentList .row-check').forEach(cb => {
+            //     document.querySelectorAll('#paymentList .row-check').forEach(cb => {
 
-                    cb.addEventListener('change', updateSelectLabel);
-                });
-            }
+            //         cb.addEventListener('change', updateSelectLabel);
+            //     });
+            // }
 
-            function updateSelectLabel() {
+            // function updateSelectLabel() {
 
-                const all = document.querySelectorAll('#paymentList .row-check');
+            //     const all = document.querySelectorAll('#paymentList .row-check');
 
-                const checked = document.querySelectorAll('#paymentList .row-check:checked');
+            //     const checked = document.querySelectorAll('#paymentList .row-check:checked');
 
-                const label = document.getElementById('selectLabel');
+            //     const label = document.getElementById('selectLabel');
 
-                const checkAllMobile = document.getElementById('checkAllMobile');
+            //     const checkAllMobile = document.getElementById('checkAllMobile');
 
-                if (label) {
+            //     if (label) {
 
-                    label.textContent = checked.length > 0 ?
-                        `${checked.length} dari ${all.length} dipilih` :
-                        'Pilih semua';
-                }
+            //         label.textContent = checked.length > 0 ?
+            //             `${checked.length} dari ${all.length} dipilih` :
+            //             'Pilih semua';
+            //     }
 
-                if (checkAllMobile) {
+            //     if (checkAllMobile) {
 
-                    checkAllMobile.checked =
-                        all.length > 0 && checked.length === all.length;
-                }
-            }
+            //         checkAllMobile.checked =
+            //             all.length > 0 && checked.length === all.length;
+            //     }
+            // }
 
-            const checkAllMobile = document.getElementById('checkAllMobile');
+            // const checkAllMobile = document.getElementById('checkAllMobile');
 
-            if (checkAllMobile) {
+            // if (checkAllMobile) {
 
-                checkAllMobile.addEventListener('change', function() {
+            //     checkAllMobile.addEventListener('change', function() {
 
-                    document.querySelectorAll('#paymentList .row-check')
-                        .forEach(cb => cb.checked = this.checked);
+            //         document.querySelectorAll('#paymentList .row-check')
+            //             .forEach(cb => cb.checked = this.checked);
 
-                    updateSelectLabel();
-                });
-            }
+            //         updateSelectLabel();
+            //     });
+            // }
 
-            /* =========================
-               DELETE
-            ========================== */
-            deleteBtn?.addEventListener("click", function() {
+            // /* =========================
+            //    DELETE
+            // ========================== */
+            // deleteBtn?.addEventListener("click", function() {
 
-                selectedIds = Array.from(document.querySelectorAll(".row-check:checked"))
-                    .map(cb => cb.value);
+            //     selectedIds = Array.from(document.querySelectorAll(".row-check:checked"))
+            //         .map(cb => cb.value);
 
-                if (selectedIds.length === 0) {
+            //     if (selectedIds.length === 0) {
 
-                    showError("Pilih data terlebih dahulu");
+            //         showError("Pilih data terlebih dahulu");
 
-                    return;
-                }
+            //         return;
+            //     }
 
-                new bootstrap.Modal(
-                    document.getElementById('deleteModal')
-                ).show();
-            });
+            //     new bootstrap.Modal(
+            //         document.getElementById('deleteModal')
+            //     ).show();
+            // });
 
-            confirmBtn?.addEventListener("click", function() {
+            // confirmBtn?.addEventListener("click", function() {
 
-                fetch(`/api/admin/payments/bulk-delete`, {
+            //     fetch(`/api/admin/payments/bulk-delete`, {
 
-                        method: "DELETE",
+            //             method: "DELETE",
 
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Accept": "application/json",
-                            "X-CSRF-TOKEN": document
-                                .querySelector('meta[name="csrf-token"]')
-                                .content
-                        },
+            //             headers: {
+            //                 "Content-Type": "application/json",
+            //                 "Accept": "application/json",
+            //                 "X-CSRF-TOKEN": document
+            //                     .querySelector('meta[name="csrf-token"]')
+            //                     .content
+            //             },
 
-                        body: JSON.stringify({
-                            ids: selectedIds
-                        })
-                    })
+            //             body: JSON.stringify({
+            //                 ids: selectedIds
+            //             })
+            //         })
 
-                    .then(async res => {
+            //         .then(async res => {
 
-                        const data = await res.json();
+            //             const data = await res.json();
 
-                        if (!res.ok || !data.success) {
+            //             if (!res.ok || !data.success) {
 
-                            showError(data.message || "Gagal menghapus data");
+            //                 showError(data.message || "Gagal menghapus data");
 
-                            throw new Error(data.message);
-                        }
+            //                 throw new Error(data.message);
+            //             }
 
-                        return data;
-                    })
+            //             return data;
+            //         })
 
-                    .then(() => {
+            //         .then(() => {
 
-                        fetchData(window.currentPage);
+            //             fetchData(window.currentPage);
 
-                        resetState();
+            //             resetState();
 
-                        updateEyeIcon();
+            //             updateEyeIcon();
 
-                        bootstrap.Modal.getInstance(
-                            document.getElementById('deleteModal')
-                        )?.hide();
+            //             bootstrap.Modal.getInstance(
+            //                 document.getElementById('deleteModal')
+            //             )?.hide();
 
-                        setTimeout(() => {
+            //             setTimeout(() => {
 
-                            showSuccess("Berhasil Menghapus Pembayaran");
+            //                 showSuccess("Berhasil Menghapus Pembayaran");
 
-                        }, 300);
-                    })
+            //             }, 300);
+            //         })
 
-                    .catch(err => console.error(err));
-            });
+            //         .catch(err => console.error(err));
+            // });
 
             fetchData();
+
+            let resizeTimer;
+
+            window.addEventListener('resize', () => {
+
+                clearTimeout(resizeTimer);
+
+                resizeTimer = setTimeout(() => {
+                    renderResponsiveView();
+                }, 200);
+
+            });
         });
     </script>
 

@@ -45,9 +45,16 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        cursor: pointer;
         color: #fff;
-        /* sesuaikan warna teks di navbar */
+    }
+
+    .user-trigger .username {
+        max-width: 120px;
+        /* sesuaikan */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: block;
     }
 
     /* USER AVATAR */
@@ -414,6 +421,177 @@
         }
     }
 
+    .notif-wrap {
+        position: relative;
+    }
+
+    .notif-dropdown {
+
+        position: absolute;
+
+        top: 38px;
+        right: 0;
+
+        width: 420px;
+
+        background: #fff;
+
+        border-radius: 8px;
+
+        display: none;
+
+        z-index: 99999;
+
+        overflow: hidden;
+    }
+
+    .notif-dropdown.show {
+        display: block;
+    }
+
+    .notif-dropdown::before {
+
+        content: "";
+
+        position: absolute;
+
+        top: -10px;
+        right: 30px;
+
+        width: 20px;
+        height: 20px;
+
+        background: white;
+
+        transform: rotate(45deg);
+    }
+
+    .notif-header {
+
+        padding: 12px 18px;
+
+        background: #f3f3f3;
+
+        border-bottom: 1px solid #ddd;
+
+        font-weight: 500;
+    }
+
+    .notif-footer {
+
+        display: block;
+
+        text-align: center;
+
+        padding: 12px;
+
+        font-weight: 600;
+
+        text-decoration: none;
+
+        color: #222;
+
+        border-top: 1px solid #ddd;
+    }
+
+    .notif-footer:hover {
+        background: #f8f8f8;
+    }
+
+    .notif-item-mini {
+
+        display: flex;
+
+        gap: 12px;
+
+        padding: 14px 18px;
+
+        border-bottom: 1px solid #eee;
+    }
+
+    .notif-item-mini:hover {
+        background: #f8f8f8;
+    }
+
+    .notif-icon-mini {
+
+        width: 44px;
+        height: 44px;
+
+        border-radius: 50%;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        flex-shrink: 0;
+    }
+
+    .notif-content-mini {
+        flex: 1;
+    }
+
+    .notif-title-mini {
+        font-weight: 500;
+    }
+
+    .notif-time-mini {
+        font-size: 12px;
+        color: #999;
+    }
+
+    .notif-badge {
+        position: absolute;
+
+        top: -10px;
+        right: -12px;
+
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+
+        border-radius: 999px;
+
+        background: #FF0000;
+
+        color: #fff;
+
+        font-size: 10px;
+        font-weight: 600;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border: 2px solid #1F7D53;
+        /* warna navbar */
+    }
+
+    .notif-waiting {
+        background: #f5f5f5;
+        color: #6c757d;
+    }
+
+    .notif-process {
+        background: #fff5e6;
+        color: #f59e0b;
+    }
+
+    .notif-shipped {
+        background: #e6f1fb;
+        color: #3b82f6;
+    }
+
+    .notif-finished {
+        background: #e9f8ee;
+        color: #22c55e;
+    }
+
+    .notif-cancelled {
+        background: #ffeaea;
+        color: #ef4444;
+    }
+
     /* =========================================================
    EXTRA SMALL DEVICE
 ========================================================= */
@@ -471,15 +649,48 @@
                 Selamat Datang Di Toko Beras Jampang
             </span>
 
-            <div class="d-flex gap-3">
-                <a href="#"
-                    class="text-white text-decoration-none small d-flex align-items-center gap-2 position-relative">
+            <div class="d-flex gap-3 ">
+                <div class="notif-wrap" id="notifWrap">
 
-                    <iconify-icon icon="mingcute:notification-line" width="20" height="20"></iconify-icon>
+                    <a href="javascript:void(0)" id="notifToggle"
+                        class="text-white text-decoration-none small d-flex align-items-center">
 
-                    Notifikasi
-                </a>
+                        <div class="position-relative d-inline-flex align-items-center">
 
+                            <iconify-icon icon="mingcute:notification-line" width="20" height="20">
+                            </iconify-icon>
+
+                            <span class="notif-badge d-none" id="notifBadge">
+                                0
+                            </span>
+
+                        </div>
+
+                        <span style="margin-left:10px;">Notifikasi</span>
+
+                    </a>
+
+                    <div class="notif-dropdown shadow" id="notifDropdown">
+
+                        <div class="notif-header">
+                            Notifikasi Baru Diterima
+                        </div>
+
+                        <div id="notifDropdownList">
+
+                            <div class="p-3 text-center text-secondary">
+                                Memuat...
+                            </div>
+
+                        </div>
+
+                        <a href="{{ route('notification') }}" class="notif-footer">
+                            Tampilkan Semua
+                        </a>
+
+                    </div>
+
+                </div>
                 <a href="#" class="text-white text-decoration-none small">
                     Bantuan
                 </a>
@@ -778,6 +989,7 @@
             if (!token) {
 
                 localStorage.removeItem('token');
+                localStorage.removeItem('read_notifications');
 
                 window.location.href = '/login';
 
@@ -798,6 +1010,7 @@
                 if (res.status === 401) {
 
                     localStorage.removeItem('token');
+                    localStorage.removeItem('read_notifications');
 
                     window.location.href = '/login';
 
@@ -872,7 +1085,215 @@
         }
     }
 
+    const notifBadge = document.getElementById('notifBadge');
+
+    function getNotifIconAndClass(status) {
+
+        let iconClass = 'notif-process';
+        let icon = 'mdi:bell-outline';
+        let title = 'Update Pesanan';
+
+        switch (status) {
+
+            case 'awaiting_payment':
+            case 'pending':
+                iconClass = 'notif-waiting';
+                icon = 'mdi:clock-outline';
+                title = 'Menunggu pembayaran anda';
+                break;
+
+            case 'paid':
+                iconClass = 'notif-process';
+                icon = 'mdi:cog-outline';
+                title = 'Pesanan sedang diproses';
+                break;
+
+            case 'processing':
+                iconClass = 'notif-process';
+                icon = 'mdi:cog-outline';
+                title = 'Pesanan sedang diproses';
+                break;
+
+            case 'shipped':
+                iconClass = 'notif-shipped';
+                icon = 'mdi:truck-delivery';
+                title = 'Pesanan sedang dikirim';
+                break;
+
+            case 'ready_for_pickup':
+                iconClass = 'notif-shipped';
+                icon = 'mdi:store';
+                title = 'Pesanan siap dijemput';
+                break;
+
+            case 'completed':
+                iconClass = 'notif-finished';
+                icon = 'mdi:check-decagram';
+                title = 'Pesanan anda selesai';
+                break;
+
+            case 'cancelled':
+                iconClass = 'notif-cancelled';
+                icon = 'mdi:close-circle';
+                title = 'Pesanan anda dibatalkan';
+                break;
+
+            case 'refunded':
+                iconClass = 'notif-process';
+                icon = 'mdi:currency-usd-off';
+                title = 'Pesanan telah direfund';
+                break;
+
+            case 'expired':
+                iconClass = 'notif-cancelled';
+                icon = 'mdi:timer-off-outline';
+                title = 'Pembayaran kedaluwarsa';
+                break;
+        }
+
+        return {
+            iconClass,
+            icon,
+            title
+        };
+    }
+
+    function formatShortDate(date) {
+        return new Date(date).toLocaleDateString('id-ID', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        });
+    }
+    async function loadNotificationBadge() {
+        const notifToggle = document.getElementById('notifToggle');
+        const notifDropdown = document.getElementById('notifDropdown');
+        const notifDropdownList = document.getElementById('notifDropdownList');
+        const token = localStorage.getItem('token');
+
+        notifToggle.addEventListener('click', async function(e) {
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            notifDropdown.classList.toggle('show');
+
+            if (notifDropdown.classList.contains('show')) {
+                return;
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+
+            if (!notifDropdown.contains(e.target) &&
+                !notifToggle.contains(e.target)) {
+
+                notifDropdown.classList.remove('show');
+            }
+        });
+        if (!token) {
+            notifBadge.classList.add('d-none');
+            return;
+        }
+
+        try {
+
+            const response = await fetch('/api/orders', {
+                headers: {
+                    Accept: 'application/json',
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            const result = await response.json();
+
+            const orders = result?.data?.data || [];
+
+            const readIds = JSON.parse(
+                localStorage.getItem('read_notifications') || '[]'
+            );
+
+            // hanya notif yang belum dibaca
+            const unreadOrders = orders.filter(
+                order => !readIds.includes(Number(order.id))
+            );
+
+            const unreadCount = unreadOrders.length;
+
+            // badge
+            if (unreadCount > 0) {
+
+                notifBadge.textContent = unreadCount;
+                notifBadge.classList.remove('d-none');
+
+            } else {
+
+                notifBadge.classList.add('d-none');
+            }
+
+            // dropdown hanya tampilkan yang belum dibaca
+            const latest = unreadOrders.slice(0, 5);
+
+            let html = '';
+
+            latest.forEach(order => {
+
+                const {
+                    iconClass,
+                    icon,
+                    title
+                } =
+                getNotifIconAndClass(order.status);
+
+                html += `
+                <div class="notif-item-mini">
+
+                    <div class="notif-icon-mini ${iconClass}">
+                        <iconify-icon
+                            icon="${icon}"
+                            width="22"
+                            height="22">
+                        </iconify-icon>
+                    </div>
+
+                    <div class="notif-content-mini">
+
+                        <div class="notif-title-mini">
+                            ${title}
+                        </div>
+
+                        <div class="notif-time-mini">
+                            ${formatShortDate(order.created_at)}
+                        </div>
+
+                    </div>
+
+                </div>
+            `;
+            });
+
+            notifDropdownList.innerHTML = html;
+
+        } catch (err) {
+
+            console.error(err);
+
+            alert(err.message);
+
+            notifDropdownList.innerHTML = `
+        <div class="p-3 text-danger text-center">
+            Gagal memuat notifikasi
+        </div>
+    `;
+        }
+    }
+
     document.addEventListener('click', () => userDropdown.classList.remove('open'));
     window.addEventListener('scroll', () => userDropdown.classList.remove('open'));
-    document.addEventListener('DOMContentLoaded', renderNavbar);
+    document.addEventListener('DOMContentLoaded', async () => {
+
+        await renderNavbar();
+        await loadNotificationBadge();
+
+    });
 </script>

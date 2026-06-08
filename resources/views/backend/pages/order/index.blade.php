@@ -181,6 +181,12 @@
             font-weight: 600;
         }
 
+        .custom-pagination a.disabled {
+            opacity: .5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
         /* MODAL CLEAN */
         #deleteModal .modal-content {
             border: none;
@@ -395,18 +401,18 @@
             </div>
 
             <!-- DELETE -->
-            <div class="col-6 col-md-auto">
-                <button class="btn btn-delete-admin w-100" id="deleteSelected">
-                    <span class="iconify" data-icon="famicons:trash-outline"></span>
-                </button>
-            </div>
+            {{-- <div class="col-6 col-md-auto">
+                    <button class="btn btn-delete-admin w-100" id="deleteSelected">
+                        <span class="iconify" data-icon="famicons:trash-outline"></span>
+                    </button>
+                </div> --}}
         </div>
 
         {{-- SELECT ALL ROW (mobile) --}}
-        <div class="select-all-row" id="selectAllRow">
+        {{-- <div class="select-all-row" id="selectAllRow">
             <input type="checkbox" id="checkAllMobile" class="custom-check">
             <span id="selectLabel">Pilih semua</span>
-        </div>
+        </div> --}}
 
         {{-- CARD LIST (mobile) --}}
         <div class="order-list" id="orderList"></div>
@@ -416,8 +422,8 @@
             <table class="table align-middle custom-table table-hover">
                 <thead>
                     <tr class="text-center align-middle small">
-                        <th style="width:40px;">
-                            <input type="checkbox" id="checkAll" class="custom-check">
+                        <th style="width:60px;" class="text-center">
+                            Nomor
                         </th>
                         <th class="text-start">Pesanan</th>
                         <th class="text-start">Tanggal</th>
@@ -440,39 +446,6 @@
         <!-- PAGINATION -->
         <div class="custom-pagination" id="paginationContainer"></div>
 
-    </div>
-
-    <!-- MODAL DELETE CONFIRMATION -->
-    <div class="modal fade" id="deleteModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header justify-content-center">
-                    <h5 class="fw-semibold m-0">Hapus Pesanan</h5>
-                </div>
-                <div class="modal-body text-center">
-                    <p class="mb-0">Apakah Anda yakin ingin menghapus item yang dipilih?</p>
-                </div>
-                <div class="modal-footer justify-content-center gap-2">
-                    <button class="btn btn-delete-second" data-bs-dismiss="modal">Batal</button>
-                    <button class="btn btn-delete-main" id="confirmDeleteBtn">Hapus</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL DELETE SUCCESS -->
-    <div class="modal fade" id="deleteSuccessModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content p-5 text-center">
-                <div class="d-flex justify-content-center mb-3">
-                    <div class="d-flex align-items-center justify-content-center rounded-circle"
-                        style="width:50px; height:50px; background:#22C55E;">
-                        <i class="iconify text-white fs-1" data-icon="iconamoon:check-bold"></i>
-                    </div>
-                </div>
-                <p class="mb-0 fw-medium">Berhasil Menghapus Pesanan</p>
-            </div>
-        </div>
     </div>
 
     <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
@@ -599,31 +572,31 @@
             /* =========================
                UPDATE EYE ICON
             ========================== */
-            function updateEyeIcon() {
-                const checkedCount = document.querySelectorAll(".row-check:checked").length;
-                document.querySelectorAll(".eye-action").forEach(el => {
-                    el.style.display = checkedCount > 1 ? "none" : "";
-                });
-            }
+            // function updateEyeIcon() {
+            //     const checkedCount = document.querySelectorAll(".row-check:checked").length;
+            //     document.querySelectorAll(".eye-action").forEach(el => {
+            //         el.style.display = checkedCount > 1 ? "none" : "";
+            //     });
+            // }
 
             /* =========================
                RESET STATE
             ========================== */
-            function resetState() {
-                selectedIds = [];
-                document.querySelectorAll('.row-check').forEach(cb => cb.checked = false);
-                if (checkAll) checkAll.checked = false;
-            }
+            // function resetState() {
+            //     selectedIds = [];
+            //     document.querySelectorAll('.row-check').forEach(cb => cb.checked = false);
+            //     if (checkAll) checkAll.checked = false;
+            // }
 
             /* =========================
                CHECK ALL
             ========================== */
-            if (checkAll) {
-                checkAll.addEventListener("change", function() {
-                    document.querySelectorAll(".row-check").forEach(cb => cb.checked = this.checked);
-                    updateEyeIcon();
-                });
-            }
+            // if (checkAll) {
+            //     checkAll.addEventListener("change", function() {
+            //         document.querySelectorAll(".row-check").forEach(cb => cb.checked = this.checked);
+            //         updateEyeIcon();
+            //     });
+            // }
 
             /* =========================
                SEARCH
@@ -648,11 +621,11 @@
             /* =========================
                TABLE CHECK EVENT
             ========================== */
-            document.addEventListener("change", function(e) {
-                if (e.target.classList && e.target.classList.contains("row-check")) {
-                    updateEyeIcon();
-                }
-            });
+            // document.addEventListener("change", function(e) {
+            //     if (e.target.classList && e.target.classList.contains("row-check")) {
+            //         updateEyeIcon();
+            //     }
+            // });
 
             /* =========================
                PAGINATION
@@ -671,9 +644,14 @@
 
                 let html = '';
 
-                if (currentPage > 1) {
-                    html += `<a href="#" data-page="prev" class="nav-text">&lt; Sebelumnya</a>`;
-                }
+                // PREV SELALU TAMPIL
+                html += `
+        <a href="#"
+           data-page="prev"
+           class="nav-text ${currentPage === 1 ? 'disabled' : ''}">
+           &lt; Sebelumnya
+        </a>
+    `;
 
                 let startPage = Math.max(1, currentPage - 2);
                 let endPage = Math.min(lastPage, currentPage + 2);
@@ -684,21 +662,38 @@
                 }
 
                 for (let i = startPage; i <= endPage; i++) {
-                    html += `<a href="#" data-page="${i}" ${i === currentPage ? 'class="active"' : ''}>${i}</a>`;
+                    html += `
+            <a href="#"
+               data-page="${i}"
+               class="${i === currentPage ? 'active' : ''}">
+               ${i}
+            </a>
+        `;
                 }
 
                 if (endPage < lastPage) {
-                    if (endPage < lastPage - 1) html += `<span class="dots">...</span>`;
+                    if (endPage < lastPage - 1) {
+                        html += `<span class="dots">...</span>`;
+                    }
+
                     html += `<a href="#" data-page="${lastPage}">${lastPage}</a>`;
                 }
 
-                if (currentPage < lastPage) {
-                    html += `<a href="#" data-page="next" class="nav-text">Berikutnya &gt;</a>`;
-                }
+                // NEXT SELALU TAMPIL
+                html += `
+        <a href="#"
+           data-page="next"
+           class="nav-text ${currentPage === lastPage ? 'disabled' : ''}">
+           Berikutnya &gt;
+        </a>
+    `;
 
                 paginationContainer.innerHTML = html;
-            }
 
+                // simpan state
+                window.currentPage = currentPage;
+                window.lastPage = lastPage;
+            }
             document.addEventListener('click', function(e) {
                 const el = e.target.closest('#paginationContainer a');
                 if (!el) return;
@@ -717,9 +712,6 @@
             /* =========================
                KALENDER
             ========================== */
-            /* =========================
-           KALENDER
-        ========================== */
             document.addEventListener('dateRangeSelected', function(e) {
                 const {
                     start,
@@ -927,16 +919,14 @@
             ========================== */
             function renderTableBody(data) {
                 let html = '';
-                data.forEach(item => {
+                data.forEach((item, index) => {
                     const deliveryMethod = item.delivery_method || null;
                     const hasNotification = needsNotification(item.status); // Hanya 'paid' yang true
                     const notificationClass = hasNotification ? 'has-notification' : '';
 
                     html += `
             <tr class="align-middle" data-id="${item.id}">
-                <td class="text-center">
-                    <input type="checkbox" class="custom-check row-check" value="${item.id}">
-                </td>
+               <td class="text-center">${index + 1}</td>
                 <td class="fw-medium">${item.order_number ?? '-'}</td>
                <td>${formatTanggal(item.created_at)}</td>
                 <td>${item.customer_name ?? item.user?.name ?? '-'}</td>
@@ -969,15 +959,16 @@
                     return;
                 }
 
-                orderList.innerHTML = data.map(item => {
+                orderList.innerHTML = data.map((item, index) => {
                     const deliveryMethod = item.delivery_method || null;
                     const hasNotification = needsNotification(item.status); // Hanya 'paid' yang true
                     const notificationClass = hasNotification ? 'has-notification' : '';
 
                     return `
-            <div class="order-card" data-id="${item.id}">
-                <input type="checkbox" class="custom-check row-check" value="${item.id}">
-                <div class="order-info">
+           <div class="order-card" data-id="${item.id}">
+        <div class="order-no">${index + 1}</div>
+
+        <div class="order-info">
                     <div class="order-row1">
                         <span class="order-number">${item.order_number ?? '-'}</span>
                         <span class="badge ${mapBadgeClass(item.status, deliveryMethod)}">${mapStatusLabel(item.status, deliveryMethod)}</span>

@@ -39,12 +39,6 @@
             box-shadow: none;
         }
 
-
-        .profile-value {
-            width: 220px;
-            /* mengatur posisi kolom teks */
-        }
-
         .profile-value-wrapper {
             display: flex;
             align-items: center;
@@ -156,11 +150,50 @@
             color: #000;
         }
 
+        .avatar-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .btn-delete-avatar {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(220, 53, 69, .95);
+            color: #fff;
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
+            opacity: 0;
+            transition: .2s;
+        }
+
+        .avatar-wrapper:hover .btn-delete-avatar {
+            opacity: 1;
+        }
+
+        .profile-info-value {
+            width: 250px;
+            flex-shrink: 0;
+        }
+
+        .profile-value {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
         /* =========================
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        /* tablet */
+                   TABLET
+                ========================= */
         @media (max-width: 992px) {
-            .profile-value {
-                width: 160px;
+
+            .profile-info-value {
+                width: 180px;
             }
 
             .profile-divider img {
@@ -171,13 +204,13 @@
             .profile-divider::before {
                 height: 130px;
             }
-
         }
 
-
-
-        /* mobile */
+        /* =========================
+                   MOBILE
+                ========================= */
         @media (max-width: 768px) {
+
             .profile-divider::before {
                 display: none;
             }
@@ -191,7 +224,6 @@
                 height: 90px;
             }
 
-            /* label di atas */
             .row.align-items-center {
                 flex-direction: column;
                 align-items: flex-start !important;
@@ -201,67 +233,74 @@
             .row.align-items-center label {
                 text-align: left !important;
                 padding-right: 0 !important;
+                margin-bottom: 0;
             }
 
-            /* isi value + ubah tetap sejajar */
-            .row.align-items-center .col-sm {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
+            .row.align-items-center .col-sm,
+            .row.align-items-center .col-sm-9 {
                 width: 100%;
             }
 
+            .profile-info-value {
+                width: 100%;
+                max-width: calc(100% - 110px);
+            }
+
             .profile-value {
-                width: auto;
+                max-width: 100%;
             }
 
             .ubah-link {
                 font-size: 12px;
+                white-space: nowrap;
                 margin-left: 10px;
             }
 
+            .date-group {
+                flex-direction: column;
+                width: 100%;
+            }
+
             .select-wrapper {
                 width: 100%;
             }
 
             .select-wrapper select {
                 width: 100%;
-                padding-right: 40px;
-                font-size: 9px;
-
-            }
-
-            .select-wrapper iconify-icon {
-                right: 14px;
-
             }
         }
 
-
-        /* mobile kecil */
+        /* =========================
+                   MOBILE KECIL
+                ========================= */
         @media (max-width: 576px) {
 
-            .col-sm-9.d-flex {
-                flex-direction: column;
-                gap: 10px;
+            .myProfile {
+                padding: 20px;
+            }
+
+            .profile-value {
+                font-size: 14px;
+
+            }
+
+            .profile-info-value {
+                width: 150px;
+                flex-shrink: 0;
+            }
+
+            .ubah-link {
+                font-size: 11px;
+            }
+
+            .btn-save,
+            .btn-main {
+                width: 100%;
             }
 
             .link-response {
-                margin-left: -1px;
+                margin-left: 0;
             }
-
-            .select-wrapper {
-                width: 100%;
-            }
-
-            .select-wrapper select {
-                width: 100%;
-            }
-
-            .btn-save {
-                width: 100%;
-            }
-
         }
     </style>
     <section class="myProfile mt-5 mb-5">
@@ -283,18 +322,19 @@
                         Nama
                     </label>
 
-                    <div class="col-sm d-flex align-items-center gap-2">
+                    <div class="col-sm d-flex align-items-center gap-0">
+                        <p class="mb-0 profile-value profile-info-value" id="profileName">-</p>
 
-                        <!-- TEXT MODE -->
-                        <p class="mb-0 profile-value" id="profileName">-</p>
-
-                        <!-- EDIT MODE (hidden awalnya) -->
                         <input type="text" id="editName" class="form-control form-control-sm d-none"
-                            style="max-width:200px;">
+                            style="max-width:180px;">
 
-                        <a href="#" id="btnEditName" class="ubah-link small">Ubah Nama</a>
-                        <a href="#" id="btnSaveName" class="ubah-link small d-none">Simpan</a>
+                        <a href="#" id="btnEditName" class="ubah-link small">
+                            Ubah Nama
+                        </a>
 
+                        <a href="#" id="btnSaveName" class="ubah-link small d-none">
+                            Simpan
+                        </a>
                     </div>
                 </div>
 
@@ -305,7 +345,7 @@
                     </label>
 
                     <div class="col-sm d-flex align-items-center">
-                        <p class="mb-0 profile-value"id="profileEmail">-</p>
+                        <p class="mb-0 profile-value profile-info-value" id="profileEmail">-</p>
                         <a href="{{ route('verify-email', ['target' => 'email']) }}" class="ubah-link small">
                             Ubah Email
                         </a>
@@ -319,7 +359,7 @@
                     </label>
 
                     <div class="col-sm d-flex align-items-center">
-                        <p class="mb-0 profile-value" id="profilePhone">-</p>
+                        <p class="mb-0 profile-value profile-info-value" id="profilePhone">-</p>
                         <a href="{{ route('verify-email', ['target' => 'phone']) }}" class="ubah-link small">
                             Ubah No Telepon
                         </a>
@@ -420,8 +460,14 @@
             <div class="col-md-4 profile-divider text-center mt-4 pt-4">
 
                 <!-- Preview Avatar -->
-                <img id="profileAvatarForm" src="{{ asset('images/home/user/user-group.png') }}"
-                    class="rounded-circle mb-3 w-40" alt="Foto Profil">
+                <div class="avatar-wrapper mb-3">
+                    <img id="profileAvatarForm" src="{{ asset('images/home/user/user-group.png') }}"
+                        class="rounded-circle w-40" alt="Foto Profil">
+
+                    <button type="button" id="btnDeleteAvatar" class="btn-delete-avatar d-none">
+                        ×
+                    </button>
+                </div>
 
                 <!-- Hidden Input -->
                 <input type="file" id="avatarInput" accept="image/png, image/jpeg" hidden>
@@ -447,12 +493,65 @@
 
         </div>
     </section>
+
+    {{-- MODAL ALERT --}}
+    <div class="modal fade" id="alertModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content p-5 text-center">
+
+                <div class="d-flex justify-content-center mb-3">
+                    <div class="d-flex align-items-center justify-content-center rounded-circle"
+                        style="width:50px; height:50px; background:#22C55E;">
+
+                        <i class="iconify text-white fs-1" data-icon="iconamoon:check-bold"></i>
+
+                    </div>
+                </div>
+
+                <h5 class="fw-bold mb-2" id="alertModalTitle">
+                    Informasi
+                </h5>
+
+                <p class="mb-0 fw-medium" id="alertModalBody">
+                </p>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteAvatarModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header justify-content-center">
+                    <h5 class="fw-semibold m-0">Hapus Foto Profil</h5>
+                </div>
+
+                <div class="modal-body text-center">
+                    <p class="mb-0">
+                        Apakah Anda yakin ingin menghapus foto profil?
+                    </p>
+                </div>
+
+                <div class="modal-footer justify-content-center gap-2">
+                    <button type="button" class="btn btn-delete-second" data-bs-dismiss="modal">
+                        Batal
+                    </button>
+
+                    <button type="button" class="btn btn-delete-main text-custom-red" id="confirmDeleteAvatar">
+                        Hapus
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 
     <script>
         /* =========================
-                                                                                                                                                                       UTILS
-                                                                                                                                                                    ========================= */
+                                                                                                                                                                                                                                                                                                                                                                                       UTILS
+                                                                                                                                                                                                                                                                                                                                                                                    ========================= */
         function formatBirthDate(dateString) {
             if (!dateString) return '-';
             const [y, m, d] = dateString.split('-');
@@ -514,6 +613,16 @@
                 // Avatar di form profil
                 const avatarForm = document.getElementById('profileAvatarForm');
                 if (avatarForm) avatarForm.src = avatarUrl(user.avatar);
+
+                const deleteBtn = document.getElementById('btnDeleteAvatar');
+
+                if (deleteBtn) {
+                    if (user.avatar) {
+                        deleteBtn.classList.remove('d-none');
+                    } else {
+                        deleteBtn.classList.add('d-none');
+                    }
+                }
 
                 // Avatar di sidebar
                 const avatarSidebar = document.getElementById('profileAvatar');
@@ -607,13 +716,13 @@
                     if (!file) return;
 
                     if (file.size > 1024 * 1024) {
-                        alert('Ukuran gambar maksimal 1 MB');
+                        showAlert('Ukuran gambar maksimal 1 MB', 'Peringatan');
                         avatarInput.value = '';
                         return;
                     }
 
                     if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
-                        alert('Format harus JPG atau PNG');
+                        showAlert('Format harus JPG atau PNG', 'Peringatan');
                         avatarInput.value = '';
                         return;
                     }
@@ -621,6 +730,17 @@
                     // Preview langsung di form profil
                     profileAvatar.src = URL.createObjectURL(file);
                     window.selectedAvatar = file;
+
+                    // tampilkan tombol simpan
+                    btnSave.classList.remove('d-none');
+                    btnEdit?.classList.add('d-none');
+
+                    // tampilkan mode edit
+                    nameText.classList.add('d-none');
+                    editInput.classList.remove('d-none');
+
+                    document.getElementById('profileBirthText').classList.add('d-none');
+                    document.getElementById('birthSelects').classList.remove('d-none');
                 });
             }
 
@@ -682,7 +802,10 @@
                             }
                         }
 
-                        alert(res.message || 'Profil berhasil diperbarui');
+                        showAlert(
+                            res.message || 'Profil berhasil diperbarui',
+
+                        );
 
                         // Reset state
                         window.selectedAvatar = null;
@@ -695,17 +818,105 @@
                         nameText.classList.remove('d-none');
                         editInput.classList.add('d-none');
                         btnEdit?.classList.remove('d-none');
-                        btnSave.classList.add('d-none');
+                        // btnSave.classList.add('d-none');
 
                     } catch (err) {
                         console.error('saveProfile error:', err);
-                        alert(err.message || 'Gagal menyimpan profil');
+                        showAlert(
+                            err.message || 'Gagal menyimpan profil',
+                            'Gagal'
+                        );
                     }
                 });
+            }
+
+            async function deleteAvatar() {
+                try {
+
+                    const res = await apiFetch('/api/avatar', {
+                        method: 'DELETE'
+                    });
+
+                    showAlert(
+                        res.message || 'Foto profil berhasil dihapus',
+
+                    );
+
+                    window.selectedAvatar = null;
+
+                    const avatar = document.getElementById('profileAvatarForm');
+                    avatar.src = DEFAULT_AVATAR;
+
+                    document.getElementById('btnDeleteAvatar')
+                        .classList.add('d-none');
+
+                    await loadProfile();
+
+                } catch (err) {
+
+                    showAlert(
+                        err.message || 'Gagal menghapus foto profil',
+
+                    );
+
+                    console.error(err);
+                }
+            }
+            const btnDeleteAvatar =
+                document.getElementById('btnDeleteAvatar');
+
+            if (btnDeleteAvatar) {
+
+                btnDeleteAvatar.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    const modal = new bootstrap.Modal(
+                        document.getElementById('deleteAvatarModal')
+                    );
+
+                    modal.show();
+                });
+
+            }
+            const confirmDeleteAvatar =
+                document.getElementById('confirmDeleteAvatar');
+
+            if (confirmDeleteAvatar) {
+
+                confirmDeleteAvatar.addEventListener('click', async function() {
+
+                    const modalEl =
+                        document.getElementById('deleteAvatarModal');
+
+                    const modal =
+                        bootstrap.Modal.getInstance(modalEl);
+
+                    await deleteAvatar();
+
+                    modal.hide();
+
+                });
+
             }
 
             // Load profil saat halaman siap
             loadProfile();
         });
+    </script>
+    <script>
+        function showAlert(message, title = '') {
+            document.getElementById('alertModalTitle').textContent = title;
+            document.getElementById('alertModalBody').textContent = message;
+
+            const modal = new bootstrap.Modal(
+                document.getElementById('alertModal')
+            );
+
+            modal.show();
+
+            setTimeout(() => {
+                modal.hide();
+            }, 1500);
+        }
     </script>
 @endsection

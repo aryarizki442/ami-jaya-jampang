@@ -5,24 +5,6 @@
 @section('hero')
     <section class="hero-bg">
         <section class="hero">
-            <div class="hero-content">
-                <p>Temukan Berasmu disini</p>
-                <h1>Beras Kualitas Terbaik</h1>
-                <span>Diskon Hingga 50%</span>
-            </div>
-
-            <button class="hero-arrow-wrap left">
-                <span class="hero-arrow">
-                    <span class="iconify" data-icon="iconoir:arrow-left"></span>
-                </span>
-            </button>
-
-            <button class="hero-arrow-wrap right">
-                <span class="hero-arrow">
-                    <span class="iconify rotate" data-icon="iconoir:arrow-left"></span>
-                </span>
-            </button>
-
             <div class="hero-dots">
                 <span class="active"></span>
                 <span></span>
@@ -39,19 +21,18 @@
             <h2>Kategori Beras</h2>
 
             <div class="row g-0 text-center">
-
                 @forelse ($categories as $category)
                     <div class="col-md-4 col-12 item mb-3">
 
-                        <button class="btn-category w-100" data-filter="{{ $category->slug ?? $category->id }}">
+                        <a href="{{ route('all-product', ['category' => $category->id]) }}"
+                            class="btn-category w-100 text-decoration-none d-block">
 
                             <img src="{{ $category->image }}" class="img-fluid rounded-circle mb-2"
                                 alt="{{ $category->name }}">
 
-
                             <p class="mb-0">Beras {{ $category->name }}</p>
 
-                        </button>
+                        </a>
 
                     </div>
                 @empty
@@ -65,7 +46,7 @@
 
 
         <section class="best mb-4">
-            <h2>Beras Rekomendasi</h2>
+            <h2>Beras Terlaris</h2>
 
             <div class="best-slider">
                 <div class="best-track">
@@ -161,7 +142,52 @@
         </section>
 
     </div>
+    <script>
+        const hero = document.querySelector('.hero');
+        const dots = document.querySelectorAll('.hero-dots span');
 
+        const images = [
+            '/images/home/bg-hero1.png',
+            '/images/home/bg-hero2.png',
+            '/images/home/bg-hero3.png'
+        ];
+
+        let currentIndex = 0;
+
+        function changeSlide(index) {
+
+            hero.style.backgroundImage =
+                `url('${images[index]}')`;
+
+            dots.forEach(dot =>
+                dot.classList.remove('active')
+            );
+
+            dots[index].classList.add('active');
+
+            currentIndex = index;
+        }
+
+        // Auto slide tiap 4 detik
+        setInterval(() => {
+
+            let next = currentIndex + 1;
+
+            if (next >= images.length) {
+                next = 0;
+            }
+
+            changeSlide(next);
+
+        }, 4000);
+
+        // Klik dot
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                changeSlide(index);
+            });
+        });
+    </script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const slider = document.querySelector(".best-slider");

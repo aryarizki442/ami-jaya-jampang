@@ -117,6 +117,9 @@ Route::get('/order-cancelled', function () {
 Route::get('/invoice', function () {
     return view('frontend.pages.profile.invoice');
 })->name('invoice');
+Route::get('/notification', function () {
+    return view('frontend.pages.profile.notification');
+})->name('notification');
 
 
 //Admin Routes
@@ -172,3 +175,17 @@ Route::get('/admin/payment', [AdminPaymentController::class, 'index'])
     ->name('admin.payment.index');
 Route::get('/admin/payment/detail/{id}', [AdminPaymentController::class, 'detail'])
     ->name('admin.payment.detail');
+
+// Admin Report
+Route::get('/admin/report', function () {
+    return view('backend.pages.report.index');
+})->name('admin.report.index');
+Route::get('/admin/report/detail/{id}', function ($id) {
+    return view('backend.pages.report.detail', compact('id'));
+})->name('admin.report.detail');
+
+// Admin Setting
+Route::get('/admin/setting', function () {
+    return view('backend.pages.setting.index');
+})->name('admin.setting.index');
+

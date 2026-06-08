@@ -16,21 +16,22 @@
 .hero {
     margin: 0 60px;
     height: 320px;
-
-    background: url("../images/home/bg-hero1.jpg") center / cover no-repeat;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-image: url("../images/home/bg-hero1.jpg");
     border-radius: 18px;
-
     position: relative;
     color: #fff;
     padding: 50px;
     z-index: 1;
+    transition: background-image .5s ease;
 }
 
 .hero::before {
     content: "";
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.35);
     border-radius: 18px;
     z-index: 0;
 }
@@ -46,82 +47,29 @@
     margin: 10px 0;
 }
 
-.hero-arrow-wrap {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-
-    width: 65px;
-    height: 65px;
-    border-radius: 50%;
-
-    background: #fff;
-    /* lingkaran bawah */
-    border: none;
-    cursor: pointer;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.hero-arrow {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-
-    background: #E9F2EE;
-    /* cuma putihnya */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.hero-arrow .iconify {
-    font-size: 18px;
-    color: #1F7D53;
-}
-
-.hero-arrow-wrap.left {
-    left: -36px;
-}
-
-.hero-arrow-wrap.right {
-    right: -36px;
-}
-
-.rotate {
-    transform: rotate(180deg);
-}
-
-.hero-arrow-wrap:hover {
-    background: #E9F2EE;
-}
-
-.hero-arrow-wrap:hover .hero-arrow {
-    background: #fff;
-}
-
-
-
 .hero-dots {
     position: absolute;
     bottom: 20px;
     left: 40px;
+    z-index: 2;
 }
 
 .hero-dots span {
     display: inline-block;
-    width: 8px;
-    height: 8px;
-    background: #ccc;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
-    margin-right: 6px;
+
+    background: rgba(255, 255, 255, .5);
+    margin-right: 8px;
     cursor: pointer;
+
+    transition: .3s;
 }
 
-.hero-dots .active {
+.hero-dots span.active {
     background: #4CAF50;
+    transform: scale(1.2);
 }
 
 /* ================= KATEGORI ================= */

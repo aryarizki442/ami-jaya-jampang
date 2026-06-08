@@ -332,8 +332,8 @@
             console.error(error);
 
             cartList.innerHTML = `
-                <div class="p-4 text-center text-danger">
-                    Gagal memuat keranjang
+                <div class="p-4 text-center ">
+                    Belum ada produk di keranjang anda
                 </div>
             `;
         }

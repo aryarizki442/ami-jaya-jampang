@@ -9,15 +9,25 @@
             background-color: #f5f6f8;
         }
 
-
-
         .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
             border-bottom: 2px solid #e5e5e5;
             padding-bottom: 10px;
         }
 
+        .user-info img {
+            flex-shrink: 0;
+        }
+
         .username-profile {
             font-size: 15px;
+            line-height: 1.4;
+
+            word-break: break-word;
+            overflow-wrap: break-word;
         }
 
         .profile-wrapper {
@@ -174,8 +184,8 @@
         }
 
         /* ======================
-                                                                                                                                                                                                                                                                                                                                           RESPONSIVE PROFILE
-                                                                                                                                                                                                                                                                                                                                        ====================== */
+                                                                                                                                                                                                                                                                                                                                                                       RESPONSIVE PROFILE
+                                                                                                                                                                                                                                                                                                                                                                    ====================== */
 
         /* tablet */
         @media (max-width: 992px) {
@@ -351,11 +361,28 @@
                     </li>
 
                     {{-- NOTIFIKASI --}}
-                    <li class="mt-3 fw-semibold text-dark d-flex align-items-center gap-2">
-                        <iconify-icon icon="hugeicons:notification-01" width="24" style="color:#1F7D53;"></iconify-icon>
-                        <a href="{{ url('/notifikasi') }}" class="text-decoration-none text-dark">
-                            Notifikasi
-                        </a>
+                    <li class="mt-3">
+                        <div class="fw-semibold text-dark d-flex align-items-center gap-2" data-bs-toggle="collapse"
+                            data-bs-target="#notificationMenu" style="cursor:pointer;">
+
+                            <iconify-icon icon="hugeicons:notification-01" width="24" style="color:#1F7D53;">
+                            </iconify-icon>
+
+                            <span>Notifikasi</span>
+                        </div>
+
+                        <ul id="notificationMenu"
+                            class="collapse list-unstyled mt-2
+        {{ request()->routeIs('notification') ? 'show' : '' }}"
+                            style="padding-left:2rem;">
+
+                            <li class="{{ request()->routeIs('notification') ? 'active' : '' }}">
+                                <a href="{{ route('notification') }}" class="text-decoration-none text-dark">
+                                    Status Pesanan
+                                </a>
+                            </li>
+
+                        </ul>
                     </li>
 
                 </ul>

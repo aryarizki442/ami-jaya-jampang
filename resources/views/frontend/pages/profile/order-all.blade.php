@@ -90,28 +90,203 @@
             background: #a8a8a8;
         }
 
+        /* ========== RESPONSIVE STYLES ========== */
+
+        /* Tablet (max-width: 768px) */
         @media (max-width: 768px) {
+            .order-title {
+                font-size: 18px;
+                padding: 8px;
+                margin-top: 0.5rem !important;
+                margin-bottom: 0.5rem !important;
+            }
+
+            .order-search input {
+                font-size: 13px;
+                padding: 8px 0;
+            }
+
+            .case {
+                padding: 12px;
+            }
 
             .order-card .card-body {
-                padding: 70px 18px 18px;
+                padding: 60px 16px 16px !important;
+            }
+
+            .order-card .badge {
+                font-size: 10px;
+                padding: 5px 12px;
             }
 
             .order-product {
-                flex-direction: column;
+                flex-direction: column !important;
                 align-items: flex-start !important;
+                width: 100%;
+            }
+
+            .order-product img {
+                width: 70px !important;
+                height: 70px !important;
+            }
+
+            .order-product>div {
+                width: 100%;
             }
 
             .order-divider {
-                border-left: 0;
-                margin-top: 20px;
+                border-left: 0 !important;
+                margin-top: 16px;
+                padding-top: 12px;
+                border-top: 1px solid #B8B9BA;
                 text-align: left !important;
             }
 
-            .status-process {
-                padding: 8px 14px;
+            .order-card .d-flex.justify-content-between {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 10px;
+            }
+
+            .order-card .d-flex.gap-2 {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .order-card .btn-sm {
+                width: 100%;
+                font-size: 12px;
+                padding: 8px 12px;
+            }
+
+            .va-number {
+                font-size: 12px;
+                word-break: break-all;
+                white-space: normal;
+            }
+
+            .scroll-items {
+                max-height: 200px;
+            }
+
+            .order-meta {
                 font-size: 11px;
             }
 
+            .order-card strong {
+                font-size: 13px;
+            }
+
+            .ps-4 {
+                padding-left: 1rem !important;
+            }
+
+            .pt-2 {
+                padding-top: 0.5rem !important;
+            }
+        }
+
+        /* Mobile (max-width: 576px) */
+        @media (max-width: 576px) {
+            .order-title {
+                font-size: 16px;
+                padding: 8px;
+            }
+
+            .case {
+                padding: 8px;
+            }
+
+            .order-card .card-body {
+                padding: 55px 12px 12px !important;
+            }
+
+            .order-card .badge {
+                font-size: 9px;
+                padding: 4px 10px;
+            }
+
+            .order-product img {
+                width: 60px !important;
+                height: 60px !important;
+            }
+
+            .order-product {
+                gap: 0.75rem !important;
+            }
+
+            .order-product>div strong {
+                font-size: 12px;
+            }
+
+            .order-meta {
+                font-size: 10px;
+            }
+
+            .order-card strong {
+                font-size: 12px;
+            }
+
+            .btn-sm {
+                font-size: 11px !important;
+                padding: 6px 10px !important;
+            }
+
+            .va-number {
+                font-size: 11px;
+            }
+
+            .scroll-items {
+                max-height: 180px;
+            }
+
+            .gap-3 {
+                gap: 0.75rem !important;
+            }
+
+            .mb-5 {
+                margin-bottom: 1rem !important;
+            }
+
+            .ps-4 {
+                padding-left: 0.75rem !important;
+            }
+        }
+
+        /* Desktop (min-width: 769px) */
+        @media (min-width: 769px) {
+            .order-divider {
+                border-left: 1px solid #B8B9BA;
+            }
+
+            .order-product {
+                flex-wrap: nowrap !important;
+                align-items: center !important;
+            }
+
+            .order-product>div {
+                flex-shrink: 0;
+            }
+
+            .order-card .d-flex.gap-2 {
+                flex-direction: row;
+            }
+
+            .order-card .btn-sm {
+                width: auto;
+            }
+        }
+
+        /* Large Desktop (min-width: 1200px) */
+        @media (min-width: 1200px) {
+            .order-product img {
+                width: 100px !important;
+                height: 100px !important;
+            }
+
+            .case {
+                padding: 20px;
+            }
         }
     </style>
 
@@ -128,181 +303,9 @@
 
 
     <div class="case" id="ordersContainer">
-        {{--
-        <div class="card order-card mb-3 position-relative py-0">
-            <div class="d-flex justify-content-between align-items-start">
-
-                <div class="ps-4 pt-2">
-                    <strong>Pembelian</strong>
-                    <span class="order-meta ms-2 text-neutral-custom">27 Januari 2026</span>
-                </div>
-
-                <span class="badge status-shipped text-white top-0 end-0">
-                    Dikirim
-                </span>
-
-            </div>
-            <div class="card-body">
-
-                <div class="row align-items-center mb-5">
-
-                    <div class="col-md-8">
-
-                        <div class="d-flex align-items-center gap-3 order-product">
-
-                            <img src="{{ asset('images/home/category/beras-medium.png') }}" style="width:100px;">
-
-                            <div>
-                                <strong>Beras Putih Premium</strong>
-                                <div class="order-meta text-neutral-custom">x 1</div>
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <div class="col-md-4 order-divider d-flex flex-column justify-content-center text-end">
-
-                        <div class="order-meta text-neutral-custom">Total Pembayaran</div>
-                        <strong>Rp.153.000</strong>
-
-                    </div>
-
-                </div>
-
-                <div class="d-flex justify-content-end gap-2">
-
-                    <button class="btn btn-second btn-sm">
-                        Hubungi Penjual
-                    </button>
-
-                    <button class="btn btn-main btn-sm px-3">
-                        Selesai
-                    </button>
-
-                </div>
-
-            </div>
-        </div>
-
-        <div class="card order-card mb-3 position-relative py-0">
-
-            <!-- Badge -->
-
-            <div class="d-flex justify-content-between align-items-start">
-
-                <div class="ps-4 pt-2">
-                    <strong>Pembelian</strong>
-                    <span class="order-meta ms-2 text-neutral-custom">27 Januari 2026</span>
-                </div>
-
-                <span class="badge status-finished text-white top-0 end-0">
-                    Selesai
-                </span>
-
-            </div>
-            <div class="card-body">
-
-                <div class="row align-items-center mb-5">
-
-                    <div class="col-md-8">
-
-                        <div class="d-flex align-items-center gap-3 order-product">
-
-                            <img src="{{ asset('images/home/category/beras-medium.png') }}" style="width:100px;">
-
-                            <div>
-                                <strong>Beras Putih Premium</strong>
-                                <div class="order-meta text-neutral-custom">x 1</div>
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <div class="col-md-4 order-divider d-flex flex-column justify-content-center text-end">
-
-                        <div class="order-meta text-neutral-custom">Total Pembayaran</div>
-                        <strong>Rp.153.000</strong>
-
-                    </div>
-
-                </div>
-
-                <div class="d-flex justify-content-end gap-2">
-
-                    <button class="btn btn-second btn-sm">
-                        Detail Transaksi
-                    </button>
-
-                    <button class="btn btn-main btn-sm px-3">
-                        Nilai
-                    </button>
-
-                </div>
-
-            </div>
-        </div>
-
-        <div class="card order-card mb-3 position-relative py-0">
-
-            <!-- Badge -->
-
-            <div class="d-flex justify-content-between align-items-start">
-
-                <div class="ps-4 pt-2">
-                    <strong>Pembelian</strong>
-                    <span class="order-meta ms-2 text-neutral-custom">27 Januari 2026</span>
-                </div>
-
-                <span class="badge status-cancelled text-white top-0 end-0">
-                    Dibatalkan
-                </span>
-
-            </div>
-            <div class="card-body">
-
-                <div class="row align-items-center mb-5">
-
-                    <div class="col-md-8">
-
-                        <div class="d-flex align-items-center gap-3 order-product">
-
-                            <img src="{{ asset('images/home/category/beras-medium.png') }}" style="width:100px;">
-
-                            <div>
-                                <strong>Beras Putih Premium</strong>
-                                <div class="order-meta text-neutral-custom">x 1</div>
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <div class="col-md-4 order-divider d-flex flex-column justify-content-center text-end">
-
-                        <div class="order-meta text-neutral-custom">Total Pembayaran</div>
-                        <strong>Rp.153.000</strong>
-
-                    </div>
-
-                </div>
-
-                <div class="d-flex justify-content-end gap-2">
-
-                    <button class="btn btn-second btn-sm">
-                        Rincian Pembatalan
-                    </button>
-
-                    <button class="btn btn-main btn-sm px-3">
-                        Beli Lagi
-                    </button>
-
-                </div>
-
-            </div>
-        </div> --}}
     </div>
+    @include('frontend.components.payment-guide-modal')
+    @include('frontend.components.transaction-detail-modal')
 
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <script>
@@ -478,13 +481,23 @@
 
                                 <div class="d-flex gap-2">
 
-                                    <button class="btn btn-second btn-sm">
-                                        Cara Pembayaran
-                                    </button>
+                               <button
+                                    class="btn btn-second btn-sm btn-payment-guide"
+                                    data-bank="${order.payment_method}"
+                                    data-va="${
+                                        paymentDetail?.virtual_account_number
+                                            ?.split(': ')
+                                            ?.pop() || '-'
+                                    }"
+                                    data-total="${order.total_format}">
+                                    Cara Pembayaran
+                                </button>
 
-                                    <button class="btn btn-main btn-sm">
-                                        Lihat Detail
-                                    </button>
+                                     <button
+                        class="btn btn-main btn-sm btn-transaction-detail"
+                        data-id="${order.id}">
+                        Lihat Detail
+                    </button>
 
                                 </div>
 
@@ -531,7 +544,7 @@
                     </span>
                 </div>
 
-                <span class="badge status-process text-white top-0 end-0">
+                <span class="badge status-process text-white position-absolute top-0 end-0">
                     ${order.status === 'paid' ? 'Diproses' : order.status_label}
                 </span>
 
@@ -565,9 +578,11 @@
 
                 <div class="d-flex justify-content-end gap-2">
 
-                    <button class="btn btn-second btn-sm">
-                        Hubungi Penjual
-                    </button>
+                 <button
+    class="btn btn-second btn-sm"
+    onclick="window.open('https://wa.me/6281211223344', '_blank')">
+    Hubungi Penjual
+</button>
 
                 </div>
 
@@ -618,7 +633,7 @@
                 order.delivery_method === 'pickup'
                     ? 'status-pickup'
                     : 'status-shipped'
-            } text-white top-0 end-0">
+            } text-white position-absolute top-0 end-0">
                 ${mapStatusLabel(order.status, order.delivery_method)}
             </span>
             </div>
@@ -644,9 +659,11 @@
 
                 <div class="d-flex justify-content-end gap-2">
 
-                    <button class="btn btn-second btn-sm">
-                        Hubungi Penjual
-                    </button>
+                   <button
+    class="btn btn-second btn-sm"
+    onclick="window.open('https://wa.me/6281211223344', '_blank')">
+    Hubungi Penjual
+</button>
 
                     <button class="btn btn-main btn-sm btn-complete"
                             data-id="${order.id}">
@@ -687,7 +704,7 @@
                     </span>
                 </div>
 
-                <span class="badge status-finished text-white top-0 end-0">
+                <span class="badge status-finished text-white position-absolute top-0 end-0">
                     Selesai
                 </span>
 
@@ -756,7 +773,7 @@
                     </span>
                 </div>
 
-                <span class="badge status-cancelled text-white top-0 end-0">
+                <span class="badge status-cancelled text-white position-absolute top-0 end-0">
                     Dibatalkan
                 </span>
 

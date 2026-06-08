@@ -575,10 +575,10 @@
                         'Berhasil Mengubah Alamat' :
                         'Berhasil Menambah Alamat';
 
+                    successModal.show();
+
                     setTimeout(() => {
-                        bootstrap.Modal.getOrCreateInstance(
-                            document.getElementById('modalSuccess')
-                        ).hide();
+                        successModal.hide();
                     }, 1500);
 
                     await loadAddresses();

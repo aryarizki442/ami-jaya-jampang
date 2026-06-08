@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\UserAddressController;
 use App\Http\Controllers\Api\Admin\AdminProductController;
+use App\Http\Controllers\Api\Admin\AdminReportController;
+use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\OtpController;
 
@@ -112,6 +114,8 @@ Route::prefix('admin')->group(function () {
     // ── Refund
     Route::post('/orders/{order}/refund', [AdminOrderController::class, 'refund']);
     Route::post('/orders/{order}/refund-manual', [AdminOrderController::class, 'refundManual']);
+    Route::post('/{order}/reject', [OrderController::class, 'reject']);
+    Route::post('/{order}/complete', [OrderController::class, 'complete']);
 });
 
 
@@ -229,3 +233,30 @@ Route::get('/products/{product}/reviews', [ProductController::class, 'reviews'])
 
     // ── Set Primary Address ───────────────────
     Route::patch('/addresses/{address}/set-primary', [UserAddressController::class, 'setPrimary']);
+
+    Route::prefix('settings')->group(function () {
+    // Detail setting
+    Route::get('/', [SettingController::class, 'show']);
+    // Update pengaturan umum
+    Route::put('/general', [SettingController::class, 'updateGeneral']);
+    // Update carousel
+    Route::post('/carousel', [SettingController::class, 'updateCarousel']);
+    
+
+    //laporan
+    Route::prefix('admin/reports')->group(function () {
+    // List laporan
+    Route::get('/', [AdminReportController::class, 'index']);
+
+    // Ringkasan laporan
+    Route::get('/summary', [AdminReportController::class, 'summary']);
+
+    // Refresh/generate laporan
+    Route::post('/refresh', [AdminReportController::class, 'refresh']);
+
+    // Detail laporan per produk
+    Route::get('/{productId}', [AdminReportController::class, 'show']);
+
+   });
+
+});

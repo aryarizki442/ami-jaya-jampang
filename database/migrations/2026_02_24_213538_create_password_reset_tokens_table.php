@@ -29,11 +29,14 @@ return new class extends Migration
                 'otp_forgot_password',
                 'otp_update_email',
                 'otp_update_phone',
+                'otp_change_password',
                 // Token sementara setelah OTP verified
                 'register_verified',
                 'password_reset_verified',
                 'update_email_verified',
                 'update_phone_verified',
+                'change_password_verified'
+
             ]);
 
             $table->dateTime('expired_at');

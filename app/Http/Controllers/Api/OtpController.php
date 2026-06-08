@@ -29,6 +29,7 @@ class OtpController extends Controller
     private const AUTH_PURPOSES = [
         'update_email',
         'update_phone',
+        'change_password'
     ];
 
     /**
@@ -39,6 +40,8 @@ class OtpController extends Controller
         'forgot_password'=> 'otp_forgot_password',
         'update_email'   => 'otp_update_email',
         'update_phone'   => 'otp_update_phone',
+        'change_password'  => 'otp_change_password',
+       
     ];
 
     // =========================================================================
@@ -71,6 +74,7 @@ class OtpController extends Controller
             'forgot_password' => $this->handleRequestForgotPassword($request),
             'update_email'    => $this->handleRequestUpdateEmail($request),
             'update_phone'    => $this->handleRequestUpdatePhone($request),
+            'change_password'  => $this->handleRequestChangePassword($request),
         };
     }
 
@@ -111,6 +115,7 @@ class OtpController extends Controller
             'forgot_password' => $this->handleVerifyForgotPassword($request),
             'update_email'    => $this->handleVerifyUpdateEmail($request),
             'update_phone'    => $this->handleVerifyUpdatePhone($request),
+            'change_password'  => $this->handleVerifyChangePassword($request),
         };
     }
 
@@ -399,6 +404,74 @@ class OtpController extends Controller
             ],
         ], 200);
     }
+
+
+    private function handleRequestChangePassword(Request $request)
+{
+    $user = $this->getAuthUser();
+
+    if (!$user) {
+        return $this->unauthorizedResponse();
+    }
+
+    $otp = $this->generateAndSaveOtp(
+        userId: $user->id,
+        tokenKey: null,
+        type: self::TYPE_MAP['change_password']
+    );
+
+    $this->sendOtpEmail(
+        $user->email,
+        $otp,
+        self::TYPE_MAP['change_password']
+    );
+
+    return $this->otpSentResponse($user->email, $otp);
+}
+
+private function handleVerifyChangePassword(Request $request)
+{
+    $user = $this->getAuthUser();
+
+    if (!$user) {
+        return $this->unauthorizedResponse();
+    }
+
+    $otpRecord = $this->findValidOtp(
+        $user->id,
+        null,
+        $request->otp,
+        self::TYPE_MAP['change_password']
+    );
+
+    if (!$otpRecord) {
+        return $this->invalidOtpResponse();
+    }
+
+    $otpRecord->update([
+        'used_at' => now()
+    ]);
+
+    $updateToken = bin2hex(random_bytes(32));
+
+    PasswordResetToken::create([
+        'user_id'    => $user->id,
+        'token_key'  => null,
+        'token'      => Hash::make($updateToken),
+        'type'       => 'change_password_verified',
+        'expired_at' => now()->addMinutes(15),
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'OTP valid. Silakan ubah password.',
+        'data' => [
+            'purpose'      => 'change_password',
+            'update_token' => $updateToken,
+            'expires_in'   => 900,
+        ],
+    ]);
+}
 
     // =========================================================================
     // PRIVATE HELPERS

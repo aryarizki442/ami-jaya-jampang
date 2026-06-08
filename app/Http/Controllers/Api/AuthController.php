@@ -370,63 +370,94 @@ class AuthController extends Controller
      */
    public function changePassword(Request $request)
 {
-    $validator = Validator::make($request->all(), [
-        'update_token'     => 'required|string',
-        'current_password' => 'required|string',
-        'password'         => 'required|string|min:8|confirmed',
-    ], [
-        'current_password.required' => 'Password lama wajib diisi',
-        'password.required'         => 'Password baru wajib diisi',
-        'password.min'              => 'Password baru minimal 8 karakter',
-        'password.confirmed'        => 'Konfirmasi password tidak cocok',
-    ]);
+    try {
+        // Ambil user dari JWT
+        $user = JWTAuth::parseToken()->authenticate();
 
-    if ($validator->fails()) {
+        if (!$user) {
+            return $this->userNotFound();
+        }
+
+        // Validasi request
+        $validator = Validator::make($request->all(), [
+            'update_token'     => 'required|string',
+            'current_password' => 'required|string',
+            'password'         => 'required|string|min:8|confirmed',
+        ], [
+            'current_password.required' => 'Password lama wajib diisi',
+            'password.required'         => 'Password baru wajib diisi',
+            'password.min'              => 'Password baru minimal 8 karakter',
+            'password.confirmed'        => 'Konfirmasi password tidak cocok',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors'  => $validator->errors(),
+            ], 422);
+        }
+
+        // Cek password lama
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors'  => [
+                    'current_password' => [
+                        'Password lama tidak sesuai'
+                    ]
+                ],
+            ], 422);
+        }
+
+        // Cek token OTP yang sudah diverifikasi
+        $tokenRecord = PasswordResetToken::where('user_id', $user->id)
+            ->where('type', 'change_password_verified')
+            ->whereNull('used_at')
+            ->where('expired_at', '>', now())
+            ->latest()
+            ->first();
+
+        if (
+            !$tokenRecord ||
+            !Hash::check($request->update_token, $tokenRecord->token)
+        ) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token OTP tidak valid atau kadaluarsa',
+            ], 422);
+        }
+
+        // Optional: password baru tidak boleh sama dengan password lama
+        if (Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Password baru tidak boleh sama dengan password lama',
+            ], 422);
+        }
+
+        // Update password
+        $user->update([
+            'password' => Hash::make($request->password),
+        ]);
+
+        // Tandai token sudah digunakan
+        $tokenRecord->update([
+            'used_at' => now(),
+        ]);
+
+        // Logout JWT saat ini
+        JWTAuth::invalidate(JWTAuth::getToken());
+
         return response()->json([
-            'success' => false,
-            'message' => 'Validasi gagal',
-            'errors'  => $validator->errors()
-        ], 422);
+            'success' => true,
+            'message' => 'Password berhasil diubah. Silakan login kembali.',
+        ], 200);
+
+    } catch (\Exception $e) {
+        return $this->serverError($e);
     }
-
-    // 🔥 AMBIL USER DULU
-    $user = JWTAuth::parseToken()->authenticate();
-
-    $updateToken = $request->update_token;
-
-    $tokenRecord = PasswordResetToken::where('user_id', $user->id)
-        ->where('type', 'update_password_verified')
-        ->whereNull('used_at')
-        ->where('expired_at', '>', now())
-        ->first();
-
-    if (!$tokenRecord || !Hash::check($updateToken, $tokenRecord->token)) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Token OTP tidak valid atau kadaluarsa'
-        ], 422);
-    }
-
-    if (!Hash::check($request->current_password, $user->password)) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Validasi gagal',
-            'errors'  => [
-                'current_password' => ['Password lama tidak sesuai']
-            ],
-        ], 422);
-    }
-
-    $user->update([
-        'password' => Hash::make($request->password)
-    ]);
-
-    JWTAuth::parseToken()->invalidate();
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Password berhasil diubah. Silakan login kembali.'
-    ], 200);
 }
 
     /**

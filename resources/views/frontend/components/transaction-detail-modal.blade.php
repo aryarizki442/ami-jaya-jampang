@@ -25,6 +25,12 @@
         border-radius: 10px;
     }
 
+    /* Button action container */
+    #transactionDetailModal .modal-footer {
+        border-top: none;
+        padding-top: 0;
+    }
+
     /* Responsive untuk modal di mobile */
     @media (max-width: 576px) {
         #transactionDetailModal .modal-body {
@@ -45,8 +51,18 @@
         #transactionDetailModal #trxProductItems .d-flex .text-success {
             align-self: flex-end;
         }
+
+        #transactionDetailModal .modal-footer .d-flex {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #transactionDetailModal .modal-footer .btn {
+            width: 100%;
+        }
     }
 </style>
+
 <div class="modal fade" id="transactionDetailModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 rounded-4">
@@ -120,19 +136,30 @@
                     <span id="trxTotal" class="text-success">-</span>
                 </div>
 
-                <!-- ACTION -->
-                <div class="text-center mt-4">
-                    <button class="btn btn-danger px-4 py-2 fw-semibold rounded-3" id="trxCancelBtn">
+            </div>
+
+            <!-- FOOTER WITH ACTION BUTTONS -->
+            <div class="modal-footer border-0 px-4 pb-4 pt-0">
+                <div class="d-flex justify-content-between gap-3 w-100">
+                    <button class="btn btn-danger text-center px-4 py-2 fw-semibold rounded-3 flex-grow-1"
+                        id="trxCancelBtn" style="display: none;">
                         Batalkan Pesanan
                     </button>
+                    <button class="btn btn-success text-center px-4 py-2 fw-semibold rounded-3 flex-grow-1"
+                        id="trxPayBtn" style="display: none;">
+                        </i> Bayar Sekarang
+                    </button>
                 </div>
-
             </div>
         </div>
     </div>
 </div>
 
 <script>
+    // Variabel untuk menyimpan orderId yang sedang diproses
+    let currentOrderForPayment = null;
+    let snapTokenCallback = null;
+
     // Modal Transaction Detail Handler
     document.addEventListener('click', async function(e) {
         const btn = e.target.closest('.btn-transaction-detail');
@@ -230,15 +257,43 @@
             document.getElementById('trxTotal').innerHTML = summary.total_format || formatRupiah(summary
                 .total);
 
-            // Tampilkan tombol batalkan hanya jika can_cancel = true
+            // Tampilkan tombol aksi berdasarkan status
             const cancelBtn = document.getElementById('trxCancelBtn');
+            const payBtn = document.getElementById('trxPayBtn');
+
+            // Reset event listeners
             if (cancelBtn) {
-                if (order.can_cancel === true || order.status === 'awaiting_payment') {
-                    cancelBtn.style.display = 'inline-block';
+                cancelBtn.onclick = null;
+            }
+            if (payBtn) {
+                payBtn.onclick = null;
+            }
+
+            // Status: awaiting_payment - tampilkan tombol bayar dan batalkan
+            if (order.status === 'awaiting_payment' || order.status === 'pending') {
+                if (cancelBtn) {
+                    cancelBtn.style.display = 'flex';
                     cancelBtn.onclick = () => cancelOrder(order.id);
-                } else {
-                    cancelBtn.style.display = 'none';
                 }
+                if (payBtn) {
+                    payBtn.style.display = 'flex';
+                    payBtn.onclick = () => processPayment(order.id);
+                }
+            }
+            // Status: paid - hanya tampilkan tombol batalkan (jika bisa)
+            else if (order.status === 'paid' && order.can_cancel === true) {
+                if (cancelBtn) {
+                    cancelBtn.style.display = 'flex';
+                    cancelBtn.onclick = () => cancelOrder(order.id);
+                }
+                if (payBtn) {
+                    payBtn.style.display = 'none';
+                }
+            }
+            // Status lainnya - sembunyikan semua tombol
+            else {
+                if (cancelBtn) cancelBtn.style.display = 'none';
+                if (payBtn) payBtn.style.display = 'none';
             }
 
             // Tampilkan modal
@@ -255,10 +310,144 @@
         }
     });
 
+    // Fungsi untuk memproses pembayaran dengan Midtrans
+    async function processPayment(orderId) {
+        const token = localStorage.getItem('token');
+        const payBtn = document.getElementById('trxPayBtn');
+
+        if (!token) {
+            showAlert('Silakan login terlebih dahulu', 'error');
+            return;
+        }
+
+        // Simpan orderId untuk referensi
+        currentOrderForPayment = orderId;
+
+        // Tampilkan loading
+        if (payBtn) {
+            payBtn.disabled = true;
+            payBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Memproses...';
+        }
+
+        try {
+            // Ambil snap token dari backend
+            const snapRes = await fetch(`/api/orders/${orderId}/payment/snap-token`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const snapJson = await snapRes.json();
+
+            if (!snapRes.ok || !snapJson.success) {
+                throw new Error(snapJson.message || 'Gagal membuat token pembayaran');
+            }
+
+            const {
+                snap_token,
+                client_key,
+                snap_url
+            } = snapJson.data;
+
+            // Pastikan snap sudah dimuat
+            if (typeof window.snap === 'undefined') {
+                // Load Snap script jika belum ada
+                await loadSnapScript(client_key);
+            }
+
+            // Buka popup pembayaran Midtrans
+            window.snap.pay(snap_token, {
+                onSuccess: function(result) {
+                    console.log('Payment Success:', result);
+                    showAlert('Pembayaran berhasil!', 'success');
+                    // Tutup modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById(
+                        'transactionDetailModal'));
+                    if (modal) modal.hide();
+                    // Refresh halaman atau load ulang data pesanan
+                    setTimeout(() => {
+                        if (typeof loadWaitingOrders === 'function') {
+                            loadWaitingOrders();
+                        } else {
+                            location.reload();
+                        }
+                    }, 1500);
+                },
+                onPending: function(result) {
+                    console.log('Payment Pending:', result);
+                    showAlert('Menunggu konfirmasi pembayaran', 'info');
+                    // Tutup modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById(
+                        'transactionDetailModal'));
+                    if (modal) modal.hide();
+                    setTimeout(() => {
+                        if (typeof loadWaitingOrders === 'function') {
+                            loadWaitingOrders();
+                        } else {
+                            location.reload();
+                        }
+                    }, 1500);
+                },
+                onError: function(result) {
+                    console.error('Payment Error:', result);
+                    showAlert('Pembayaran gagal. Silakan coba lagi.', 'error');
+                    if (payBtn) {
+                        payBtn.disabled = false;
+                        payBtn.innerHTML = '</i> Bayar Sekarang';
+                    }
+                },
+                onClose: function() {
+                    console.log('Payment popup closed');
+                    // User menutup popup tanpa menyelesaikan pembayaran
+                    if (payBtn) {
+                        payBtn.disabled = false;
+                        payBtn.innerHTML = '</i> Bayar Sekarang';
+                    }
+                    showAlert('Pembayaran dibatalkan', 'info');
+                }
+            });
+
+        } catch (err) {
+            console.error('Payment error:', err);
+            showAlert(err.message || 'Terjadi kesalahan saat memproses pembayaran', 'error');
+            if (payBtn) {
+                payBtn.disabled = false;
+                payBtn.innerHTML = '<i class="bi bi-credit-card"></i> Bayar Sekarang';
+            }
+        }
+    }
+
+    // Fungsi untuk memuat script Snap Midtrans
+    function loadSnapScript(clientKey) {
+        return new Promise((resolve, reject) => {
+            // Cek apakah sudah ada
+            if (typeof window.snap !== 'undefined') {
+                resolve();
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
+            script.setAttribute('data-client-key', clientKey);
+            script.onload = () => {
+                console.log('Snap script loaded');
+                resolve();
+            };
+            script.onerror = () => {
+                reject(new Error('Gagal memuat Midtrans Snap'));
+            };
+            document.head.appendChild(script);
+        });
+    }
+
     // Fungsi untuk mendapatkan HTML status berdasarkan status order
     function getStatusHtml(status, deliveryMethod) {
         const statusMap = {
             'awaiting_payment': '<span class="text-warning">⏳ Menunggu Pembayaran</span>',
+            'pending': '<span class="text-warning">⏳ Menunggu Pembayaran</span>',
             'paid': '<span class="text-info">✅ Sudah Dibayar - Diproses</span>',
             'shipped': deliveryMethod === 'pickup' ?
                 '<span class="text-primary">📦 Siap Diambil</span>' :
@@ -377,7 +566,8 @@
             document.body.appendChild(alertContainer);
         }
 
-        const bgColor = type === 'success' ? '#28a745' : (type === 'error' ? '#dc3545' : '#17a2b8');
+        const bgColor = type === 'success' ? '#28a745' : (type === 'error' ? '#dc3545' : (type === 'info' ? '#17a2b8' :
+            '#ffc107'));
         const alertId = 'alert-' + Date.now();
 
         const alertHtml = `

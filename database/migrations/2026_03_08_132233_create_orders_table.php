@@ -32,6 +32,7 @@ return new class extends Migration
             $table->index('user_id');
             $table->index('status');
             $table->index('order_number');
+            $table->text('cancel_reason')->nullable();
         });
     }
 

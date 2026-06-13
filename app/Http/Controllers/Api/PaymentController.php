@@ -93,8 +93,8 @@ class PaymentController extends Controller
         }
 
         try {
-            $expiredAt = now()->addMinutes(1);
-            // $expiredAt = now()->addHours(24);
+            // $expiredAt = now()->addMinutes(1);
+            $expiredAt = now()->addHours(24);
             $snapParams = $this->buildSnapParams($order, $user, $expiredAt);
 
             $snapToken = \Midtrans\Snap::getSnapToken($snapParams);
@@ -369,17 +369,17 @@ class PaymentController extends Controller
                 ],
             ],
 
-            // 'expiry' => [
-            //     'start_time' => now()->format('Y-m-d H:i:s O'),
-            //     'unit'       => 'hours',
-            //     'duration'   => 24,
-            // ],
-
             'expiry' => [
-            'start_time' => now()->format('Y-m-d H:i:s O'),
-            'unit'       => 'minute',
-            'duration'   => 1,
+                'start_time' => now()->format('Y-m-d H:i:s O'),
+                'unit'       => 'hours',
+                'duration'   => 24,
             ],
+
+            // 'expiry' => [
+            // 'start_time' => now()->format('Y-m-d H:i:s O'),
+            // 'unit'       => 'minute',
+            // 'duration'   => 1,
+            // ],
 
             'enabled_payments' => $this->enabledPayments($order),
 

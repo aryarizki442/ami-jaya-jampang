@@ -697,10 +697,13 @@ public function reject(Request $request, Order $order)
 
     return response()->json([
         'success' => true,
+        'cancel_by' => 'admin',
+        'reason' => $order->cancel_reason,
         'message' => 'Pesanan berhasil direfund',
         'data'    => $order->fresh([
             'items',
             'payment',
+          
         ]),
     ]);
 }

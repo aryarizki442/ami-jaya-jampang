@@ -18,6 +18,7 @@ class Order extends Model
         'total',
         'note',
         'estimated_arrival',
+        'cancel_reason'
     ];
 
     protected $casts = [

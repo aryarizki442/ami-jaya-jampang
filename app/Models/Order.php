@@ -46,7 +46,7 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
-    
+
 
     public function payment()
     {
@@ -70,5 +70,5 @@ class Order extends Model
         return $prefix . str_pad($seq, 4, '0', STR_PAD_LEFT);
     }
 
-  
+
 }

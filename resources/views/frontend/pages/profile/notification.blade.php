@@ -267,7 +267,6 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-close-modal" data-bs-dismiss="modal">Tutup</button>
-                    <button type="button" class="btn-track" id="trackOrderBtn">Lacak Pesanan</button>
                 </div>
             </div>
         </div>
@@ -570,11 +569,11 @@
                     <span class="modal-info-value">${formatRupiah(order.total_amount || 0)}</span>
                 </div>
                 ${order.shipping_address ? `
-                                                                                                    <div class="modal-info-row">
-                                                                                                        <span class="modal-info-label">Alamat Pengiriman</span>
-                                                                                                        <span class="modal-info-value">${order.shipping_address}</span>
-                                                                                                    </div>
-                                                                                                    ` : ''}
+                                                                                                        <div class="modal-info-row">
+                                                                                                            <span class="modal-info-label">Alamat Pengiriman</span>
+                                                                                                            <span class="modal-info-value">${order.shipping_address}</span>
+                                                                                                        </div>
+                                                                                                        ` : ''}
             `;
 
             document.getElementById('modalBody').innerHTML = modalBody;

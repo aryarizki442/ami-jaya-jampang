@@ -6,7 +6,7 @@
     }
 
     #transactionDetailModal #trxProductItems {
-        max-height: 400px;
+        max-height: 90px;
         overflow-y: auto;
         padding-right: 5px;
     }
@@ -68,29 +68,73 @@
         <div class="modal-content border-0 rounded-4">
 
             <!-- HEADER -->
-            <div class="modal-header border-0 pb-2">
+            <div class="modal-header border-0 px-4 pb-3">
                 <h5 class="fw-bold mb-0">Detail Transaksi</h5>
+
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+
+            <div style="border-bottom:1px solid #B8B9BA; width:100%;"></div>
 
             <div class="modal-body pt-0 px-4 pb-4">
 
                 <!-- STATUS -->
-                <div class="border-bottom pb-3 mb-3">
+                <div class="border-bottom pb-3 mb-3 pt-3">
                     <div class="fw-semibold fs-5" id="trxStatus">
                         Menunggu Pembayaran
                     </div>
                 </div>
 
-                <!-- ORDER INFO -->
-                <div class="d-flex justify-content-between mb-2">
-                    <span class="text-muted">No. Pesanan</span>
-                    <span class="fw-semibold text-success" id="trxOrderId">-</span>
-                </div>
+                <!-- CANCEL DETAIL -->
+                <!-- CANCEL DETAIL -->
+                <div id="trxCancelDetail" class="mb-3" style="display:none;">
 
-                <div class="d-flex justify-content-between mb-3">
-                    <span class="text-muted">Tanggal Pesanan</span>
-                    <span id="trxDate">-</span>
+                    <!-- No Pesanan (hanya untuk seller cancel) -->
+                    <div class="d-flex justify-content-between mb-2" id="rowTrxOrderNumber">
+                        <span class="text-muted">No. Pesanan</span>
+                        <span class="fw-semibold text-success" id="trxOrderIdCancel">-</span>
+                    </div>
+
+                    <!-- Diminta Oleh -->
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Diminta Oleh</span>
+                        <span class="fw-semibold" id="trxCancelBy">-</span>
+                    </div>
+
+                    <!-- Tanggal Pesanan -->
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Tanggal Pesanan</span>
+                        <span id="trxOrderDateCancel">-</span>
+                    </div>
+
+                    <!-- Tanggal Penolakan -->
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted">Tanggal Penolakan</span>
+                        <span id="trxCancelDate">-</span>
+                    </div>
+
+                    <!-- Alasan Penolakan (hanya jika seller cancel) -->
+                    <div id="trxRejectReasonWrapper" style="display:none;">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="text-muted">Alasan Penolakan</span>
+                            <span class="fw-semibold text-end ms-3" id="trxRejectReason">-</span>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- ORDER INFO -->
+                <div id="trxOrderInfo">
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">No. Pesanan</span>
+                        <span class="fw-semibold text-success" id="trxOrderId">-</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted">Tanggal Pesanan</span>
+                        <span id="trxDate">-</span>
+                    </div>
+
                 </div>
 
                 <hr class="my-3">
@@ -133,28 +177,77 @@
                 <!-- TOTAL -->
                 <div class="d-flex justify-content-between fw-bold fs-5 mb-4">
                     <span>Total Belanja</span>
-                    <span id="trxTotal" class="text-success">-</span>
+                    <span id="trxTotal" class="fw-semibold">-</span>
                 </div>
 
             </div>
 
             <!-- FOOTER WITH ACTION BUTTONS -->
             <div class="modal-footer border-0 px-4 pb-4 pt-0">
-                <div class="d-flex justify-content-between gap-3 w-100">
-                    <button class="btn btn-danger text-center px-4 py-2 fw-semibold rounded-3 flex-grow-1"
-                        id="trxCancelBtn" style="display: none;">
+                <div class="d-flex justify-content-end gap-3 w-100">
+
+                    <button class="btn btn-danger px-4 py-1 fw-semibold rounded-3" id="trxCancelBtn"
+                        style="display:none;">
                         Batalkan Pesanan
                     </button>
-                    <button class="btn btn-success text-center px-4 py-2 fw-semibold rounded-3 flex-grow-1"
-                        id="trxPayBtn" style="display: none;">
-                        </i> Bayar Sekarang
+
+                    <button class="btn btn-main px-4 py-1 fw-semibold rounded-3" id="trxPayBtn" style="display:none;">
+                        Bayar Sekarang
                     </button>
+
+
+                    <!-- STATUS SELESAI -->
+                    <button class="btn btn-second px-4 py-1 fw-semibold rounded-3" id="trxChatBtn"
+                        style="display:none;">
+                        Chat Penjual
+                    </button>
+
+                    <button class="btn btn-main btn-reorder px-4 py-1 fw-semibold rounded-3" id="trxReorderBtn"
+                        style="display:none;">
+                        Beli Lagi
+                    </button>
+
+
+                    <!-- STATUS DIBATALKAN -->
+                    <button class="btn btn-second px-4 py-1 fw-semibold rounded-3" id="trxContactSellerBtn"
+                        style="display:none;">
+                        Hubungi Penjual
+                    </button>
+
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+{{-- MODAL BELI LAGI --}}
+<div class="modal fade" id="reorderModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4">
+
+            <div class="modal-body text-center p-4">
+
+                <div class="mb-3">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size:60px;"></i>
+                </div>
+
+                <h5 class="fw-bold" id="reorderModalTitle">
+                    Berhasil
+                </h5>
+
+                <p class="text-muted mb-4" id="reorderModalMessage">
+                    Produk berhasil dimasukkan ke keranjang
+                </p>
+
+                <button class="btn btn-main px-5 rounded-3" data-bs-dismiss="modal">
+                    OK
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+</div>
 <script>
     // Variabel untuk menyimpan orderId yang sedang diproses
     let currentOrderForPayment = null;
@@ -192,12 +285,28 @@
 
             const orderJson = await orderRes.json();
             const order = orderJson.data;
+            const trxOrderInfo = document.getElementById('trxOrderInfo');
 
+            if (order.status === 'cancelled' || order.status === 'refunded') {
+                trxOrderInfo.style.display = 'none';
+            } else {
+                trxOrderInfo.style.display = 'block';
+            }
             if (!order) {
                 throw new Error('Data order tidak ditemukan');
             }
 
             console.log('ORDER DETAIL:', order);
+            console.log('===== DETAIL ORDER =====');
+            console.log('ID Order:', order.id);
+            console.log('Nomor Order:', order.order_number);
+            console.log('Status:', order.status);
+            console.log('Cancel Reason:', order.cancel_reason);
+            console.log('Created At:', order.created_at);
+            console.log('Updated At:', order.updated_at);
+            console.log('Items:', order.items);
+            console.log('Payment:', order.payment);
+            console.log('========================');
 
             // Isi data ke modal
             // Status - gunakan status_label dari response
@@ -234,7 +343,7 @@
                                         ${item.unit ? `<div class="text-muted small">Satuan: ${escapeHtml(item.unit)}</div>` : ''}
                                     </div>
                                 </div>
-                                ${productId ? `<a href="/product/${productId}" class="text-success fw-semibold small text-decoration-none">Lihat Produk →</a>` : ''}
+                                ${productId ? `<a href="/product/${productId}" class="text-success fw-semibold small text-decoration-none">Lihat Produk</a>` : ''}
                             </div>
                         `;
                     });
@@ -261,39 +370,175 @@
             const cancelBtn = document.getElementById('trxCancelBtn');
             const payBtn = document.getElementById('trxPayBtn');
 
-            // Reset event listeners
+            const chatBtn = document.getElementById('trxChatBtn');
+            const reorderBtn = document.getElementById('trxReorderBtn');
+
+            const contactSellerBtn = document.getElementById('trxContactSellerBtn');
+
+            // Reset tombol
             if (cancelBtn) {
+                cancelBtn.style.display = 'none';
                 cancelBtn.onclick = null;
             }
+
             if (payBtn) {
+                payBtn.style.display = 'none';
                 payBtn.onclick = null;
+            }
+
+            if (chatBtn) {
+                chatBtn.style.display = 'none';
+                chatBtn.onclick = null;
+            }
+
+            if (reorderBtn) {
+                reorderBtn.style.display = 'none';
+                reorderBtn.onclick = null;
+            }
+
+            if (contactSellerBtn) {
+                contactSellerBtn.style.display = 'none';
+                contactSellerBtn.onclick = null;
             }
 
             // Status: awaiting_payment - tampilkan tombol bayar dan batalkan
             if (order.status === 'awaiting_payment' || order.status === 'pending') {
+
                 if (cancelBtn) {
                     cancelBtn.style.display = 'flex';
                     cancelBtn.onclick = () => cancelOrder(order.id);
                 }
+
                 if (payBtn) {
                     payBtn.style.display = 'flex';
                     payBtn.onclick = () => processPayment(order.id);
                 }
-            }
-            // Status: paid - hanya tampilkan tombol batalkan (jika bisa)
-            else if (order.status === 'paid' && order.can_cancel === true) {
-                if (cancelBtn) {
-                    cancelBtn.style.display = 'flex';
-                    cancelBtn.onclick = () => cancelOrder(order.id);
+
+            } else if (order.status === 'completed') {
+
+                if (chatBtn) {
+                    chatBtn.style.display = 'flex';
+                    chatBtn.onclick = () => chatSeller(order);
                 }
-                if (payBtn) {
-                    payBtn.style.display = 'none';
+
+                if (reorderBtn) {
+                    reorderBtn.style.display = 'flex';
+
+                    // simpan id order
+                    reorderBtn.dataset.id = order.id;
+
+                    reorderBtn.onclick = function() {
+                        reorderOrder(this.dataset.id, this);
+                    };
                 }
-            }
-            // Status lainnya - sembunyikan semua tombol
-            else {
+
+            } else if (
+                order.status === 'cancelled' ||
+                order.status === 'refunded'
+            ) {
+
+                const cancelDetail = document.getElementById('trxCancelDetail');
+                const cancelBy = document.getElementById('trxCancelBy');
+                const rejectReasonWrapper = document.getElementById('trxRejectReasonWrapper');
+                const rejectReason = document.getElementById('trxRejectReason');
+
+                const rowOrderNumber = document.getElementById('rowTrxOrderNumber');
+                const orderNumberCancel = document.getElementById('trxOrderIdCancel');
+                const orderDateCancel = document.getElementById('trxOrderDateCancel');
+                const cancelDate = document.getElementById('trxCancelDate');
+
+
+                // tampilkan detail cancel
+                if (cancelDetail) {
+                    cancelDetail.style.display = 'block';
+                }
+
+                const isSellerCancel = order.status === 'refunded';
+
+
+                // tanggal pesanan
+                if (orderDateCancel) {
+                    orderDateCancel.innerText =
+                        formatDateIndonesia(order.created_at);
+                }
+
+
+                // tanggal penolakan
+                if (cancelDate) {
+                    cancelDate.innerText =
+                        formatDateIndonesia(
+                            order.cancelled_at ||
+                            order.updated_at
+                        );
+                }
+
+                // nomor pesanan hanya tampil jika penjual yang membatalkan
+                if (isSellerCancel) {
+
+                    // Admin / Penjual
+                    if (rowOrderNumber) {
+                        rowOrderNumber.style.display = 'flex';
+                    }
+
+                    if (orderNumberCancel) {
+                        orderNumberCancel.textContent =
+                            order.order_number || '#' + order.id;
+                    }
+
+                } else {
+
+                    // Pembeli
+                    if (rowOrderNumber) {
+                        rowOrderNumber.style.display = 'none';
+                    }
+
+                }
+                if (isSellerCancel) {
+
+                    if (cancelBy) {
+                        cancelBy.innerText = 'Penjual';
+                    }
+
+                    if (rejectReasonWrapper) {
+                        rejectReasonWrapper.style.display = 'block';
+                    }
+
+                    if (rejectReason) {
+                        rejectReason.innerText =
+                            order.cancel_reason || 'Tidak ada alasan';
+                    }
+
+                } else {
+
+                    if (cancelBy) {
+                        cancelBy.innerText = 'Pembeli';
+                    }
+
+                    if (rejectReasonWrapper) {
+                        rejectReasonWrapper.style.display = 'none';
+                    }
+
+                }
+
+
+                // tombol hubungi penjual
+                if (contactSellerBtn) {
+
+                    if (isSellerCancel) {
+                        contactSellerBtn.style.display = 'flex';
+                        contactSellerBtn.onclick = () => contactSeller(order);
+                    } else {
+                        contactSellerBtn.style.display = 'none';
+                    }
+
+                }
+
+
                 if (cancelBtn) cancelBtn.style.display = 'none';
                 if (payBtn) payBtn.style.display = 'none';
+                if (chatBtn) chatBtn.style.display = 'none';
+                if (reorderBtn) reorderBtn.style.display = 'none';
+
             }
 
             // Tampilkan modal
@@ -446,16 +691,15 @@
     // Fungsi untuk mendapatkan HTML status berdasarkan status order
     function getStatusHtml(status, deliveryMethod) {
         const statusMap = {
-            'awaiting_payment': '<span class="text-warning">⏳ Menunggu Pembayaran</span>',
-            'pending': '<span class="text-warning">⏳ Menunggu Pembayaran</span>',
-            'paid': '<span class="text-info">✅ Sudah Dibayar - Diproses</span>',
+            'awaiting_payment': '<span class="fw-semibold">Menunggu Pembayaran</span>',
+            'pending': '<span class="fw-semibold">Menunggu Pembayaran</span>',
+            'paid': '<span class="fw-semibold">Sudah Dibayar - Diproses</span>',
             'shipped': deliveryMethod === 'pickup' ?
-                '<span class="text-primary">📦 Siap Diambil</span>' :
-                '<span class="text-primary">🚚 Dikirim</span>',
-            'ready_to_pickup': '<span class="text-primary">📦 Siap Diambil</span>',
-            'completed': '<span class="text-success">✓ Selesai</span>',
-            'cancelled': '<span class="text-danger">✗ Dibatalkan</span>',
-            'refunded': '<span class="text-danger">💰 Dikembalikan</span>'
+                '<span class="fw-semibold">Siap Diambil</span>' : '<span class="text-primary">Dikirim</span>',
+            'ready_to_pickup': '<span class="fw-semibold">Siap Diambil</span>',
+            'completed': '<span class="fw-semibold">Selesai</span>',
+            'cancelled': '<span class="text-danger fw-semibold">Pesanan Dibatalkan</span>',
+            'refunded': '<span class="text-danger fw-semibold">Dikembalikan</span>'
         };
         return statusMap[status] || status;
     }
@@ -487,7 +731,8 @@
             if (result.success) {
                 showAlert('Pesanan berhasil dibatalkan', 'success');
                 // Tutup modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('transactionDetailModal'));
+                const modal = bootstrap.Modal.getInstance(document.getElementById(
+                    'transactionDetailModal'));
                 if (modal) modal.hide();
                 // Refresh daftar pesanan
                 if (typeof loadWaitingOrders === 'function') {
@@ -510,6 +755,33 @@
                 cancelBtn.innerHTML = 'Batalkan Pesanan';
             }
         }
+    }
+
+    function chatSeller(order) {
+
+        const phone = "6281211223344";
+
+        const message =
+            `Halo Penjual, saya ingin menanyakan pesanan ${order.order_number}`;
+
+
+        window.open(
+            `https://wa.me/${phone}?text=${encodeURIComponent(message)}`,
+            '_blank'
+        );
+
+    }
+
+    function contactSeller(order) {
+        const phone = "6281211223344";
+
+        const message =
+            `Halo Penjual, saya ingin menanyakan pesanan yang dibatalkan dengan nomor ${order.order_number}`;
+
+        window.open(
+            `https://wa.me/${phone}?text=${encodeURIComponent(message)}`,
+            '_blank'
+        );
     }
 
     // Fungsi format Rupiah
@@ -566,7 +838,8 @@
             document.body.appendChild(alertContainer);
         }
 
-        const bgColor = type === 'success' ? '#28a745' : (type === 'error' ? '#dc3545' : (type === 'info' ? '#17a2b8' :
+        const bgColor = type === 'success' ? '#28a745' : (type === 'error' ? '#dc3545' : (type === 'info' ?
+            '#17a2b8' :
             '#ffc107'));
         const alertId = 'alert-' + Date.now();
 
@@ -624,5 +897,129 @@
             }
         `;
         document.head.appendChild(style);
+    }
+</script>
+<script>
+    document.addEventListener('click', function(e) {
+
+        const btn = e.target.closest('.btn-reorder');
+
+        if (!btn) return;
+
+        const orderId = btn.dataset.id;
+
+        reorderOrder(orderId, btn);
+
+    });
+
+
+    async function reorderOrder(orderId, btn) {
+
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            window.location.href = "{{ route('login') }}";
+            return;
+        }
+
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = `
+                <span class="spinner-border spinner-border-sm"></span>
+                Memproses...
+            `;
+        }
+
+
+        try {
+
+            const response = await fetch(
+                `/api/orders/${orderId}/reorder`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+
+            const result = await response.json();
+
+
+            if (!response.ok || !result.success) {
+                throw new Error(
+                    result.message || 'Gagal membeli ulang'
+                );
+            }
+
+
+            showReorderModal(
+                result.message || 'Produk berhasil dimasukkan ke keranjang',
+                'success'
+            );
+
+
+            // pindah ke halaman cart
+            setTimeout(() => {
+
+                window.location.href = "{{ route('cart') }}";
+
+            }, 1500);
+
+
+        } catch (error) {
+
+            console.error('REORDER ERROR:', error);
+
+            showReorderModal(
+                error.message || 'Terjadi kesalahan',
+                'error'
+            );
+
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = 'Beli Lagi';
+            }
+
+        }
+
+    }
+
+    function showReorderModal(message, type = 'success') {
+
+        const modal = document.getElementById('reorderModal');
+
+        const icon = modal.querySelector('i');
+        const title = document.getElementById('reorderModalTitle');
+        const text = document.getElementById('reorderModalMessage');
+
+
+        if (type === 'success') {
+
+            icon.className =
+                'bi bi-check-circle-fill text-success';
+
+            title.innerText = 'Berhasil';
+
+        } else {
+
+            icon.className =
+                'bi bi-x-circle-fill text-danger';
+
+            title.innerText = 'Gagal';
+
+        }
+
+
+        text.innerText = message;
+
+
+        const bsModal = bootstrap.Modal.getOrCreateInstance(modal);
+
+        bsModal.show();
+
     }
 </script>

@@ -244,7 +244,35 @@
     <div class="case" id="orderList">
 
     </div>
+    @include('frontend.components.transaction-detail-modal')
+    {{-- MODAL --}}
+    <div class="modal fade" id="reorderModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4">
 
+                <div class="modal-body text-center p-4">
+
+                    <div class="mb-3">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size:60px;"></i>
+                    </div>
+
+                    <h5 class="fw-bold" id="reorderModalTitle">
+                        Berhasil
+                    </h5>
+
+                    <p class="text-muted mb-4" id="reorderModalMessage">
+                        Produk berhasil dimasukkan ke keranjang
+                    </p>
+
+                    <button class="btn btn-main px-5 rounded-3" data-bs-dismiss="modal">
+                        OK
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', fetchCancelledOrders);
@@ -271,14 +299,18 @@
                 let html = '';
 
                 if (orders.length === 0) {
-
                     html = `
-                <div class="text-center py-5">
-                    <h6 class="text-muted">
-                        Tidak ada pesanan yang dibatalkan
+                <div class="d-flex flex-column justify-content-center align-items-center text-center py-5" style="min-height: 300px;">
+                    <span class="iconify"
+                        data-icon="streamline-ultimate-color:shopping-bag-carry"
+                        style="font-size:80px; filter: grayscale(1) brightness(1.2);">
+                    </span>
+
+                    <h6 class="fw-semibold mt-3">
+                        Anda Belum Ada Pesanan
                     </h6>
                 </div>
-            `;
+                    `;
 
                 } else {
 
@@ -288,18 +320,18 @@
 
                         (order.items || []).forEach(item => {
                             allItemsHtml += `
-        <div class="d-flex align-items-center gap-3 order-product mb-3">
-            <img src="${item.image}" style="width:100px; height:100px; object-fit:cover;">
+                    <div class="d-flex align-items-center gap-3 order-product mb-3">
+                        <img src="${item.image}" style="width:100px; height:100px; object-fit:cover;">
 
-            <div>
-                <strong>${item.name}</strong>
+                        <div>
+                            <strong>${item.name}</strong>
 
-                <div class="order-meta text-neutral-custom">
-                    x ${item.quantity}
-                </div>
-            </div>
-        </div>
-    `;
+                            <div class="order-meta text-neutral-custom">
+                                x ${item.quantity}
+                            </div>
+                        </div>
+                    </div>
+                `;
                         });
 
                         html += `
@@ -347,15 +379,16 @@
 
                             <div class="d-flex justify-content-end gap-2">
 
-                                <button class="btn btn-second btn-sm">
-                                    Rincian Pembatalan
-                                </button>
-
+                              <button
+                                class="btn btn-second btn-sm btn-transaction-detail"
+                                data-id="${order.id}">
+                                Rincian Pembatalan
+                            </button>
                                 <button
-                                    class="btn btn-main btn-sm btn-reorder"
-                                    data-id="${order.id}">
-                                    Beli Lagi
-                                </button>
+                                class="btn btn-main btn-sm btn-reorder"
+                                data-id="${order.id}">
+                                Beli Lagi
+                            </button>
 
                             </div>
 
@@ -378,6 +411,131 @@
             </div>
         `;
             }
+        }
+    </script>
+
+    <script>
+        document.addEventListener('click', function(e) {
+
+            const btn = e.target.closest('.btn-reorder');
+
+            if (!btn) return;
+
+            const orderId = btn.dataset.id;
+
+            reorderOrder(orderId, btn);
+
+        });
+
+
+        async function reorderOrder(orderId, btn) {
+
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                window.location.href = "{{ route('login') }}";
+                return;
+            }
+
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `
+                <span class="spinner-border spinner-border-sm"></span>
+                Memproses...
+            `;
+            }
+
+
+            try {
+
+                const response = await fetch(
+                    `/api/orders/${orderId}/reorder`, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+
+
+                const result = await response.json();
+
+
+                if (!response.ok || !result.success) {
+                    throw new Error(
+                        result.message || 'Gagal membeli ulang'
+                    );
+                }
+
+
+                showReorderModal(
+                    result.message || 'Produk berhasil dimasukkan ke keranjang',
+                    'success'
+                );
+
+
+                // pindah ke halaman cart
+                setTimeout(() => {
+
+                    window.location.href = "{{ route('cart') }}";
+
+                }, 1500);
+
+
+            } catch (error) {
+
+                console.error('REORDER ERROR:', error);
+
+                showReorderModal(
+                    error.message || 'Terjadi kesalahan',
+                    'error'
+                );
+
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Beli Lagi';
+                }
+
+            }
+
+        }
+
+        function showReorderModal(message, type = 'success') {
+
+            const modal = document.getElementById('reorderModal');
+
+            const icon = modal.querySelector('i');
+            const title = document.getElementById('reorderModalTitle');
+            const text = document.getElementById('reorderModalMessage');
+
+
+            if (type === 'success') {
+
+                icon.className =
+                    'bi bi-check-circle-fill text-success';
+
+                title.innerText = 'Berhasil';
+
+            } else {
+
+                icon.className =
+                    'bi bi-x-circle-fill text-danger';
+
+                title.innerText = 'Gagal';
+
+            }
+
+
+            text.innerText = message;
+
+
+            const bsModal = bootstrap.Modal.getOrCreateInstance(modal);
+
+            bsModal.show();
+
         }
     </script>
 @endsection

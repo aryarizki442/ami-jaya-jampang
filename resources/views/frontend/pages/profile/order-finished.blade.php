@@ -243,6 +243,7 @@
 
     <div class="case" id="orderList">
     </div>
+    @include('frontend.components.transaction-detail-modal')
 
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <script>
@@ -270,14 +271,18 @@
                 let html = '';
 
                 if (orders.length === 0) {
-
                     html = `
-                <div class="text-center py-5">
-                    <h6 class="text-muted">
-                        Belum ada pesanan yang selesai
-                    </h6>
-                </div>
-            `;
+        <div class="d-flex flex-column justify-content-center align-items-center text-center py-5" style="min-height: 300px;">
+            <span class="iconify"
+                data-icon="streamline-ultimate-color:shopping-bag-carry"
+                style="font-size:80px; filter: grayscale(1) brightness(1.2);">
+            </span>
+
+            <h6 class="fw-semibold mt-3">
+                Anda Belum Ada Pesanan
+            </h6>
+        </div>
+    `;
 
                 } else {
 
@@ -350,7 +355,9 @@
 
                             <div class="d-flex justify-content-end gap-2">
 
-                                <button class="btn btn-second btn-sm">
+                                <button
+                                    class="btn btn-second btn-sm btn-transaction-detail"
+                                    data-id="${order.id}">
                                     Detail Transaksi
                                 </button>
 

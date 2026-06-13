@@ -679,19 +679,20 @@
                         <div id="notifDropdownList">
 
                             <div class="p-3 text-center text-secondary">
-                                Memuat...
+                                Silakan login terlebih dahulu
                             </div>
 
                         </div>
 
-                        <a href="{{ route('notification') }}" class="notif-footer">
+                        <a href="{{ route('notification') }}" class="notif-footer" id="notifFooter">
                             Tampilkan Semua
                         </a>
 
                     </div>
 
                 </div>
-                <a href="#" class="text-white text-decoration-none small">
+                <a href="https://wa.me/6281211223344?text=Halo%20saya%20membutuhkan%20bantuan!" target="_blank"
+                    class="text-white text-decoration-none small">
                     Bantuan
                 </a>
             </div>
@@ -1191,8 +1192,17 @@
                 notifDropdown.classList.remove('show');
             }
         });
+        // belum login
         if (!token) {
+
+            notifDropdownList.innerHTML = `
+        <div class="p-4 text-center text-secondary">
+            Silakan login terlebih dahulu
+        </div>
+    `;
+
             notifBadge.classList.add('d-none');
+
             return;
         }
 
@@ -1294,6 +1304,20 @@
 
         await renderNavbar();
         await loadNotificationBadge();
+
+    });
+</script>
+
+<script>
+    document.getElementById('notifFooter').addEventListener('click', function(e) {
+
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            e.preventDefault();
+
+            window.location.href = "{{ route('login') }}";
+        }
 
     });
 </script>

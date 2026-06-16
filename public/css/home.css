@@ -19,11 +19,9 @@
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
-    background-image: url("../images/home/bg-hero1.jpg");
+    background-image: url("{{ asset('images/home/bg-hero1.png') }}");
     border-radius: 18px;
     position: relative;
-    color: #fff;
-    padding: 50px;
     z-index: 1;
     transition: background-image .5s ease;
 }
@@ -42,34 +40,30 @@
     max-width: 450px;
 }
 
-.hero-content h1 {
-    font-size: 36px;
-    margin: 10px 0;
-}
-
 .hero-dots {
     position: absolute;
     bottom: 20px;
-    left: 40px;
+    left: 70px;
     z-index: 2;
 }
 
 .hero-dots span {
     display: inline-block;
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-
-    background: rgba(255, 255, 255, .5);
+    background: #BAD7CA;
     margin-right: 8px;
     cursor: pointer;
-
-    transition: .3s;
+    transition: .3s ease;
 }
 
 .hero-dots span.active {
-    background: #4CAF50;
-    transform: scale(1.2);
+    width: 20px;
+    /* melebar */
+    height: 8px;
+    border-radius: 10px;
+    background: #BAD7CA;
 }
 
 /* ================= KATEGORI ================= */
@@ -134,23 +128,7 @@
 }
 
 
-/* Garis pembatas antar kolom (desktop) */
-@media (min-width: 768px) {
-    .kategori .item:not(:first-child) {
-        border-left: 4px solid #e5e5e5;
-    }
-}
 
-/* Mobile: garis horizontal */
-@media (max-width: 767px) {
-    .kategori .item {
-        border-bottom: 4px solid #e5e5e5;
-    }
-
-    .kategori .item:last-child {
-        border-bottom: none;
-    }
-}
 
 
 /* ================= Best Seller ================= */
@@ -227,11 +205,6 @@
 }
 
 /* Responsive (opsional, kalau mau tetap 5 hapus ini) */
-@media (max-width: 768px) {
-    .best-col {
-        flex: 0 0 50%;
-    }
-}
 
 /* ================= produk ================= */
 .produk-kami h2 {
@@ -343,20 +316,256 @@
         width: 25%;
         /* 4 */
     }
+
+    .hero {
+        margin: 0 30px;
+        height: 260px;
+        background-size: contain;
+        background-color: #f5f5f5;
+        padding: 40px;
+    }
+
+    .hero-dots {
+        bottom: 15px;
+        left: 30px;
+    }
+
+    .hero-dots span {
+        width: 9px;
+        height: 9px;
+    }
+
+    .kategori h2 {
+        padding: 20px 0;
+        font-size: 22px;
+    }
+
+    .kategori .item {
+        padding: 20px 5px;
+    }
+
+    .kategori .btn-category img {
+        width: 100px;
+        height: 90px;
+    }
+
+    .kategori .btn-category p {
+        font-size: 16px;
+    }
 }
+
 
 /* Tablet kecil */
 @media (max-width: 768px) {
+    .best-col {
+        flex: 0 0 50%;
+    }
+
     .produk-col {
         width: 33.333%;
         /* 3 */
     }
+
+    .hero {
+        margin: 0 20px;
+        height: 220px;
+        background-size: contain;
+        background-position: center;
+        border-radius: 14px;
+        padding: 30px;
+    }
+
+    .hero-dots {
+        bottom: 12px;
+        left: 25px;
+    }
+
+    .hero-dots span {
+        width: 8px;
+        height: 8px;
+        margin-right: 6px;
+    }
+
+    .hero-dots span.active {
+        width: 18px;
+        height: 8px;
+    }
+
+    .kategori h2 {
+        padding: 18px 0;
+        font-size: 20px;
+    }
+
+    .kategori .item {
+        padding: 15px 5px;
+    }
+
+    .kategori .btn-category img {
+        width: 80px;
+        height: 70px;
+    }
+
+    .kategori .btn-category p {
+        font-size: 14px;
+    }
+
+    /* BEST SELLER */
+    .best h2,
+    .produk-kami h2 {
+        padding: 20px 0;
+        font-size: 20px;
+    }
+
+    .best-card,
+    .produk-card {
+        border-width: 1px;
+    }
+
+    .best-card {
+        padding: 8px;
+    }
+
+    .best-card img,
+    .produk-card img {
+        aspect-ratio: 1 / 1;
+    }
+
+    .best-body,
+    .produk-body {
+        padding: 8px;
+        font-size: 11px;
+    }
+
+    .best-title,
+    .produk-title {
+        font-size: 12px;
+    }
+
+    .harga {
+        font-size: 12px;
+    }
+
+    .terjual {
+        font-size: 10px;
+    }
+
 }
+
 
 /* Mobile */
 @media (max-width: 576px) {
     .produk-col {
         width: 50%;
         /* 2 */
+    }
+
+    .hero {
+        margin: 0 15px;
+        height: 100px;
+        background-size: contain;
+        background-position: center;
+        background-color: #ffffff00;
+        border-radius: 12px;
+        padding: 20px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-dots {
+        bottom: 8px;
+        left: 20px;
+    }
+
+    .hero-dots span {
+        width: 5px;
+        height: 5px;
+        margin-right: 5px;
+    }
+
+    .hero-dots span.active {
+        width: 14px;
+        height: 5px;
+        border-radius: 10px;
+    }
+
+    .kategori h2 {
+        padding: 15px 0;
+        font-size: 18px;
+    }
+
+    .kategori .item {
+        padding: 12px 5px;
+    }
+
+    .kategori .btn-category img {
+        width: 65px;
+        height: 60px;
+    }
+
+    .kategori .btn-category p {
+        font-size: 13px;
+    }
+
+    /* BEST SELLER */
+    .best-col {
+        flex: 0 0 50%;
+        padding: 0 5px;
+    }
+
+
+    .best-card {
+        padding: 6px;
+    }
+
+
+    /* PRODUK */
+    .produk-col {
+        width: 50%;
+        padding: 0 5px;
+    }
+
+
+    .produk-body {
+        padding: 6px;
+    }
+
+
+    .rating {
+        font-size: 10px;
+    }
+
+
+    .produk-title {
+        font-size: 11px;
+        margin-bottom: 4px;
+    }
+
+
+    .harga {
+        font-size: 11px;
+    }
+
+
+    .terjual {
+        font-size: 9px;
+    }
+
+}
+
+/* Garis pembatas antar kolom (desktop) */
+@media (min-width: 768px) {
+    .kategori .item:not(:first-child) {
+        border-left: 4px solid #e5e5e5;
+    }
+}
+
+/* Mobile: garis horizontal */
+@media (max-width: 767px) {
+    .kategori .item {
+        border-bottom: 4px solid #e5e5e5;
+    }
+
+    .kategori .item:last-child {
+        border-bottom: none;
     }
 }

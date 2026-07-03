@@ -483,8 +483,15 @@
                 </div>
                 <div class="modal-body">
                     <p class="text-center mb-3">Apakah Anda yakin ingin menolak pembelian ini?</p>
-                    <label class="form-label fw-semibold">Alasan Penolakan (Opsional)</label>
-                    <textarea id="rejectReason" class="form-control" rows="3" placeholder="Masukkan alasan penolakan..."></textarea>
+                    <label class="form-label fw-semibold">
+                        Alasan Penolakan <span class="text-danger">*</span>
+                    </label>
+
+                    <textarea id="rejectReason" class="form-control" rows="3" placeholder="Masukkan alasan penolakan..." required></textarea>
+
+                    <div id="rejectReasonError" class="text-danger mt-2" style="display:none;">
+                        Alasan penolakan wajib diisi
+                    </div>
                 </div>
                 <div class="modal-footer justify-content-center gap-2">
                     <button class="btn btn-delete-second" data-bs-dismiss="modal">Batal</button>
@@ -640,6 +647,39 @@
                     });
             }
 
+            // FETCH REJECT REASON (jika status sudah reject)
+            function rejectOrder(reason) {
+                showLoading();
+
+                fetch(`/api/admin/${orderId}/reject`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({
+                            reason: reason
+                        })
+                    })
+                    .then(async res => {
+                        const data = await res.json();
+
+                        if (!res.ok || !data.success) {
+                            throw new Error(data.message || 'Gagal menolak pesanan');
+                        }
+
+                        return data;
+                    })
+                    .then(data => {
+                        hideLoading();
+                        showSuccess('Berhasil Menolak Pembelian');
+                    })
+                    .catch(err => {
+                        hideLoading();
+                        showError(err.message);
+                    });
+            }
             // Button handlers
             const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
             const rejectModal = new bootstrap.Modal(document.getElementById('rejectModal'));
@@ -691,9 +731,23 @@
 
             // Confirm reject button
             document.getElementById('confirmRejectBtn')?.addEventListener('click', () => {
-                const reason = document.getElementById('rejectReason').value;
+
+                const reasonInput = document.getElementById('rejectReason');
+                const errorText = document.getElementById('rejectReasonError');
+
+                const reason = reasonInput.value.trim();
+
+                if (!reason) {
+                    errorText.style.display = 'block';
+                    reasonInput.focus();
+                    return;
+                }
+
+                errorText.style.display = 'none';
+
                 rejectModal.hide();
-                updateStatus('cancelled', reason);
+
+                rejectOrder(reason);
             });
         });
     </script>

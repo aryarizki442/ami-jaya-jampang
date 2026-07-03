@@ -387,7 +387,7 @@
                         <option value="shipped">Dikirim / Dijemput</option>
                         <option value="completed">Selesai</option>
                         <option value="cancelled">Dibatalkan</option>
-                        <option value="rejected">Ditolak</option>
+                        <option value="refunded">Ditolak</option>
                     </select>
 
                     {{-- <div class="small text-muted mb-1">Kategori Produk</div>
@@ -773,6 +773,10 @@
                     return 'Dibatalkan';
                 }
 
+                if (status === 'refunded') {
+                    return 'Ditolak';
+                }
+
                 // Mapping untuk rejected (ditolak admin)
                 if (status === 'rejected') {
                     return 'Ditolak';
@@ -799,6 +803,10 @@
                         return 'badge-pickup';
                     }
                     return 'badge-shipped';
+                }
+
+                if (status === 'refunded') {
+                    return 'badge-rejected';
                 }
 
                 // Mapping untuk rejected
@@ -885,7 +893,8 @@
                                 shipped: 3,
                                 completed: 4,
                                 cancelled: 5,
-                                rejected: 6
+                                rejected: 6,
+                                refunded: 7
                             };
                             const statusA = priority[a.status] || 999;
                             const statusB = priority[b.status] || 999;

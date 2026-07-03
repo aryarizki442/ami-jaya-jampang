@@ -232,7 +232,7 @@
         }
 
         .checkout-items-scroll {
-            max-height: 280px;
+            max-height: 220px;
             overflow-y: auto;
         }
 
@@ -301,7 +301,7 @@
                                         <div class="card mb-2 p-3">
                                             <div class="d-flex align-items-center gap-3">
                                                 <img src="{{ $item->product->image_url }}" class="flex-shrink-0"
-                                                    width="100" height="100" style="border-radius: 8px">
+                                                    width="100" height="100%" style="border-radius: 8px">
 
                                                 <div class="flex-grow-1">
                                                     <p class="mb-0 fw-medium">
@@ -342,7 +342,7 @@
                                             Di Antar Oleh Penjual Ke Alamat Pembeli
                                         </label>
                                         <input class="form-check-input ms-2" type="radio" name="shipping"
-                                            id="antar" value="antar"
+                                            id="antar" value="delivery"
                                             {{ $totalQty < 15 ? 'disabled' : 'checked' }}>
                                     </div>
 
@@ -374,9 +374,8 @@
                                         <div class="d-flex align-items-center gap-2">
                                             <span class="iconify" data-icon="hugeicons:pickup-01"
                                                 style="font-size: 20px;"></span>
-
-                                            <span class="fw-medium">
-                                                Ongkos Kirim (Rp.25.000–Rp.50.000)
+                                            <span class="fw-medium" id="ongkirInfo">
+                                                Ongkos Kirim(Rp. 2.000 Per Karung)
                                             </span>
                                         </div>
                                     </div>
@@ -720,7 +719,7 @@
             const payload = {
                 address_id: parseInt(addressId),
                 payment_method_id: parseInt(selectedPayment.value),
-                delivery_method: selectedDelivery.value === 'antar' ? 'delivery' : 'pickup',
+                delivery_method: selectedDelivery.value,
                 note: note,
                 item_ids: itemIds
             };
@@ -823,8 +822,8 @@
 
             let ongkir = 0;
 
-            // default pickup
-            if (selectedDelivery?.value === 'antar') {
+
+            if (selectedDelivery?.value === 'delivery') {
 
                 try {
 
@@ -836,38 +835,45 @@
                         }
                     });
 
+
                     const result = await response.json();
+
 
                     if (result.success) {
 
-                        if (!result.data.can_delivery) {
+                        if (result.data.can_delivery) {
+
+                            ongkir = result.data.shipping_cost;
+
+                        } else {
 
                             alert(result.data.info);
 
                             document.querySelector(
-                                'input[name="shipping"][value="pickup"]'
+                                'input[value="pickup"]'
                             ).checked = true;
 
                             ongkir = 0;
-
-                        } else {
-
-                            ongkir = result.data.shipping_cost;
                         }
                     }
+
 
                 } catch (error) {
 
                     console.error(error);
+
                 }
+
             }
 
-            // update UI
-            document.getElementById('ongkirDisplay').textContent =
+
+            document.getElementById('ongkirDisplay').innerText =
                 'Rp.' + ongkir.toLocaleString('id-ID');
 
-            document.getElementById('totalTagihan').textContent =
+
+            document.getElementById('totalTagihan').innerText =
                 'Rp.' + (subtotal + ongkir).toLocaleString('id-ID');
+
         }
 
         // event shipping change

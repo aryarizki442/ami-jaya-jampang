@@ -6,15 +6,15 @@
 
     <style>
         /* =======================
-                                                                         TYPOGRAPHY
-                                                                        ======================= */
+                                                                                     TYPOGRAPHY
+                                                                                    ======================= */
         .title-cart {
             font-size: 28px;
         }
 
         /* =======================
-                                                                           CART ITEM & CARD
-                                                                        ======================= */
+                                                                                       CART ITEM & CARD
+                                                                                    ======================= */
         .cart-item,
         .card {
             background-color: #fff;
@@ -32,8 +32,8 @@
         }
 
         /* =======================
-                                                                        FORM CHECKBOX
-                                                                        ======================= */
+                                                                                    FORM CHECKBOX
+                                                                                    ======================= */
         .form-check {
             background-color: #fff;
             border: 1px solid #F6F6F6;
@@ -61,8 +61,8 @@
         }
 
         /* =======================
-                                                                         QUANTITY CONTROL
-                                                                        ======================= */
+                                                                                     QUANTITY CONTROL
+                                                                                    ======================= */
         .qty-group {
             border: 1px solid #adadad;
             border-radius: 5px;
@@ -99,8 +99,8 @@
         }
 
         /* =======================
-                                                                                                                                                                                                               CART CONTAINER
-                                                                                                                                                                                                            ======================= */
+                                                                                                                                                                                                                           CART CONTAINER
+                                                                                                                                                                                                                        ======================= */
         .cart-scroll {
             max-height: 650px;
             overflow-y: auto;
@@ -114,8 +114,8 @@
         }
 
         /* =======================
-                                                                                                                                                                                                               SKELETON LOADING
-                                                                                                                                                                                                            ======================= */
+                                                                                                                                                                                                                           SKELETON LOADING
+                                                                                                                                                                                                                        ======================= */
         .skeleton {
             background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
             background-size: 200% 100%;
@@ -134,8 +134,8 @@
         }
 
         /* =======================
-                                                                                                                                                                                                               TOAST NOTIFICATION
-                                                                                                                                                                                                            ======================= */
+                                                                                                                                                                                                                           TOAST NOTIFICATION
+                                                                                                                                                                                                                        ======================= */
         #cartToast {
             position: fixed;
             bottom: 24px;
@@ -153,8 +153,8 @@
         }
 
         /* =======================
-                                                                                                                                                                                                               RESPONSIVE
-                                                                                                                                                                                                            ======================= */
+                                                                                                                                                                                                                           RESPONSIVE
+                                                                                                                                                                                                                        ======================= */
         @media (max-width: 576px) {
             .qty-group {
                 max-width: 80px;
@@ -228,7 +228,7 @@
             <div class="mt-5 mb-5">
                 <h6 class="fw-bold text-custom-green mb-3">Rekomendasi Untukmu</h6>
                 <div class="row g-3 produk-row">
-                    @forelse ($recommendedProducts as $product)
+                    @forelse ($recommendedProducts->take(5) as $product)
                         <div class="best-col">
 
                             <div class="best-card rounded h-100 d-flex flex-column">
@@ -243,7 +243,7 @@
                                         <div class="rating mb-3">★★★★★</div>
 
                                         <p class="best-title mb-3">
-                                            {{ $product->weight ?? '1 Liter' }} {{ $product->name }}<br>
+                                            {{ $product->weight }} {{ $product->name }}<br>
                                         </p>
 
                                         <div class="best-footer">

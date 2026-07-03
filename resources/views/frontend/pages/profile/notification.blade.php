@@ -236,6 +236,39 @@
             font-size: 12px;
             z-index: 10;
         }
+
+        .notif-description-header {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1F7D53;
+            margin-bottom: 14px;
+        }
+
+
+        .notif-description-box {
+            margin-top: 20px;
+            padding: 16px;
+            background: #f8faf9;
+            border-radius: 12px;
+            border: 1px solid #e8eee9;
+        }
+
+
+        .notif-description-content {
+            color: #555;
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+
+        .notif-description-content p {
+            margin-bottom: 10px;
+        }
+
+
+        .notif-description-content p:last-child {
+            margin-bottom: 0;
+        }
     </style>
 
     <div class="notif-title mt-5">
@@ -350,14 +383,10 @@
                     title = 'Pesanan anda selesai';
                     break;
                 case 'cancelled':
+                case 'refunded':
                     iconClass = 'notif-danger';
                     icon = 'mdi:close-circle';
                     title = 'Pesanan anda dibatalkan';
-                    break;
-                case 'refunded':
-                    iconClass = 'notif-warning';
-                    icon = 'mdi:currency-usd-off';
-                    title = 'Pesanan telah direfund';
                     break;
                 case 'expired':
                     iconClass = 'notif-danger';
@@ -541,40 +570,53 @@
                     statusText = 'Selesai';
                     break;
                 case 'cancelled':
+                case 'refunded':
                     statusText = 'Dibatalkan';
                     break;
+
                 default:
                     statusText = order.status;
             }
 
+            const description = getNotifDescription(order.status);
+
             const modalBody = `
-                <div class="modal-status-icon ${iconClass}" style="width: 60px; height: 60px; margin: 0 auto 16px;">
-                    <iconify-icon icon="${icon}" style="font-size: 30px;"></iconify-icon>
-                </div>
-                <div class="modal-status-title">${title}</div>
-                <div class="modal-status-time">${formatShortDate(order.created_at)}</div>
+    <div class="modal-status-icon ${iconClass}"
+        style="width:60px;height:60px;margin:0 auto 16px;">
+        <iconify-icon
+            icon="${icon}"
+            style="font-size:30px;">
+        </iconify-icon>
+    </div>
 
-                <div class="modal-divider"></div>
+    <div class="modal-status-title">
+        ${title}
+    </div>
 
-                <div class="modal-info-row">
-                    <span class="modal-info-label">No. Pesanan</span>
-                    <span class="modal-info-value">${order.order_number || '#' + order.id}</span>
-                </div>
-                <div class="modal-info-row">
-                    <span class="modal-info-label">Status</span>
-                    <span class="modal-info-value">${statusText}</span>
-                </div>
-                <div class="modal-info-row">
-                    <span class="modal-info-label">Total Pembayaran</span>
-                    <span class="modal-info-value">${formatRupiah(order.total_amount || 0)}</span>
-                </div>
-                ${order.shipping_address ? `
-                                                                                                        <div class="modal-info-row">
-                                                                                                            <span class="modal-info-label">Alamat Pengiriman</span>
-                                                                                                            <span class="modal-info-value">${order.shipping_address}</span>
-                                                                                                        </div>
-                                                                                                        ` : ''}
-            `;
+    <div class="modal-status-time">
+        ${formatShortDate(order.created_at)}
+    </div>
+
+
+    ${order.shipping_address ? `
+                                          <div class="modal-info-row">
+                                         <span class="modal-info-label">
+                                          Alamat Pengiriman
+                                          </span>
+                                        <span class="modal-info-value">
+                                             ${order.shipping_address}
+                                             </span>
+                                          </div>
+                                          ` : ''}
+
+
+    ${description ? `
+                                          <div class="modal-divider"></div>
+                                        <div>
+                                        ${description}
+                                        </div>
+                                           ` : ''}
+`;
 
             document.getElementById('modalBody').innerHTML = modalBody;
 
@@ -582,6 +624,124 @@
                 notifModal = new bootstrap.Modal(document.getElementById('notifModal'));
             }
             notifModal.show();
+        }
+
+        function getNotifDescription(status) {
+
+            let content = '';
+
+            switch (status) {
+
+                case 'cancelled':
+                    content = `
+                <p>Anda telah membatalkan pesanan ini.
+                Terima kasih telah menggunakan layanan kami.
+                    Jika diperlukan, Anda dapat melakukan pemesanan kembali kapan saja.
+                    </p>
+            `;
+                    break;
+
+
+                case 'refunded':
+                    content = `
+                <p>
+                    Mohon maaf, pesanan Anda telah dibatalkan oleh penjual karena alasan tertentu.
+
+                    Seperti stok produk tidak tersedia, kendala operasional,
+                    atau informasi pesanan yang tidak dapat diproses.
+
+                    Jika pembayaran telah dilakukan, dana akan dikembalikan
+                    dengan berkomunikasi dengan penjual terlebih dahulu.
+                <p>Terimakasih.</p>
+            `;
+                    break;
+
+
+                case 'completed':
+                    content = `
+                <p><strong>Pesanan Anda telah selesai!</strong>
+
+                    Terima kasih telah berbelanja bersama kami.
+                    Kami berharap produk yang Anda terima sesuai dengan harapan Anda.
+
+                    Jangan lupa berikan ulasan dan penilaian untuk membantu kami
+                    meningkatkan kualitas layanan.
+
+               <p> Selamat menikmati produk Anda!</p>
+            `;
+                    break;
+
+
+                case 'shipped':
+                    content = `
+                <p>
+                    Pesanan Anda sedang dalam perjalanan menuju alamat tujuan.
+
+                    Silakan menunggu hingga pesanan sampai.
+
+                <p>
+                Terimakasih.</p>
+            `;
+                    break;
+
+
+                case 'ready_for_pickup':
+                    content = `
+                <p>
+                    Pesanan Anda telah selesai dipersiapkan dan siap untuk diambil
+                    di lokasi toko.
+
+                    Silakan datang sesuai jam operasional dengan menunjukkan
+                    nomor pesanan.
+                </p>
+            `;
+                    break;
+
+
+                case 'awaiting_payment':
+                case 'pending':
+                    content = `
+                <p>
+                    Pesanan Anda telah kami terima dan saat ini menunggu pembayaran.
+
+                    Silakan lakukan pembayaran sebelum batas waktu yang ditentukan
+                    agar pesanan dapat segera diproses.
+                </p>
+            `;
+                    break;
+
+
+                case 'paid':
+                case 'processing':
+                    content = `
+                <p>
+                    Pesanan Anda sedang dipersiapkan oleh penjual.
+
+                    Kami akan segera mengirimkan informasi lebih lanjut setelah
+                    pesanan siap dikirim atau diambil.
+                </p>
+            `;
+                    break;
+
+
+                default:
+                    return '';
+            }
+
+
+            return `
+        <div class="notif-description-box">
+
+            <div class="notif-description-header">
+                Informasi Pesanan
+            </div>
+
+            <div class="notif-description-content">
+                ${content}
+            </div>
+
+        </div>
+    `;
         }
 
         function formatRupiah(angka) {

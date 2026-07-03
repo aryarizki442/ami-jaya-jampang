@@ -4,12 +4,9 @@
 
 @section('hero')
     <section class="hero-bg">
-        <section class="hero">
-            <div class="hero-dots">
-                <span class="active"></span>
-                <span></span>
-                <span></span>
-            </div>
+        <section class="hero" id="hero">
+            <div class="hero-track" id="heroTrack"></div>
+            <div class="hero-dots" id="heroDots"></div>
         </section>
     </section>
 @endsection
@@ -63,7 +60,7 @@
                                         <div class="rating mb-3">★★★★★</div>
 
                                         <p class="best-title mb-3">
-                                            {{ $product->weight ?? '1 Liter' }} {{ $product->name }}<br>
+                                            {{ $product->weight }} {{ $product->name }}<br>
                                         </p>
 
                                         <div class="best-footer">
@@ -94,7 +91,7 @@
             <!-- Grid Produk -->
             <div class="row g-3 produk-row">
 
-                @forelse ($products as $product)
+                @forelse ($products->take(10) as $product)
                     <div class="produk-col">
                         <a href="{{ route('detail-product', $product->slug) }}" class="text-decoration-none text-dark">
                             <div class="produk-card rounded">
@@ -107,7 +104,7 @@
                                     <div class="rating mb-3">★★★★★</div>
 
                                     <p class="produk-title mb-3">
-                                        {{ $product->weight ?? '1 Liter' }} {{ $product->name }}<br>
+                                        {{ $product->weight }} {{ $product->name }}<br>
                                     </p>
 
                                     <div class="produk-footer">
@@ -143,50 +140,70 @@
 
     </div>
     <script>
-        const hero = document.querySelector('.hero');
-        const dots = document.querySelectorAll('.hero-dots span');
+        const hero = document.getElementById('hero');
+        const dotsContainer = document.getElementById('heroDots');
 
-        const images = [
-            '/images/home/bg-hero1.png',
-            '/images/home/bg-hero2.png',
-            '/images/home/bg-hero3.png'
-        ];
-
+        let images = [];
         let currentIndex = 0;
+        let track;
 
-        function changeSlide(index) {
+        async function loadHero() {
+            const res = await fetch('/api/settings');
+            const result = await res.json();
 
-            hero.style.backgroundImage =
-                `url('${images[index]}')`;
+            if (!result.success) return;
 
-            dots.forEach(dot =>
-                dot.classList.remove('active')
-            );
+            const data = result.data;
 
-            dots[index].classList.add('active');
+            images = [
+                    data.carousel_1,
+                    data.carousel_2,
+                    data.carousel_3
+                ]
+                .filter(Boolean)
+                .map(img => `/storage/${img}`);
 
-            currentIndex = index;
+            if (!images.length) return;
+
+            initSlider();
         }
 
-        // Auto slide tiap 4 detik
-        setInterval(() => {
+        function initSlider() {
+            track = document.querySelector('.hero-track');
+            const dotsContainer = document.getElementById('heroDots');
 
-            let next = currentIndex + 1;
+            track.innerHTML = images.map(img => `
+        <div class="hero-slide" style="background-image:url('${img}')"></div>
+    `).join('');
 
-            if (next >= images.length) {
-                next = 0;
+            dotsContainer.innerHTML = images.map((_, i) =>
+                `<span class="${i === 0 ? 'active' : ''}"></span>`
+            ).join('');
+
+            const dots = dotsContainer.querySelectorAll('span');
+
+            function goTo(index) {
+                track.style.transform = `translateX(-${index * 100}%)`;
+
+                dots.forEach(d => d.classList.remove('active'));
+                if (dots[index]) dots[index].classList.add('active');
+
+                currentIndex = index;
             }
 
-            changeSlide(next);
+            goTo(0);
 
-        }, 4000);
+            setInterval(() => {
+                currentIndex = (currentIndex + 1) % images.length;
+                goTo(currentIndex);
+            }, 4000);
 
-        // Klik dot
-        dots.forEach((dot, index) => {
-            dot.addEventListener('click', () => {
-                changeSlide(index);
+            dots.forEach((dot, i) => {
+                dot.addEventListener('click', () => goTo(i));
             });
-        });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadHero);
     </script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {

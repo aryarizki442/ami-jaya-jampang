@@ -63,23 +63,42 @@ public function index()
     return view('frontend.pages.detail-product', compact('product', 'products', 'recommendedProducts'));
 }
 
-    public function productAll()
-    {
-        $categories = Category::with('products')->get();
+public function productAll(Request $request)
+{
+    $query = Product::with('category')
+        ->where('is_active', 1);
 
-        $products = Product::latest()->get();
 
-        $recommendedProducts = Product::where('is_active', 1)
-            ->where('is_recommended', 1)
-            ->latest()
-            ->get();
-
-        return view('frontend.pages.all-product', compact(
-            'categories',
-            'products',
-            'recommendedProducts'
-        ));
+    // SEARCH DARI NAVBAR
+    if ($request->filled('search')) {
+        $query->where(
+            'name',
+            'like',
+            '%' . $request->search . '%'
+        );
     }
+
+
+    // FILTER CATEGORY (opsional)
+    if ($request->filled('category_id')) {
+        $query->where(
+            'category_id',
+            $request->category_id
+        );
+    }
+
+
+    $products = $query->get();
+
+
+    $categories = Category::all();
+
+
+    return view('frontend.pages.all-product', compact(
+    'products',
+    'categories'
+));
+}
     public function cart()
 {
     $recommendedProducts = Product::where('is_active', 1)

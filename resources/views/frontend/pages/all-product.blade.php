@@ -13,16 +13,16 @@
             z-index: 1;
         }
 
-        .custom-dropdown {
-            border: 1px solid #1F7D53;
-            border-radius: 6px;
-            position: relative;
-        }
+        /* .custom-dropdown {
+                                                                border: 1px solid #1F7D53;
+                                                                border-radius: 6px;
+                                                                position: relative;
+                                                            }
 
-        .dropdown-list {
-            border-top: 1px solid #1F7D53;
-            display: none;
-        }
+                                                            .dropdown-list {
+                                                                border-top: 1px solid #1F7D53;
+                                                                display: none;
+                                                            } */
 
         .produk-grid {
             display: flex;
@@ -39,37 +39,73 @@
             display: flex;
             justify-content: center;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 25px;
             margin: 0;
         }
 
         .kategori-tab {
-            min-width: 110px;
-            padding: 10px 20px;
+            padding: 10px 5px;
 
-            border: 1px solid #1F7D53;
-            border-top: 0;
+            background: transparent;
+            border: none;
 
-            border-radius: 0 0 8px 8px;
-
-            background: #fff;
-            color: #1F7D53;
-
+            color: #9CA1AA;
             font-size: 15px;
             font-weight: 600;
+
             cursor: pointer;
+            position: relative;
             transition: all .2s ease;
         }
 
         .kategori-tab:hover {
-            background: #f3faf6;
-            transform: translateY(-1px);
+            color: #1F7D53;
         }
 
+        /* garis bawah saat aktif */
         .kategori-tab.active {
+            color: #1F7D53;
+        }
+
+        .kategori-tab::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: 3px;
+
+            width: 100%;
+            height: 2px;
+
             background: #1F7D53;
-            color: #fff;
-            border-color: #1F7D53;
+
+            transform: scaleX(0);
+            transform-origin: center;
+            transition: transform .25s ease;
+        }
+
+        .kategori-tab.active::after {
+            transform: scaleX(1);
+        }
+
+        .empty-product {
+            width: 100%;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #777;
+        }
+
+        .empty-product iconify-icon {
+            font-size: 60px;
+            color: #1F7D53;
+        }
+
+        .empty-product h5 {
+            color: #1F7D53;
+            font-weight: 600;
         }
 
         /* tablet */
@@ -82,22 +118,27 @@
         /* mobile */
         @media (max-width: 576px) {
             .kategori-tabs {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 8px;
-                width: 100%;
+                display: flex;
+                justify-content: flex-start;
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                gap: 20px;
+                padding: 10px 15px;
             }
 
             .kategori-tab {
-                width: 100%;
-                min-width: unset;
-                padding: 10px 12px;
-                border: 1px solid #1F7D53;
-                border-radius: 8px;
-                font-size: 12px;
+                min-width: max-content;
+                padding: 8px 0;
+
+                border: none;
+                border-radius: 0;
+
+                font-size: 13px;
                 font-weight: 500;
-                text-align: center;
-                margin-top: 10px;
+            }
+
+            .kategori-tab.active::after {
+                bottom: 0;
             }
 
             .produk-item {
@@ -138,7 +179,7 @@
         @endforeach
     </div>
 
-    <div class="produk-grid mt-4 mb-5">
+    <div class="produk-grid mt-4 mb-5" id="produkGrid" style="min-height:300px;">
 
         @forelse ($products as $product)
             <div class="produk-item" data-category="{{ $product->category_id }}">
@@ -153,10 +194,12 @@
 
                         <div class="produk-body p-2">
 
-                            <div class="rating mb-2">★★★★★</div>
+                            <div class="rating mb-2">
+                                ★★★★★
+                            </div>
 
                             <p class="produk-title mb-2">
-                                {{ $product->weight ?? '1 Liter' }} {{ $product->name }}
+                                {{ $product->weight }} {{ $product->name }}
                             </p>
 
                             <div class="produk-footer">
@@ -178,9 +221,24 @@
                 </a>
 
             </div>
+
+
         @empty
-            <div class="col-12 text-center">
-                <p class="text-muted">Produk belum tersedia</p>
+
+            <div class="empty-product">
+
+                <iconify-icon icon="majesticons:search-line"></iconify-icon>
+
+                <h5 class="mt-3">
+                    Produk tidak tersedia
+                </h5>
+
+                <p>
+                    Produk dengan kata kunci
+                    <b>"{{ request('search') }}"</b>
+                    tidak ditemukan.
+                </p>
+
             </div>
         @endforelse
 

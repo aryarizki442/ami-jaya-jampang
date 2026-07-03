@@ -202,7 +202,7 @@
                         Chat Penjual
                     </button>
 
-                    <button class="btn btn-main btn-reorder px-4 py-1 fw-semibold rounded-3" id="trxReorderBtn"
+                    <button class="btn btn-main px-4 py-1 fw-semibold rounded-3" id="trxReorderBtn"
                         style="display:none;">
                         Beli Lagi
                     </button>
@@ -220,34 +220,6 @@
     </div>
 </div>
 
-{{-- MODAL BELI LAGI --}}
-<div class="modal fade" id="reorderModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 rounded-4">
-
-            <div class="modal-body text-center p-4">
-
-                <div class="mb-3">
-                    <i class="bi bi-check-circle-fill text-success" style="font-size:60px;"></i>
-                </div>
-
-                <h5 class="fw-bold" id="reorderModalTitle">
-                    Berhasil
-                </h5>
-
-                <p class="text-muted mb-4" id="reorderModalMessage">
-                    Produk berhasil dimasukkan ke keranjang
-                </p>
-
-                <button class="btn btn-main px-5 rounded-3" data-bs-dismiss="modal">
-                    OK
-                </button>
-
-            </div>
-
-        </div>
-    </div>
-</div>
 <script>
     // Variabel untuk menyimpan orderId yang sedang diproses
     let currentOrderForPayment = null;
@@ -284,10 +256,59 @@
             });
 
             const orderJson = await orderRes.json();
-            const order = orderJson.data;
+            let order = orderJson.data;
+
+            document.getElementById('trxOrderInfo').style.display = 'block';
+            document.getElementById('trxCancelDetail').style.display = 'none';
+
+
+            // Jika status refunded, ambil detail reject dari API admin
+            if (order.status === 'refunded') {
+
+                try {
+
+                    const adminRes = await fetch(`/api/admin/orders?page=1`, {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            Accept: 'application/json'
+                        }
+                    });
+
+                    const adminJson = await adminRes.json();
+
+                    const adminOrder = adminJson.data.data.find(
+                        item => item.id == orderId
+                    );
+
+
+                    console.log('=== ADMIN ORDER DETAIL ===');
+                    console.log(adminOrder);
+
+
+                    if (adminOrder) {
+
+                        order.cancel_reason = adminOrder.cancel_reason;
+                        order.cancelled_at = adminOrder.updated_at;
+                        order.cancel_by = 'admin';
+
+                    }
+
+
+                } catch (err) {
+
+                    console.error(
+                        'Gagal mengambil data admin order:',
+                        err
+                    );
+
+                }
+            }
             const trxOrderInfo = document.getElementById('trxOrderInfo');
 
-            if (order.status === 'cancelled' || order.status === 'refunded') {
+            if (
+                order.status === 'cancelled' ||
+                order.status === 'refunded'
+            ) {
                 trxOrderInfo.style.display = 'none';
             } else {
                 trxOrderInfo.style.display = 'block';
@@ -296,17 +317,18 @@
                 throw new Error('Data order tidak ditemukan');
             }
 
-            console.log('ORDER DETAIL:', order);
-            console.log('===== DETAIL ORDER =====');
-            console.log('ID Order:', order.id);
-            console.log('Nomor Order:', order.order_number);
+            console.log('========== ORDER DETAIL DEBUG ==========');
+            console.log('Full Order:', order);
             console.log('Status:', order.status);
-            console.log('Cancel Reason:', order.cancel_reason);
-            console.log('Created At:', order.created_at);
-            console.log('Updated At:', order.updated_at);
-            console.log('Items:', order.items);
-            console.log('Payment:', order.payment);
-            console.log('========================');
+
+            console.log('cancel_reason:', order.cancel_reason);
+            console.log('cancelled_reason:', order.cancelled_reason);
+            console.log('reason:', order.reason);
+            console.log('cancelled_by:', order.cancelled_by);
+            console.log('cancel_by:', order.cancel_by);
+            console.log('cancelledBy:', order.cancelledBy);
+
+            console.log('========================================');
 
             // Isi data ke modal
             // Status - gunakan status_label dari response
@@ -375,6 +397,7 @@
 
             const contactSellerBtn = document.getElementById('trxContactSellerBtn');
 
+
             // Reset tombol
             if (cancelBtn) {
                 cancelBtn.style.display = 'none';
@@ -423,15 +446,8 @@
 
                 if (reorderBtn) {
                     reorderBtn.style.display = 'flex';
-
-                    // simpan id order
-                    reorderBtn.dataset.id = order.id;
-
-                    reorderBtn.onclick = function() {
-                        reorderOrder(this.dataset.id, this);
-                    };
+                    reorderBtn.onclick = () => reorderOrder(order.id);
                 }
-
             } else if (
                 order.status === 'cancelled' ||
                 order.status === 'refunded'
@@ -453,9 +469,34 @@
                     cancelDetail.style.display = 'block';
                 }
 
-                const isSellerCancel = order.status === 'refunded';
+
+                // selalu tampilkan nomor pesanan
+                if (rowOrderNumber) {
+                    rowOrderNumber.style.display = 'flex';
+                }
+
+                if (orderNumberCancel) {
+                    orderNumberCancel.textContent =
+                        order.order_number || '#' + order.id;
+                }
 
 
+                // cek siapa yang membatalkan
+                const reason =
+                    order.cancel_reason ||
+                    order.cancelled_reason ||
+                    order.reason ||
+                    (order.cancellation && order.cancellation.reason);
+
+
+                // Jika ada reason berarti admin melakukan penolakan
+                const isSellerCancel =
+                    order.status === 'refunded' ||
+                    order.cancel_by === 'admin';
+
+                if (cancelBy) {
+                    cancelBy.innerText = isSellerCancel ? 'Penjual' : 'Pembeli';
+                }
                 // tanggal pesanan
                 if (orderDateCancel) {
                     orderDateCancel.innerText =
@@ -475,7 +516,6 @@
                 // nomor pesanan hanya tampil jika penjual yang membatalkan
                 if (isSellerCancel) {
 
-                    // Admin / Penjual
                     if (rowOrderNumber) {
                         rowOrderNumber.style.display = 'flex';
                     }
@@ -487,50 +527,39 @@
 
                 } else {
 
-                    // Pembeli
                     if (rowOrderNumber) {
                         rowOrderNumber.style.display = 'none';
                     }
 
                 }
-                if (isSellerCancel) {
+                if (rejectReasonWrapper) {
 
-                    if (cancelBy) {
-                        cancelBy.innerText = 'Penjual';
-                    }
+                    const reason =
+                        order.cancel_reason ||
+                        order.cancelled_reason ||
+                        order.reason;
 
-                    if (rejectReasonWrapper) {
+
+                    if ((order.status === 'refunded' || order.status === 'cancelled') && reason) {
+
                         rejectReasonWrapper.style.display = 'block';
-                    }
 
-                    if (rejectReason) {
-                        rejectReason.innerText =
-                            order.cancel_reason || 'Tidak ada alasan';
-                    }
+                        if (rejectReason) {
+                            rejectReason.innerText = reason;
+                        }
 
-                } else {
+                    } else {
 
-                    if (cancelBy) {
-                        cancelBy.innerText = 'Pembeli';
-                    }
-
-                    if (rejectReasonWrapper) {
                         rejectReasonWrapper.style.display = 'none';
-                    }
 
+                    }
                 }
 
 
                 // tombol hubungi penjual
                 if (contactSellerBtn) {
-
-                    if (isSellerCancel) {
-                        contactSellerBtn.style.display = 'flex';
-                        contactSellerBtn.onclick = () => contactSeller(order);
-                    } else {
-                        contactSellerBtn.style.display = 'none';
-                    }
-
+                    contactSellerBtn.style.display = 'flex';
+                    contactSellerBtn.onclick = () => contactSeller(order);
                 }
 
 
@@ -699,7 +728,7 @@
             'ready_to_pickup': '<span class="fw-semibold">Siap Diambil</span>',
             'completed': '<span class="fw-semibold">Selesai</span>',
             'cancelled': '<span class="text-danger fw-semibold">Pesanan Dibatalkan</span>',
-            'refunded': '<span class="text-danger fw-semibold">Dikembalikan</span>'
+            'refunded': '<span class="text-danger fw-semibold">Pesanan Dibatalkan</span>'
         };
         return statusMap[status] || status;
     }
@@ -755,6 +784,87 @@
                 cancelBtn.innerHTML = 'Batalkan Pesanan';
             }
         }
+    }
+
+    async function reorderOrder(orderId) {
+        const token = localStorage.getItem('token');
+
+        const btn = document.getElementById('trxReorderBtn');
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = `
+            <span class="spinner-border spinner-border-sm"></span>
+            Memproses...
+        `;
+        }
+
+
+        try {
+
+            const response = await fetch(`/api/orders/${orderId}/reorder`, {
+
+                method: 'POST',
+
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json'
+                }
+
+            });
+
+
+            const result = await response.json();
+
+
+            if (result.success) {
+
+                showAlert(
+                    result.message || 'Produk berhasil ditambahkan ke keranjang',
+                    'success'
+                );
+
+
+                setTimeout(() => {
+
+                    window.location.href = "/cart";
+
+                }, 1000);
+
+
+            } else {
+
+                throw new Error(
+                    result.message || 'Gagal membeli ulang'
+                );
+
+            }
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            showAlert(
+                error.message || 'Terjadi kesalahan',
+                'error'
+            );
+
+
+        } finally {
+
+            if (btn) {
+
+                btn.disabled = false;
+
+                btn.innerHTML =
+                    '<i class="bi bi-cart-plus"></i> Beli Lagi';
+
+            }
+
+        }
+
     }
 
     function chatSeller(order) {
@@ -897,129 +1007,5 @@
             }
         `;
         document.head.appendChild(style);
-    }
-</script>
-<script>
-    document.addEventListener('click', function(e) {
-
-        const btn = e.target.closest('.btn-reorder');
-
-        if (!btn) return;
-
-        const orderId = btn.dataset.id;
-
-        reorderOrder(orderId, btn);
-
-    });
-
-
-    async function reorderOrder(orderId, btn) {
-
-        const token = localStorage.getItem('token');
-
-        if (!token) {
-            window.location.href = "{{ route('login') }}";
-            return;
-        }
-
-
-        if (btn) {
-            btn.disabled = true;
-            btn.innerHTML = `
-                <span class="spinner-border spinner-border-sm"></span>
-                Memproses...
-            `;
-        }
-
-
-        try {
-
-            const response = await fetch(
-                `/api/orders/${orderId}/reorder`, {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
-
-
-            const result = await response.json();
-
-
-            if (!response.ok || !result.success) {
-                throw new Error(
-                    result.message || 'Gagal membeli ulang'
-                );
-            }
-
-
-            showReorderModal(
-                result.message || 'Produk berhasil dimasukkan ke keranjang',
-                'success'
-            );
-
-
-            // pindah ke halaman cart
-            setTimeout(() => {
-
-                window.location.href = "{{ route('cart') }}";
-
-            }, 1500);
-
-
-        } catch (error) {
-
-            console.error('REORDER ERROR:', error);
-
-            showReorderModal(
-                error.message || 'Terjadi kesalahan',
-                'error'
-            );
-
-            if (btn) {
-                btn.disabled = false;
-                btn.innerHTML = 'Beli Lagi';
-            }
-
-        }
-
-    }
-
-    function showReorderModal(message, type = 'success') {
-
-        const modal = document.getElementById('reorderModal');
-
-        const icon = modal.querySelector('i');
-        const title = document.getElementById('reorderModalTitle');
-        const text = document.getElementById('reorderModalMessage');
-
-
-        if (type === 'success') {
-
-            icon.className =
-                'bi bi-check-circle-fill text-success';
-
-            title.innerText = 'Berhasil';
-
-        } else {
-
-            icon.className =
-                'bi bi-x-circle-fill text-danger';
-
-            title.innerText = 'Gagal';
-
-        }
-
-
-        text.innerText = message;
-
-
-        const bsModal = bootstrap.Modal.getOrCreateInstance(modal);
-
-        bsModal.show();
-
     }
 </script>

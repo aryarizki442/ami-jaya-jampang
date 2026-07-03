@@ -506,17 +506,7 @@
 
                                 <div class="d-flex gap-2">
 
-                               <button
-                                    class="btn btn-second btn-sm btn-payment-guide"
-                                    data-bank="${order.payment_method}"
-                                    data-va="${
-                                        paymentDetail?.virtual_account_number
-                                            ?.split(': ')
-                                            ?.pop() || '-'
-                                    }"
-                                    data-total="${order.total_format}">
-                                    Cara Pembayaran
-                                </button>
+
 
                                      <button
                         class="btn btn-main btn-sm btn-transaction-detail"
@@ -768,7 +758,10 @@
 
         </div>
     `;
-                        } else if (order.status === 'cancelled') {
+                        } else if (
+                            order.status === 'cancelled' ||
+                            order.status === 'refunded'
+                        ) {
 
                             let allItemsHtml = '';
 
@@ -916,7 +909,10 @@
             }
 
             // Mapping untuk cancelled
-            if (status === 'cancelled') {
+            if (
+                status === 'cancelled' ||
+                status === 'refunded'
+            ) {
                 return 'Dibatalkan';
             }
 

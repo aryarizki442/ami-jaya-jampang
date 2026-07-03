@@ -176,7 +176,7 @@
             </div>
 
             <p class="small text-muted mb-2">
-                Terjual: <span class="text-dark fw-medium">{{ $product->sold ?? 0 }} Karung</span>
+                Terjual: <span class="text-dark fw-medium">{{ $product->total_sold ?? 0 }} Karung</span>
             </p>
 
             <h4 class="fw-bold price-product pb-2">
@@ -255,28 +255,139 @@
         {{-- ULASAN --}}
         <div class="mt-5">
             <h6 class="fw-bold text-custom-green mb-3">Ulasan Pembeli</h6>
-            <div class="border rounded p-4 text-muted text-center">Belum ada ulasan</div>
-        </div>
 
+            <div class="border rounded p-4">
+
+                <div class="row align-items-center">
+
+                    <!-- KIRI : Rating utama -->
+                    <div class="col-md-4 text-center border-end">
+                        <div class="fw-bold" style="font-size:48px; line-height:1;">
+                            4.0 <span style="font-size:24px;">/ 5.0</span>
+                        </div>
+
+                        <div class="text-warning mb-2" style="font-size:20px;">
+                            ★★★★☆
+                        </div>
+
+                        <div class="text-muted small">
+                            80% Pembeli Merasa Puas
+                        </div>
+
+                        <div class="text-muted small">
+                            2 rating - 2 ulasan
+                        </div>
+                    </div>
+
+
+                    <!-- TENGAH : Rating 5,4,3 -->
+                    <div class="col-md-4 px-4 border-end">
+
+                        @foreach ([['5', 0], ['4', 100], ['3', 0]] as $rating)
+                            <div class="d-flex align-items-center mb-2" style="gap:8px;">
+
+                                <span style="width:20px;">
+                                    {{ $rating[0] }}
+                                </span>
+
+                                <span class="text-warning">
+                                    ★
+                                </span>
+
+                                <div class="flex-grow-1">
+                                    <div
+                                        style="
+                            background:#e0e0e0;
+                            height:6px;
+                            border-radius:3px;
+                            overflow:hidden;
+                        ">
+                                        <div
+                                            style="
+                                width:{{ $rating[1] }}%;
+                                background:#2e7d32;
+                                height:100%;
+                            ">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <span style="width:35px;">
+                                    ({{ $rating[1] == 100 ? 2 : 0 }})
+                                </span>
+
+                            </div>
+                        @endforeach
+
+                    </div>
+
+
+                    <!-- KANAN : Rating 2,1 -->
+                    <div class="col-md-4 px-4">
+
+                        @foreach ([['2', 0], ['1', 0]] as $rating)
+                            <div class="d-flex align-items-center mb-2" style="gap:8px;">
+
+                                <span style="width:20px;">
+                                    {{ $rating[0] }}
+                                </span>
+
+                                <span class="text-warning">
+                                    ★
+                                </span>
+
+                                <div class="flex-grow-1">
+                                    <div
+                                        style="
+                            background:#e0e0e0;
+                            height:6px;
+                            border-radius:3px;
+                            overflow:hidden;
+                        ">
+                                        <div
+                                            style="
+                                width:{{ $rating[1] }}%;
+                                background:#2e7d32;
+                                height:100%;
+                            ">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <span style="width:35px;">
+                                    (0)
+                                </span>
+
+                            </div>
+                        @endforeach
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
         {{-- PILIHAN LAINNYA --}}
         <div class="mt-5">
             <h6 class="fw-bold text-custom-green mb-3">Pilihan Lainnya</h6>
 
             <div class="row g-3 produk-row">
-                @forelse ($products as $product)
+                @forelse ($products->take(5) as $otherProduct)
                     <div class="produk-col">
-                        <a href="{{ route('detail-product', $product->slug) }}" class="text-decoration-none text-dark">
+                        <a href="{{ route('detail-product', $otherProduct->slug) }}"
+                            class="text-decoration-none text-dark">
                             <div class="produk-card rounded">
-                                <img src="{{ $product->image ? asset('storage/' . $product->image) : asset('images/home/category/beras-putih.png') }}"
-                                    class="img-fluid" alt="{{ $product->name }}">
+                                <img src="{{ $otherProduct->image ? asset('storage/' . $otherProduct->image) : asset('images/home/category/beras-putih.png') }}"
+                                    class="img-fluid" alt="{{ $otherProduct->name }}">
                                 <div class="produk-body">
                                     <div class="rating mb-3">★★★★★</div>
                                     <p class="produk-title mb-3">
-                                        {{ $product->weight ?? '1 Liter' }} {{ $product->name }}<br>
+                                        {{ $otherProduct->weight }} {{ $otherProduct->name }}<br>
                                     </p>
                                     <div class="produk-footer">
-                                        <span class="harga">Rp. {{ number_format($product->price, 0, ',', '.') }}</span>
-                                        <span class="terjual">Tersedia {{ $product->stock ?? 0 }}</span>
+                                        <span class="harga">Rp.
+                                            {{ number_format($otherProduct->price, 0, ',', '.') }}</span>
+                                        <span class="terjual">Tersedia {{ $otherProduct->stock ?? 0 }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -497,20 +608,34 @@
 
             document.getElementById('btnBeliLangsung').addEventListener('click', async function() {
                 const btn = this;
+
+                const token = localStorage.getItem('token');
+
+                // Belum login → arahkan ke login
+                if (!token) {
+                    showGuestLoginModal();
+                    return;
+                }
+
                 const productId = btn.dataset.productId;
                 const qty = getQty();
 
                 setLoading(btn, true);
+
                 try {
-                    await apiFetch('/api/cart/items', {
+                    const response = await apiFetch('/api/cart/items', {
                         method: 'POST',
                         body: JSON.stringify({
                             product_id: productId,
                             quantity: qty
                         }),
                     });
-                    // Langsung ke halaman keranjang
-                    window.location.href = '{{ route('checkout') }}';
+
+                    const cartItemId = response.data.id;
+
+                    window.location.href =
+                        "{{ route('checkout') }}?items=[" + cartItemId + "]";
+
                 } catch (e) {
                     showToast(e.message || 'Gagal memproses', true);
                     setLoading(btn, false);
@@ -547,13 +672,7 @@
 
 
         function showGuestLoginModal() {
-            const modalEl = document.getElementById('loginRequiredModal');
-
-            if (!modalEl) return;
-
-            setTimeout(() => {
-                bootstrap.Modal.getOrCreateInstance(modalEl).show();
-            }, 10);
+            window.location.href = "{{ route('login') }}";
         }
     </script>
 @endsection

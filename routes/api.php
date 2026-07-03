@@ -241,7 +241,7 @@ Route::get('/products/{product}/reviews', [ProductController::class, 'reviews'])
     Route::put('/general', [SettingController::class, 'updateGeneral']);
     // Update carousel
     Route::post('/carousel', [SettingController::class, 'updateCarousel']);
-    
+    });
 
     //laporan
     Route::prefix('admin/reports')->group(function () {
@@ -259,4 +259,3 @@ Route::get('/products/{product}/reviews', [ProductController::class, 'reviews'])
 
    });
 
-});

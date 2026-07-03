@@ -338,34 +338,11 @@ class OrderController extends Controller
             $qty      = min($item->quantity, $item->product->stock);
             $existing = $cart->items()->where('product_id', $item->product_id)->first();
 
-            // if ($existing) {
-            //     $existing->update(['quantity' => min($existing->quantity + $qty, $item->product->stock), 'is_selected' => 1]);
-            // } else {
-            //     $cart->items()->create(['product_id' => $item->product_id, 'quantity' => $qty, 'is_selected' => 1]);
-            // }
-
-                if ($existing) {
-
-                $existing->update([
-                    'quantity' => min(
-                        $existing->quantity + $qty,
-                        $item->product->stock
-                    ),
-                    'price' => $item->product->price,
-                    'is_selected' => 1
-                ]);
-
+            if ($existing) {
+                $existing->update(['quantity' => min($existing->quantity + $qty, $item->product->stock), 'is_selected' => 1]);
             } else {
-
-                $cart->items()->create([
-                    'product_id' => $item->product_id,
-                    'quantity' => $qty,
-                    'price' => $item->product->price,
-                    'is_selected' => 1
-                ]);
-
+                $cart->items()->create(['product_id' => $item->product_id, 'quantity' => $qty, 'is_selected' => 1]);
             }
-
 
             $added[] = $item->product_name;
         }
@@ -675,6 +652,7 @@ public function reject(Request $request, Order $order)
         // ubah status order
         $order->update([
             'status'        => 'refunded',
+            'cancel_reason' => $request->reason,
         ]);
 
         // balikin stok
@@ -697,13 +675,10 @@ public function reject(Request $request, Order $order)
 
     return response()->json([
         'success' => true,
-        'cancel_by' => 'admin',
-        'reason' => $order->cancel_reason,
         'message' => 'Pesanan berhasil direfund',
         'data'    => $order->fresh([
             'items',
             'payment',
-          
         ]),
     ]);
 }

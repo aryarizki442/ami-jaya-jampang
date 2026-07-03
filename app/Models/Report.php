@@ -78,48 +78,44 @@ class Report extends Model
      * Dipakai untuk export dan tampil data fresh
      */
     public static function queryRealtime(int $year, int $month, ?string $search = null)
-    {
-        $query = DB::table('order_items')
-            ->join('orders', 'orders.id', '=', 'order_items.order_id')
-            ->join('products', 'products.id', '=', 'order_items.product_id')
-            ->leftJoin('product_images', function ($join) {
-                $join->on('product_images.product_id', '=', 'products.id')
-                     ->where('product_images.is_primary', 1);
-            })
-            ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
-            ->where('orders.status', 'completed')
-            ->whereYear('orders.created_at', $year)
-            ->whereMonth('orders.created_at', $month)
-            ->select([
-                'products.id as product_id',
-                'products.name as product_name',
-                'products.price as product_price',
-                'products.weight_kg',
-                'products.unit',
-                'products.description',
-                'categories.name as category_name',
-                'product_images.image_url as product_image',
-                DB::raw('SUM(order_items.quantity) as total_sold'),
-                DB::raw('SUM(order_items.subtotal) as total_revenue'),
-            ])
-            ->groupBy(
-                'products.id',
-                'products.name',
-                'products.price',
-                'products.weight_kg',
-                'products.unit',
-                'products.description',
-                'categories.name',
-                'product_images.image_url',
-            );
+{
+    $query = DB::table('order_items')
+        ->join('orders', 'orders.id', '=', 'order_items.order_id')
+        ->join('products', 'products.id', '=', 'order_items.product_id')
+        ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
+        ->where('orders.status', 'completed')
+        ->whereYear('orders.created_at', $year)
+        ->whereMonth('orders.created_at', $month)
+        ->select([
+            'products.id as product_id',
+            'products.name as product_name',
+            'products.price as product_price',
+            'products.weight_kg',
+            'order_items.product_image',
+            'order_items.product_unit',
+            'products.description',
+            'categories.name as category_name',
 
-        if ($search) {
-            $query->where('products.name', 'like', "%{$search}%");
-        }
+            DB::raw('SUM(order_items.quantity) as total_sold'),
+            DB::raw('SUM(order_items.subtotal) as total_revenue'),
+        ])
+        ->groupBy(
+            'products.id',
+            'products.name',
+            'products.price',
+            'products.weight_kg',
+            'order_items.product_image',
+            'order_items.product_unit',
+            'products.description',
+            'categories.name'
+        );
 
-        return $query;
+    if ($search) {
+        $query->where('products.name', 'like', "%{$search}%");
     }
 
+    return $query;
+}
     /**
      * Nama bulan dalam Bahasa Indonesia
      */

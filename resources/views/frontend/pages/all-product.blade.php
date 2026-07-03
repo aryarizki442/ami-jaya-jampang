@@ -14,15 +14,15 @@
         }
 
         /* .custom-dropdown {
-                                                            border: 1px solid #1F7D53;
-                                                            border-radius: 6px;
-                                                            position: relative;
-                                                        }
+                                                                border: 1px solid #1F7D53;
+                                                                border-radius: 6px;
+                                                                position: relative;
+                                                            }
 
-                                                        .dropdown-list {
-                                                            border-top: 1px solid #1F7D53;
-                                                            display: none;
-                                                        } */
+                                                            .dropdown-list {
+                                                                border-top: 1px solid #1F7D53;
+                                                                display: none;
+                                                            } */
 
         .produk-grid {
             display: flex;
@@ -199,7 +199,7 @@
                             </div>
 
                             <p class="produk-title mb-2">
-                                {{ $product->weight ?? '1 Liter' }} {{ $product->name }}
+                                {{ $product->weight }} {{ $product->name }}
                             </p>
 
                             <div class="produk-footer">

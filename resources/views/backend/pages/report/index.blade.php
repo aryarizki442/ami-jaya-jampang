@@ -339,14 +339,6 @@
                 </div>
             </div>
 
-            <!-- EXPORT BUTTON -->
-            {{-- <div class="col-6 col-md-auto">
-                <button class="btn btn-success w-100 d-flex align-items-center justify-content-center gap-1" id="exportBtn">
-                    <span class="iconify" data-icon="mdi:file-excel"></span>
-                    Export
-                </button>
-            </div> --}}
-
             <!-- DELETE -->
             <div class="col-6 col-md-auto">
                 <button class="btn btn-delete-admin w-100" id="deleteSelected">
@@ -354,6 +346,13 @@
                 </button>
             </div>
 
+            <!-- PRINT BUTTON -->
+            <div class="col-6 col-md-auto">
+                <button class="btn btn-main w-100 d-flex align-items-center justify-content-center gap-1" id="printBtn">
+                    <span class="iconify" data-icon="material-symbols-light:print"></span>
+                    Cetak
+                </button>
+            </div>
         </div>
 
         {{-- SELECT ALL ROW (mobile) --}}
@@ -395,96 +394,171 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
 
-            /* =========================
-               DATA DUMMY (STATIS)
-            ========================== */
-            const dummyData = [{
-                    id: 1,
-                    nomor: 1,
-                    nama_produk: "Beras Putih Rojo Lele",
-                    terjual: 120,
-                    tanggal: "Maret 2026",
-                    pendapatan: 12000000
-                },
-                {
-                    id: 2,
-                    nomor: 2,
-                    nama_produk: "Beras Putih Ramos",
-                    terjual: 115,
-                    tanggal: "Maret 2026",
-                    pendapatan: 11500000
-                },
-                {
-                    id: 3,
-                    nomor: 3,
-                    nama_produk: "Beras Putih Pandan Wangi",
-                    terjual: 110,
-                    tanggal: "Maret 2026",
-                    pendapatan: 11000000
-                },
-                {
-                    id: 4,
-                    nomor: 4,
-                    nama_produk: "Beras Merah Rojo Lele",
-                    terjual: 100,
-                    tanggal: "Maret 2026",
-                    pendapatan: 10000000
-                },
-                {
-                    id: 5,
-                    nomor: 5,
-                    nama_produk: "Beras Ketan Rojo Lele",
-                    terjual: 95,
-                    tanggal: "Maret 2026",
-                    pendapatan: 9500000
-                },
-                {
-                    id: 6,
-                    nomor: 6,
-                    nama_produk: "Beras Putih Rojo Lele",
-                    terjual: 90,
-                    tanggal: "Maret 2026",
-                    pendapatan: 9000000
-                },
-                {
-                    id: 7,
-                    nomor: 7,
-                    nama_produk: "Beras Ketan Pandan Wangi",
-                    terjual: 85,
-                    tanggal: "Maret 2026",
-                    pendapatan: 8500000
-                },
-                {
-                    id: 8,
-                    nomor: 8,
-                    nama_produk: "Beras Merah Rojo Lele",
-                    terjual: 80,
-                    tanggal: "Maret 2026",
-                    pendapatan: 8000000
-                },
-                {
-                    id: 9,
-                    nomor: 9,
-                    nama_produk: "Beras Putih BMW",
-                    terjual: 75,
-                    tanggal: "Maret 2026",
-                    pendapatan: 7500000
-                },
-                {
-                    id: 10,
-                    nomor: 10,
-                    nama_produk: "Beras Putih BMW",
-                    terjual: 70,
-                    tanggal: "Maret 2026",
-                    pendapatan: 7000000
-                }
-            ];
-
-            let allData = [...dummyData];
-            let filteredData = [...allData];
+            // State untuk API
+            let allData = [];
+            let filteredData = [];
+            let currentMonth = new Date().getMonth() + 1;
+            let currentYear = new Date().getFullYear();
+            let isLoading = false;
             let currentPage = 1;
             const rowsPerPage = 5;
 
+            /* =========================
+               API HELPER
+            ========================== */
+            const API = {
+                baseUrl: '/api/admin/reports',
+
+                async getReports(params = {}) {
+
+                    const queryParams = new URLSearchParams({
+                        month: params.month || currentMonth,
+                        year: params.year || currentYear,
+                        search: params.search || '',
+                        per_page: params.per_page || 1000,
+                        page: params.page || 1
+                    });
+
+
+                    const response = await fetch(
+                        `${this.baseUrl}?${queryParams.toString()}`, {
+                            method: 'GET',
+                            headers: {
+                                'Accept': 'application/json'
+                            }
+                        }
+                    );
+
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP Error ${response.status}`);
+                    }
+
+
+                    return await response.json();
+                },
+
+
+                async getDetail(productId, params = {}) {
+
+                    const queryParams = new URLSearchParams({
+                        month: params.month || currentMonth,
+                        year: params.year || currentYear
+                    });
+
+
+                    const response = await fetch(
+                        `${this.baseUrl}/${productId}?${queryParams.toString()}`, {
+                            method: 'GET',
+                            headers: {
+                                'Accept': 'application/json'
+                            }
+                        }
+                    );
+
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP Error ${response.status}`);
+                    }
+
+
+                    return await response.json();
+                },
+
+
+                async refresh(month, year) {
+
+                    const response = await fetch(
+                        `${this.baseUrl}/refresh`, {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document
+                                    .querySelector('meta[name="csrf-token"]')
+                                    ?.content
+                            },
+                            body: JSON.stringify({
+                                month,
+                                year
+                            })
+                        }
+                    );
+
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP Error ${response.status}`);
+                    }
+
+
+                    return await response.json();
+                }
+            };
+            /* =========================
+               LOAD DATA FROM API
+            ========================== */
+            async function loadData() {
+                if (isLoading) return;
+                isLoading = true;
+
+                try {
+                    // Tampilkan loading
+                    if (tbody) {
+                        tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Memuat data laporan...</p>
+                    </td>
+                </tr>
+            `;
+                    }
+
+                    const response = await API.getReports({
+                        month: currentMonth,
+                        year: currentYear,
+                        per_page: 1000
+                    });
+
+                    if (response.success && response.data) {
+                        // Map data dari API ke format yang digunakan
+                        allData = response.data.items.map(item => ({
+                            id: item.product_id,
+                            nomor: item.nomor,
+                            nama_produk: item.product_name ?? '-',
+                            terjual: Number(item.total_sold ?? 0),
+                            pendapatan: Number(item.total_revenue ?? 0),
+                            pendapatan_format: item.total_revenue_format ?? 'Rp. 0',
+                            tanggal: item.period ?? '-',
+                            product_image: item.product_image,
+                            category: item.category ?? '-'
+                        }));
+
+                        filteredData = [...allData];
+                        renderView();
+                    } else {
+                        throw new Error('Data tidak ditemukan');
+                    }
+                } catch (error) {
+                    console.error('Error loading data:', error);
+                    if (tbody) {
+                        tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center text-danger py-4">
+                        <p>Gagal memuat data. Silakan coba lagi.</p>
+                        <button class="btn btn-primary btn-sm mt-2" onclick="location.reload()">
+                            Refresh Halaman
+                        </button>
+                    </td>
+                </tr>
+            `;
+                    }
+                } finally {
+                    isLoading = false;
+                }
+            }
             /* =========================
                ELEMENTS
             ========================== */
@@ -513,8 +587,17 @@
             /* =========================
                HITUNG TOTAL PENDAPATAN
             ========================== */
+            /* =========================
+               HITUNG TOTAL PENDAPATAN
+            ========================== */
             function updateTotalRevenue() {
-                const total = filteredData.reduce((sum, item) => sum + item.pendapatan, 0);
+                const totalRevenueEl = document.getElementById("totalRevenue");
+                if (!totalRevenueEl) {
+                    console.warn('Element #totalRevenue not found');
+                    return;
+                }
+
+                const total = filteredData.reduce((sum, item) => sum + (item.pendapatan || 0), 0);
                 totalRevenueEl.innerHTML = formatRupiah(total);
             }
 
@@ -530,40 +613,37 @@
 
                 if (pageData.length === 0) {
                     tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="text-center text-muted py-4">
-                            Tidak ada data ditemukan
-                        </td>
-                    </tr>
-                `;
+            <tr>
+                <td colspan="7" class="text-center text-muted py-4">
+                    Tidak ada data ditemukan
+                </td>
+            </tr>
+        `;
                     return;
                 }
 
                 let html = '';
                 pageData.forEach(item => {
                     html += `
-                    <tr class="align-middle" data-id="${item.id}">
-                        <td class="text-center">
-                            <input type="checkbox" class="custom-check row-check" value="${item.id}">
-                        </td>
-                        <td class="text-start">${item.nomor}</td>
-                        <td class="fw-medium text-start">${item.nama_produk}</td>
-                        <td class="text-center">${item.terjual}</td>
-                        <td class="text-start">${item.tanggal}</td>
-                        <td class="text-end fw-semibold">${formatRupiah(item.pendapatan)}</td>
-                        <td class="text-center">
-                            <a href="/admin/report/detail/${item.id}"
-                                class="btn-detail-admin text-decoration-none action-icon eye-action">
-
-                                <span class="iconify"
-                                    data-icon="heroicons-outline:eye"
-                                    style="font-size:20px;">
-                                </span>
-
-                            </a>
-                        </td>
-                    </tr>
-                `;
+            <tr class="align-middle" data-id="${item.id}">
+                <td class="text-center">
+                    <input type="checkbox" class="custom-check row-check" value="${item.id}">
+                </td>
+                <td class="text-start">${item.nomor}</td>
+                <td class="fw-medium text-start">
+                    ${item.product_image ? `<img src="${item.product_image}" alt="${item.nama_produk}" style="width: 30px; height: 30px; object-fit: cover; border-radius: 4px; margin-right: 8px;">` : ''}
+                    ${item.nama_produk}
+                </td>
+                <td class="text-center">${item.terjual}</td>
+                <td class="text-start">${item.tanggal}</td>
+                <td class="text-end fw-semibold">${formatRupiah(item.pendapatan)}</td>
+                <td class="text-center">
+                    <a href="#" class="btn-detail text-decoration-none action-icon eye-action" data-id="${item.id}">
+                        <span class="iconify" data-icon="heroicons-outline:eye" style="font-size:20px;"></span>
+                    </a>
+                </td>
+            </tr>
+        `;
                 });
                 tbody.innerHTML = html;
 
@@ -571,13 +651,9 @@
                 document.querySelectorAll('.btn-detail').forEach(btn => {
                     btn.addEventListener('click', function(e) {
                         e.preventDefault();
+
                         const id = this.dataset.id;
-                        const item = allData.find(i => i.id == id);
-                        if (item) {
-                            alert(
-                                `Detail Laporan\n\nProduk: ${item.nama_produk}\nTerjual: ${item.terjual}\nPendapatan: ${formatRupiah(item.pendapatan)}\nTanggal: ${item.tanggal}`
-                            );
-                        }
+                        window.location.href = `/admin/report/detail/${id}`;
                     });
                 });
             }
@@ -594,54 +670,104 @@
 
                 if (pageData.length === 0) {
                     reportList.innerHTML = `
-                    <div class="text-center text-muted py-3">
-                        Tidak ada data ditemukan
-                    </div>
-                `;
+            <div class="text-center text-muted py-3">
+                Tidak ada data ditemukan
+            </div>
+        `;
                     return;
                 }
 
                 let html = '';
                 pageData.forEach(item => {
                     html += `
-                    <div class="cat-card" data-id="${item.id}">
-                        <input type="checkbox" class="custom-check row-check" value="${item.id}">
-                        <div class="cat-info">
-                            <div class="cat-row1">
-                                <span class="cat-name fw-semibold">${item.nama_produk}</span>
-                                <span style="font-size:11px; color:#666;">#${item.nomor}</span>
-                            </div>
-                            <div class="cat-row2 mb-1">
-                                <span style="font-size:12px;">Terjual: ${item.terjual}</span>
-                                <span style="font-size:12px; font-weight:500;">${formatRupiah(item.pendapatan)}</span>
-                            </div>
-                            <div class="cat-row2">
-                                <span style="font-size:11px; color:#888;">${item.tanggal}</span>
-                                <div class="cat-actions">
-                                    <a href="/admin/report/detail/${item.id}" class="btn-detail-admin text-decoration-none action-icon eye-action" data-id="${item.id}">
-                                        <span class="iconify" data-icon="heroicons-outline:eye" style="font-size:16px;"></span>
-                                    </a>
-                                </div>
-                            </div>
+            <div class="cat-card" data-id="${item.id}">
+                <input type="checkbox" class="custom-check row-check" value="${item.id}">
+                <div class="cat-info">
+                    <div class="cat-row1">
+                        <span class="cat-name fw-semibold">${item.nama_produk}</span>
+                        <span style="font-size:11px; color:#666;">#${item.nomor}</span>
+                    </div>
+                    <div class="cat-row2 mb-1">
+                        <span style="font-size:12px;">Terjual: ${item.terjual}</span>
+                        <span style="font-size:12px; font-weight:500;">${formatRupiah(item.pendapatan)}</span>
+                    </div>
+                    <div class="cat-row2">
+                        <span style="font-size:11px; color:#888;">${item.tanggal}</span>
+                        <div class="cat-actions">
+                            <button class="btn-detail-mobile act-btn detail" data-id="${item.id}">
+                                <span class="iconify" data-icon="heroicons-outline:eye" style="font-size:16px;"></span>
+                            </button>
                         </div>
                     </div>
-                `;
+                </div>
+            </div>
+        `;
                 });
                 reportList.innerHTML = html;
 
                 // Event listener untuk tombol detail mobile
                 document.querySelectorAll('.btn-detail-mobile').forEach(btn => {
-                    btn.addEventListener('click', function(e) {
+                    btn.addEventListener('click', async function(e) {
                         e.preventDefault();
                         const id = this.dataset.id;
-                        const item = allData.find(i => i.id == id);
-                        if (item) {
-                            alert(
-                                `Detail Laporan\n\nProduk: ${item.nama_produk}\nTerjual: ${item.terjual}\nPendapatan: ${formatRupiah(item.pendapatan)}\nTanggal: ${item.tanggal}`
-                            );
-                        }
+                        await showDetailModal(id);
                     });
                 });
+            }
+            /* =========================
+               SHOW DETAIL MODAL
+            ========================== */
+            async function showDetailModal(productId) {
+                try {
+                    const response = await API.getDetail(productId, {
+                        month: currentMonth,
+                        year: currentYear
+                    });
+
+                    if (response.success && response.data) {
+                        const {
+                            product,
+                            report
+                        } = response.data;
+
+                        let detailHtml = `
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        ${product.image ? `<img src="${product.image}" alt="${product.name}" class="img-fluid rounded" style="max-height: 200px;">` :
+                        `<div class="bg-light rounded p-5"><i class="ri-image-line" style="font-size: 48px;"></i></div>`}
+                    </div>
+                    <div class="col-md-8">
+                        <h5>${product.name}</h5>
+                        <p class="text-muted small">${product.category || '-'}</p>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <small class="text-muted">Harga</small>
+                                <p class="fw-bold">${product.price_format || formatRupiah(product.price)}</p>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Unit</small>
+                                <p class="fw-bold">${product.unit || '-'}</p>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Terjual</small>
+                                <p class="fw-bold">${report.total_sold || 0}</p>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Pendapatan</small>
+                                <p class="fw-bold text-success">${report.total_revenue_format || formatRupiah(report.total_revenue)}</p>
+                            </div>
+                        </div>
+                        <small class="text-muted">${report.period}</small>
+                    </div>
+                </div>
+            `;
+
+                        console.log(detailHtml);
+                    }
+                } catch (error) {
+                    console.error('Error loading detail:', error);
+                    alert('Gagal memuat detail produk');
+                }
             }
 
             /* =========================
@@ -756,15 +882,15 @@
                SEARCH FUNCTION
             ========================== */
             function handleSearch() {
-                const keyword = searchInput.value.toLowerCase();
+                const keyword = searchInput.value.toLowerCase().trim();
 
                 if (keyword === '') {
                     filteredData = [...allData];
                 } else {
                     filteredData = allData.filter(item =>
-                        item.nama_produk.toLowerCase().includes(keyword) ||
-                        item.tanggal.toLowerCase().includes(keyword) ||
-                        item.nomor.toString().includes(keyword)
+                        (item.nama_produk || '').toLowerCase().includes(keyword) ||
+                        (item.category || '').toLowerCase().includes(keyword) ||
+                        (item.nomor || '').toString().includes(keyword)
                     );
                 }
 
@@ -857,37 +983,35 @@
             /* =========================
                KALENDER / DATE RANGE
             ========================== */
-            document.addEventListener('dateRangeSelected', function(e) {
+            document.addEventListener('dateRangeSelected', async function(e) {
                 const {
                     start,
                     end
                 } = e.detail;
                 const monthEl = document.getElementById('currentMonth');
 
-                if (monthEl) {
+                if (start) {
                     const startDate = new Date(start);
-                    const endDate = end ? new Date(end) : new Date(start);
-                    monthEl.textContent =
-                        `${startDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} - ${endDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`;
-                }
+                    currentMonth = startDate.getMonth() + 1;
+                    currentYear = startDate.getFullYear();
 
-                // Filter dummy data by date range (simulasi)
-                if (start && end) {
-                    // Untuk dummy, hanya filter berdasarkan bulan/tahun
-                    const startYearMonth = start.substring(0, 7);
-                    const endYearMonth = end.substring(0, 7);
-                    filteredData = allData.filter(item => {
-                        const itemDate = item.tanggal;
-                        return true; // Simulasi, karena dummy data semua Maret 2026
-                    });
-                } else {
-                    filteredData = [...allData];
-                }
+                    if (monthEl) {
+                        if (end) {
+                            const endDate = new Date(end);
+                            monthEl.textContent =
+                                `${startDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} - ${endDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+                        } else {
+                            monthEl.textContent = startDate.toLocaleDateString('id-ID', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric'
+                            });
+                        }
+                    }
 
-                currentPage = 1;
-                renderView();
+                    await loadData();
+                }
             });
-
             /* =========================
                INIT DROPDOWN
             ========================== */
@@ -948,8 +1072,7 @@
                 });
             }
 
-            // Initial render
-            renderView();
+            loadData();
         });
     </script>
 

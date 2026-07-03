@@ -16,28 +16,28 @@
 .hero {
     margin: 0 60px;
     height: 320px;
-    background-position: center;
+    overflow: hidden;
+    border-radius: 18px;
+    position: relative;
+}
+
+.hero-track {
+    display: flex;
+    flex-wrap: nowrap;
+    /* 🔥 INI PENTING */
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s ease;
+}
+
+.hero-slide {
+    flex: 0 0 100%;
+    /* 🔥 ini wajib */
+    width: 100%;
+    height: 100%;
     background-size: cover;
+    background-position: center;
     background-repeat: no-repeat;
-    background-image: url("{{ asset('images/home/bg-hero1.png') }}");
-    border-radius: 18px;
-    position: relative;
-    z-index: 1;
-    transition: background-image .5s ease;
-}
-
-.hero::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: 18px;
-    z-index: 0;
-}
-
-.hero-content {
-    position: relative;
-    z-index: 1;
-    max-width: 450px;
 }
 
 .hero-dots {
@@ -171,7 +171,9 @@
 .best-card img {
     width: 100%;
     aspect-ratio: 1/1;
-    object-fit: cover;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    display: block;
     margin-bottom: 8px;
 }
 
@@ -241,7 +243,6 @@
     width: 100%;
     aspect-ratio: 1 / 1;
     object-fit: contain;
-    background-color: #f8f9fa;
     display: block;
     /* 🔥 hilangkan gap img */
     border: 0;

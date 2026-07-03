@@ -372,20 +372,22 @@
             <h6 class="fw-bold text-custom-green mb-3">Pilihan Lainnya</h6>
 
             <div class="row g-3 produk-row">
-                @forelse ($products as $product)
+                @forelse ($products->take(5) as $otherProduct)
                     <div class="produk-col">
-                        <a href="{{ route('detail-product', $product->slug) }}" class="text-decoration-none text-dark">
+                        <a href="{{ route('detail-product', $otherProduct->slug) }}"
+                            class="text-decoration-none text-dark">
                             <div class="produk-card rounded">
-                                <img src="{{ $product->image ? asset('storage/' . $product->image) : asset('images/home/category/beras-putih.png') }}"
-                                    class="img-fluid" alt="{{ $product->name }}">
+                                <img src="{{ $otherProduct->image ? asset('storage/' . $otherProduct->image) : asset('images/home/category/beras-putih.png') }}"
+                                    class="img-fluid" alt="{{ $otherProduct->name }}">
                                 <div class="produk-body">
                                     <div class="rating mb-3">★★★★★</div>
                                     <p class="produk-title mb-3">
-                                        {{ $product->weight ?? '1 Liter' }} {{ $product->name }}<br>
+                                        {{ $otherProduct->weight }} {{ $otherProduct->name }}<br>
                                     </p>
                                     <div class="produk-footer">
-                                        <span class="harga">Rp. {{ number_format($product->price, 0, ',', '.') }}</span>
-                                        <span class="terjual">Tersedia {{ $product->stock ?? 0 }}</span>
+                                        <span class="harga">Rp.
+                                            {{ number_format($otherProduct->price, 0, ',', '.') }}</span>
+                                        <span class="terjual">Tersedia {{ $otherProduct->stock ?? 0 }}</span>
                                     </div>
                                 </div>
                             </div>

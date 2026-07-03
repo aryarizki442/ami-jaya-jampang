@@ -232,7 +232,7 @@
         }
 
         .checkout-items-scroll {
-            max-height: 280px;
+            max-height: 220px;
             overflow-y: auto;
         }
 
@@ -301,7 +301,7 @@
                                         <div class="card mb-2 p-3">
                                             <div class="d-flex align-items-center gap-3">
                                                 <img src="{{ $item->product->image_url }}" class="flex-shrink-0"
-                                                    width="100" height="100" style="border-radius: 8px">
+                                                    width="100" height="100%" style="border-radius: 8px">
 
                                                 <div class="flex-grow-1">
                                                     <p class="mb-0 fw-medium">

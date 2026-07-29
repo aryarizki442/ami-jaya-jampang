@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Report;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -101,7 +102,8 @@ class AdminReportController extends Controller
                     'description'  => $row->description,
                     'image'         => $row->product_image ?? null,
                     'category'     => $row->category_name,
-                   'unit' => $row->product_unit ?? '-',
+                        'stock'        => $row->stock,
+                //    'unit' => $row->product_unit ?? '-',
                     'weight_kg'    => $row->weight_kg,
                     'price'        => $row->product_price,
                     'price_format' => 'Rp.' . number_format($row->product_price, 0, ',', '.'),
@@ -214,12 +216,15 @@ class AdminReportController extends Controller
             ])
             ->first();
 
+            $lowStock = Product::where('stock', '<=', 10)->count();
+
         return [
             'total_orders'         => (int) ($result->total_orders ?? 0),
             'total_sold'           => (int) ($result->total_sold ?? 0),
             'total_products'       => (int) ($result->total_products ?? 0),
             'total_revenue'        => (float) ($result->total_revenue ?? 0),
             'total_revenue_format' => 'Rp. ' . number_format($result->total_revenue ?? 0, 0, ',', '.'),
+            'low_stock'            => $lowStock,
         ];
     }
 
@@ -259,4 +264,18 @@ class AdminReportController extends Controller
 
         return $history;
     }
+
+    public function lowStock()
+{
+    $products = Product::select('id', 'name', 'stock')
+        ->where('stock', '<=', 10)
+        ->orderBy('stock')
+        ->limit(5)
+        ->get();
+
+    return response()->json([
+        'success' => true,
+        'data' => $products
+    ]);
+}
 }

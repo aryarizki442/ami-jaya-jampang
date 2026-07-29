@@ -478,7 +478,7 @@
         </div>
 
         <!-- PAGINATION -->
-        <div class="custom-pagination"></div>
+        <div id="paginationContainer" class="custom-pagination"></div>
 
     </div>
 

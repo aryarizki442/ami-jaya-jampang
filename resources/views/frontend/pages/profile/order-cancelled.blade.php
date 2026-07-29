@@ -245,7 +245,33 @@
 
     </div>
     @include('frontend.components.transaction-detail-modal')
+    <div class="modal fade" id="reorderModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4">
 
+                <div class="modal-body text-center p-4">
+
+                    <div class="mb-3">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size:60px;"></i>
+                    </div>
+
+                    <h5 class="fw-bold" id="reorderModalTitle">
+                        Berhasil
+                    </h5>
+
+                    <p class="text-muted mb-4" id="reorderModalMessage">
+                        Produk berhasil dimasukkan ke keranjang
+                    </p>
+
+                    <button class="btn btn-main px-5 rounded-3" data-bs-dismiss="modal">
+                        OK
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', fetchCancelledOrders);
@@ -374,7 +400,15 @@
                 }
 
                 document.getElementById('orderList').innerHTML = html;
+                document.addEventListener('click', function(e) {
 
+                    const btn = e.target.closest('.btn-reorder');
+
+                    if (!btn) return;
+
+                    reorderOrder(btn.dataset.id, btn);
+
+                });
             } catch (error) {
 
                 console.error('ERROR:', error);

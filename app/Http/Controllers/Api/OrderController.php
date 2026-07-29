@@ -339,9 +339,18 @@ class OrderController extends Controller
             $existing = $cart->items()->where('product_id', $item->product_id)->first();
 
             if ($existing) {
-                $existing->update(['quantity' => min($existing->quantity + $qty, $item->product->stock), 'is_selected' => 1]);
+                $existing->update([
+                    'quantity'    => min($existing->quantity + $qty, $item->product->stock),
+                    'price'       => $item->product->price,
+                    'is_selected' => 1,
+                ]);
             } else {
-                $cart->items()->create(['product_id' => $item->product_id, 'quantity' => $qty, 'is_selected' => 1]);
+                $cart->items()->create([
+                    'product_id'  => $item->product_id,
+                    'quantity'    => $qty,
+                    'price'       => $item->product->price,
+                    'is_selected' => 1,
+                ]);
             }
 
             $added[] = $item->product_name;
@@ -514,6 +523,7 @@ class OrderController extends Controller
             'order_number'     => $order->order_number,
             'status'           => $order->status,
             'status_label'     => $this->statusLabel($order->status),
+             'cancel_reason'    => $order->cancel_reason,
             'delivery_method'  => $order->delivery_method,
             'delivery_label'   => $order->delivery_method === 'delivery' ? 'Pengiriman' : 'Ambil Sendiri',
             'estimated_arrival'=> $order->estimated_arrival,

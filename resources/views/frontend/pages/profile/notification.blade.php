@@ -292,19 +292,20 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h6 class="fw-semibold mb-0">Detail Notifikasi</h6>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h4 class="fw-semibold mb-0 mt-2 ">Status Pesanan</h4>
+                    <button type="button" class="btn-close mb-0" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
+                <div class="modal-divider "></div>
                 <div class="modal-body" id="modalBody">
                     <!-- Isi modal akan diisi oleh JS -->
                 </div>
-                <div class="modal-footer">
+                <div class="modal-footer" id="modalFooter">
                     <button type="button" class="btn-close-modal" data-bs-dismiss="modal">Tutup</button>
                 </div>
             </div>
         </div>
     </div>
-
+    @include('frontend.components.transaction-detail-modal')
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -581,42 +582,43 @@
             const description = getNotifDescription(order.status);
 
             const modalBody = `
-    <div class="modal-status-icon ${iconClass}"
-        style="width:60px;height:60px;margin:0 auto 16px;">
-        <iconify-icon
-            icon="${icon}"
-            style="font-size:30px;">
-        </iconify-icon>
-    </div>
 
-    <div class="modal-status-title">
-        ${title}
-    </div>
+                <div class="modal-status-icon ${iconClass}"
+                    style="width:60px;height:60px;margin:0 auto 16px;">
+                    <iconify-icon
+                        icon="${icon}"
+                        style="font-size:30px;">
+                    </iconify-icon>
+                </div>
 
-    <div class="modal-status-time">
-        ${formatShortDate(order.created_at)}
-    </div>
+                <div class="modal-status-title">
+                    ${title}
+                </div>
 
-
-    ${order.shipping_address ? `
-                                          <div class="modal-info-row">
-                                         <span class="modal-info-label">
-                                          Alamat Pengiriman
-                                          </span>
-                                        <span class="modal-info-value">
-                                             ${order.shipping_address}
-                                             </span>
-                                          </div>
-                                          ` : ''}
+                <div class="modal-status-time">
+                    ${formatShortDate(order.created_at)}
+                </div>
 
 
-    ${description ? `
-                                          <div class="modal-divider"></div>
-                                        <div>
-                                        ${description}
-                                        </div>
-                                           ` : ''}
-`;
+                 ${order.shipping_address ? `
+                                                                                                                                                                                                                                                                              <div class="modal-info-row">
+                                                                                                                                                                                                                                                                             <span class="modal-info-label">
+                                                                                                                                                                                                                                                                              Alamat Pengiriman
+                                                                                                                                                                                                                                                                              </span>
+                                                                                                                                                                                                                                                                            <span class="modal-info-value">
+                                                                                                                                                                                                                                                                                 ${order.shipping_address}
+                                                                                                                                                                                                                                                                                 </span>
+                                                                                                                                                                                                                                                                              </div>
+                                                                                                                                                                                                                                                                              ` : ''}
+
+
+                                ${description ? `
+                                                                                                                                                                                                                                                                              <div class="modal-divider"></div>
+                                                                                                                                                                                                                                                                            <div>
+                                                                                                                                                                                                                                                                            ${description}
+                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                               ` : ''}
+                    `;
 
             document.getElementById('modalBody').innerHTML = modalBody;
 
@@ -624,6 +626,81 @@
                 notifModal = new bootstrap.Modal(document.getElementById('notifModal'));
             }
             notifModal.show();
+
+            const modalFooter = document.getElementById('modalFooter');
+
+            switch (order.status) {
+
+                // Menunggu pembayaran
+                case 'awaiting_payment':
+                case 'pending':
+                    modalFooter.innerHTML = `
+        <button
+            class="btn btn-main px-4 py-2 fw-semibold rounded-3"
+            id="trxPayBtn">
+            Bayar Sekarang
+        </button>
+    `;
+
+                    document.getElementById('trxPayBtn').onclick = function() {
+                        processPayment(order.id);
+                    };
+                    break;
+
+                    // Sedang diproses / dikirim / siap dijemput
+                case 'paid':
+                case 'processing':
+                case 'shipped':
+                case 'ready_for_pickup':
+                    modalFooter.innerHTML = `
+            <button class="btn btn-main px-4 py-2 fw-semibold rounded-3"
+                id="contactSellerBtn">
+                Hubungi Penjual
+            </button>
+        `;
+                    break;
+
+                    // Selesai / dibatalkan
+                case 'completed':
+                case 'cancelled':
+                case 'refunded':
+                    modalFooter.innerHTML = `
+            <button class="btn btn-main px-4 py-2 fw-semibold rounded-3"
+                id="detailOrderBtn">
+                Detail Pesanan
+            </button>
+        `;
+                    break;
+
+                    // Default
+                default:
+                    modalFooter.innerHTML = `
+            <button type="button"
+                class="btn-close-modal"
+                data-bs-dismiss="modal">
+                Tutup
+            </button>
+        `;
+            }
+
+            document.getElementById('trxPayBtn')?.addEventListener('click', function() {
+                processPayment(order.id);
+            });
+
+            // Hubungi Penjual
+            document.getElementById('contactSellerBtn')?.addEventListener('click', function() {
+                window.open(
+                    'https://wa.me/6281211223344?text=Halo%20saya%20membutuhkan%20bantuan!',
+                    '_blank'
+                );
+            });
+
+            // Detail Pesanan
+            document.getElementById('detailOrderBtn')?.addEventListener('click', function() {
+
+                openTransactionDetail(order.id);
+
+            });
         }
 
         function getNotifDescription(status) {
@@ -634,10 +711,18 @@
 
                 case 'cancelled':
                     content = `
-                <p>Anda telah membatalkan pesanan ini.
-                Terima kasih telah menggunakan layanan kami.
-                    Jika diperlukan, Anda dapat melakukan pemesanan kembali kapan saja.
-                    </p>
+                <p>
+                    Pesanan Anda telah dibatalkan
+                    <br>
+                    <br>
+                    Stok produk tidak tersedia, kendala operasional,
+                    atau informasi pesanan yang tidak dapat diproses.
+                    <br>
+                    <br>
+                    Jika pembayaran telah dilakukan, dana akan dikembalikan
+                    dengan berkomunikasi dengan penjual terlebih dahulu.
+                    <br>
+                <p>Terimakasih.</p>
             `;
                     break;
 
@@ -645,13 +730,14 @@
                 case 'refunded':
                     content = `
                 <p>
-                    Mohon maaf, pesanan Anda telah dibatalkan oleh penjual karena alasan tertentu.
-
-                    Seperti stok produk tidak tersedia, kendala operasional,
+                    Pesanan Anda telah dibatalkan
+                    <br>
+                    Stok produk tidak tersedia, kendala operasional,
                     atau informasi pesanan yang tidak dapat diproses.
-
+                    <br>
                     Jika pembayaran telah dilakukan, dana akan dikembalikan
                     dengan berkomunikasi dengan penjual terlebih dahulu.
+                    <br>
                 <p>Terimakasih.</p>
             `;
                     break;
@@ -660,13 +746,15 @@
                 case 'completed':
                     content = `
                 <p><strong>Pesanan Anda telah selesai!</strong>
-
-                    Terima kasih telah berbelanja bersama kami.
-                    Kami berharap produk yang Anda terima sesuai dengan harapan Anda.
-
-                    Jangan lupa berikan ulasan dan penilaian untuk membantu kami
-                    meningkatkan kualitas layanan.
-
+                    <br>
+                        Terima kasih telah berbelanja bersama kami.
+                        Kami berharap produk yang Anda terima sesuai dengan harapan Anda.
+                    <br>
+                    <br>
+                        Jangan lupa berikan penilaian untuk membantu kami
+                        meningkatkan kualitas layanan.
+                    <br>
+                    <br>
                <p> Selamat menikmati produk Anda!</p>
             `;
                     break;
@@ -675,10 +763,12 @@
                 case 'shipped':
                     content = `
                 <p>
-                    Pesanan Anda sedang dalam perjalanan menuju alamat tujuan.
-
-                    Silakan menunggu hingga pesanan sampai.
-
+                  Pesanan Anda telah kami terima dan saat ini menunggu pembayaran.
+                    <br>
+                    <br>
+                    Silakan lakukan pembayaran sebelum batas waktu yang ditentukan
+                    agar pesanan dapat segera diproses.
+                    <br>
                 <p>
                 Terimakasih.</p>
             `;
@@ -688,11 +778,12 @@
                 case 'ready_for_pickup':
                     content = `
                 <p>
-                    Pesanan Anda telah selesai dipersiapkan dan siap untuk diambil
-                    di lokasi toko.
+                   Pesanan Anda telah selesai dipersiapkan dan siap untuk diambil di lokasi toko.
+                    <br>
+                    <br>
+                    Silakan datang sesuai jam operasional dengan menunjukkan nomor pesanan.
+                    <br>
 
-                    Silakan datang sesuai jam operasional dengan menunjukkan
-                    nomor pesanan.
                 </p>
             `;
                     break;
@@ -702,8 +793,9 @@
                 case 'pending':
                     content = `
                 <p>
-                    Pesanan Anda telah kami terima dan saat ini menunggu pembayaran.
-
+                   Pesanan Anda telah kami terima dan saat ini menunggu pembayaran.
+                    <br>
+                    <br>
                     Silakan lakukan pembayaran sebelum batas waktu yang ditentukan
                     agar pesanan dapat segera diproses.
                 </p>
@@ -716,7 +808,8 @@
                     content = `
                 <p>
                     Pesanan Anda sedang dipersiapkan oleh penjual.
-
+                    <br>
+                    <br>
                     Kami akan segera mengirimkan informasi lebih lanjut setelah
                     pesanan siap dikirim atau diambil.
                 </p>
@@ -730,19 +823,12 @@
 
 
             return `
-        <div class="notif-description-box">
-
-            <div class="notif-description-header">
-                Informasi Pesanan
-            </div>
-
             <div class="notif-description-content">
                 ${content}
             </div>
-
-        </div>
     `;
         }
+
 
         function formatRupiah(angka) {
             return new Intl.NumberFormat('id-ID', {
@@ -759,6 +845,623 @@
                 window.location.href = `/profile/orders/${currentOrderId}`;
             }
         });
+
+        // Fungsi untuk memuat script Snap Midtrans
+        function loadSnapScript(clientKey) {
+            return new Promise((resolve, reject) => {
+                // Cek apakah sudah ada
+                if (typeof window.snap !== 'undefined') {
+                    resolve();
+                    return;
+                }
+
+                const script = document.createElement('script');
+                script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
+                script.setAttribute('data-client-key', clientKey);
+                script.onload = () => {
+                    console.log('Snap script loaded');
+                    resolve();
+                };
+                script.onerror = () => {
+                    reject(new Error('Gagal memuat Midtrans Snap'));
+                };
+                document.head.appendChild(script);
+            });
+        }
+        async function processPayment(orderId) {
+            const token = localStorage.getItem('token');
+            const payBtn = document.getElementById('trxPayBtn');
+
+            if (!token) {
+                showAlert('Silakan login terlebih dahulu', 'error');
+                return;
+            }
+
+            // Simpan orderId untuk referensi
+            currentOrderForPayment = orderId;
+
+            // Tampilkan loading
+            if (payBtn) {
+                payBtn.disabled = true;
+                payBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Memproses...';
+            }
+
+            try {
+                // Ambil snap token dari backend
+                const snapRes = await fetch(`/api/orders/${orderId}/payment/snap-token`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const snapJson = await snapRes.json();
+
+                if (!snapRes.ok || !snapJson.success) {
+                    throw new Error(snapJson.message || 'Gagal membuat token pembayaran');
+                }
+
+                const {
+                    snap_token,
+                    client_key,
+                    snap_url
+                } = snapJson.data;
+
+                // Pastikan snap sudah dimuat
+                if (typeof window.snap === 'undefined') {
+                    // Load Snap script jika belum ada
+                    await loadSnapScript(client_key);
+                }
+
+                // Buka popup pembayaran Midtrans
+                window.snap.pay(snap_token, {
+                    onSuccess: function(result) {
+                        console.log('Payment Success:', result);
+                        showAlert('Pembayaran berhasil!', 'success');
+                        // Tutup modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById(
+                            'notifModal'));
+                        if (modal) modal.hide();
+                        // Refresh halaman atau load ulang data pesanan
+                        setTimeout(() => {
+                            if (typeof loadWaitingOrders === 'function') {
+                                loadWaitingOrders();
+                            } else {
+                                location.reload();
+                            }
+                        }, 1500);
+                    },
+                    onPending: function(result) {
+                        console.log('Payment Pending:', result);
+                        showAlert('Menunggu konfirmasi pembayaran', 'info');
+                        // Tutup modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById(
+                            'notifModal'));
+                        if (modal) modal.hide();
+                        setTimeout(() => {
+                            if (typeof loadWaitingOrders === 'function') {
+                                loadWaitingOrders();
+                            } else {
+                                location.reload();
+                            }
+                        }, 1500);
+                    },
+                    onError: function(result) {
+                        console.error('Payment Error:', result);
+                        showAlert('Pembayaran gagal. Silakan coba lagi.', 'error');
+                        if (payBtn) {
+                            payBtn.disabled = false;
+                            payBtn.innerHTML = '</i> Bayar Sekarang';
+                        }
+                    },
+                    onClose: function() {
+                        console.log('Payment popup closed');
+                        // User menutup popup tanpa menyelesaikan pembayaran
+                        if (payBtn) {
+                            payBtn.disabled = false;
+                            payBtn.innerHTML = '</i> Bayar Sekarang';
+                        }
+                        showAlert('Pembayaran dibatalkan', 'info');
+                    }
+                });
+
+            } catch (err) {
+                console.error('Payment error:', err);
+                showAlert(err.message || 'Terjadi kesalahan saat memproses pembayaran', 'error');
+                if (payBtn) {
+                    payBtn.disabled = false;
+                    payBtn.innerHTML = '<i class="bi bi-credit-card"></i> Bayar Sekarang';
+                }
+            }
+        }
+
+        async function openTransactionDetail(orderId) {
+
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                showAlert('Silakan login terlebih dahulu', 'error');
+                return;
+            }
+
+            const modalElement = document.getElementById(
+                'transactionDetailModal'
+            );
+
+            const productContainer = document.getElementById(
+                'trxProductItems'
+            );
+
+            try {
+
+                // Loading saat data sedang diambil
+                if (productContainer) {
+                    productContainer.innerHTML = `
+                <div class="text-center py-3">
+                    Memuat data pesanan...
+                </div>
+            `;
+                }
+
+                const response = await fetch(
+                    `/api/orders/${orderId}`, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        }
+                    }
+                );
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        result.message ||
+                        'Gagal mengambil detail transaksi'
+                    );
+                }
+
+                // Sesuaikan dengan response API
+                const order = result.data;
+
+                if (!order) {
+                    throw new Error(
+                        'Data pesanan tidak ditemukan'
+                    );
+                }
+
+                console.log(
+                    'Detail transaksi dari notifikasi:',
+                    order
+                );
+
+                /*
+                ==================================
+                STATUS
+                ==================================
+                */
+
+                document.getElementById(
+                    'trxStatus'
+                ).innerHTML = getStatusHtml(
+                    order.status,
+                    order.delivery_method
+                );
+
+                /*
+                ==================================
+                NOMOR DAN TANGGAL PESANAN
+                ==================================
+                */
+
+                document.getElementById(
+                        'trxOrderId'
+                    ).textContent =
+                    order.order_number ||
+                    '#' + order.id;
+
+                document.getElementById(
+                        'trxDate'
+                    ).textContent =
+                    formatDateIndonesia(
+                        order.created_at
+                    );
+
+                /*
+                ==================================
+                DETAIL PRODUK
+                ==================================
+                */
+
+                const items = order.items || [];
+
+                if (items.length === 0) {
+
+                    productContainer.innerHTML = `
+                <div class="text-muted">
+                    Tidak ada produk
+                </div>
+            `;
+
+                } else {
+
+                    let productsHtml = '';
+
+                    items.forEach(
+                        (item, index) => {
+
+                            const productName =
+                                item.name ||
+                                item.product_name ||
+                                '-';
+
+                            const quantity =
+                                item.quantity || 1;
+
+                            const price =
+                                item.unit_price ||
+                                item.price ||
+                                0;
+
+                            const image =
+                                item.image ||
+                                item.product_image ||
+                                '/images/placeholder.png';
+
+                            const productId =
+                                item.product_id;
+
+                            productsHtml += `
+
+                        <div class="
+                            d-flex
+                            justify-content-between
+                            align-items-start
+                            mb-3
+                            pb-2
+                            ${
+                                index !==
+                                items.length - 1
+                                    ? 'border-bottom'
+                                    : ''
+                            }
+                        ">
+
+                            <div class="d-flex gap-3">
+
+                                <img
+                                    src="${image}"
+
+                                    style="
+                                        width:70px;
+                                        height:70px;
+                                        object-fit:cover;
+                                        border-radius:8px;
+                                    "
+
+                                    onerror="
+                                        this.src=
+                                        '/images/placeholder.png'
+                                    "
+                                >
+
+                                <div>
+
+                                    <div class="fw-semibold">
+
+                                        ${escapeHtml(
+                                            productName
+                                        )}
+
+                                    </div>
+
+                                    <small class="text-muted">
+
+                                        ${quantity}x
+                                        ${formatRupiah(
+                                            price
+                                        )}
+
+                                    </small>
+
+                                    ${
+                                        item.unit
+                                        ? `
+                                                <div
+                                                    class="
+                                                        text-muted
+                                                        small
+                                                    "
+                                                >
+                                                    Satuan:
+                                                    ${escapeHtml(
+                                                        item.unit
+                                                    )}
+                                                </div>
+                                            `
+                                        : ''
+                                    }
+
+                                </div>
+
+                            </div>
+
+                            ${
+                                productId
+                                ? `
+                                        <a
+                                            href="/product/${productId}"
+
+                                            class="
+                                                text-success
+                                                fw-semibold
+                                                small
+                                                text-decoration-none
+                                            "
+                                        >
+                                            Lihat Produk
+                                        </a>
+                                    `
+                                : ''
+                            }
+
+                        </div>
+
+                    `;
+
+                        }
+                    );
+
+                    productContainer.innerHTML =
+                        productsHtml;
+
+                }
+
+                /*
+                ==================================
+                RINCIAN PEMBAYARAN
+                ==================================
+                */
+
+                const summary =
+                    order.summary || {};
+
+                const payment =
+                    order.payment || {};
+
+                document.getElementById(
+                        'trxPaymentMethod'
+                    ).textContent =
+                    payment.method ||
+                    order.payment_method ||
+                    '-';
+
+                document.getElementById(
+                        'trxSubtotal'
+                    ).textContent =
+                    summary.subtotal_format ||
+                    formatRupiah(
+                        summary.subtotal || 0
+                    );
+
+                document.getElementById(
+                        'trxShipping'
+                    ).textContent =
+                    summary.shipping_cost_format ||
+                    formatRupiah(
+                        summary.shipping_cost || 0
+                    );
+
+                document.getElementById(
+                        'trxFee'
+                    ).textContent =
+                    summary.other_fee_format ||
+                    formatRupiah(
+                        summary.other_fee || 0
+                    );
+
+                document.getElementById(
+                        'trxTotal'
+                    ).textContent =
+                    summary.total_format ||
+                    formatRupiah(
+                        summary.total || 0
+                    );
+
+                /*
+                ==================================
+                RESET SEMUA TOMBOL
+                ==================================
+                */
+
+                const cancelBtn =
+                    document.getElementById(
+                        'trxCancelBtn'
+                    );
+
+                const payBtn =
+                    document.getElementById(
+                        'trxPayBtn'
+                    );
+
+                const chatBtn =
+                    document.getElementById(
+                        'trxChatBtn'
+                    );
+
+                const reorderBtn =
+                    document.getElementById(
+                        'trxReorderBtn'
+                    );
+
+                const contactSellerBtn =
+                    document.getElementById(
+                        'trxContactSellerBtn'
+                    );
+
+                [
+                    cancelBtn,
+                    payBtn,
+                    chatBtn,
+                    reorderBtn,
+                    contactSellerBtn
+                ].forEach(btn => {
+
+                    if (btn) {
+
+                        btn.style.display =
+                            'none';
+
+                        btn.onclick =
+                            null;
+
+                    }
+
+                });
+
+                /*
+                ==================================
+                TOMBOL BERDASARKAN STATUS
+                ==================================
+                */
+
+                if (
+                    order.status ===
+                    'awaiting_payment' ||
+
+                    order.status ===
+                    'pending'
+                ) {
+
+                    if (cancelBtn) {
+
+                        cancelBtn.style.display =
+                            'flex';
+
+                        cancelBtn.onclick =
+                            () =>
+                            showCancelModal(
+                                order.id
+                            );
+
+                    }
+
+                    if (payBtn) {
+
+                        payBtn.style.display =
+                            'flex';
+
+                        payBtn.onclick =
+                            () =>
+                            processPayment(
+                                order.id
+                            );
+
+                    }
+
+                } else if (
+                    order.status ===
+                    'completed'
+                ) {
+
+                    if (chatBtn) {
+
+                        chatBtn.style.display =
+                            'flex';
+
+                        chatBtn.onclick =
+                            () =>
+                            chatSeller(order);
+
+                    }
+
+                    if (reorderBtn) {
+
+                        reorderBtn.style.display =
+                            'flex';
+
+                        reorderBtn.onclick =
+                            () =>
+                            reorderOrder(
+                                order.id
+                            );
+
+                    }
+
+                } else if (
+                    order.status ===
+                    'cancelled' ||
+
+                    order.status ===
+                    'refunded'
+                ) {
+
+                    if (contactSellerBtn) {
+
+                        contactSellerBtn.style.display =
+                            'flex';
+
+                        contactSellerBtn.onclick =
+                            () =>
+                            contactSeller(
+                                order
+                            );
+
+                    }
+
+                }
+
+                /*
+                ==================================
+                TAMPILKAN MODAL
+                ==================================
+                */
+
+                const transactionModal =
+                    bootstrap.Modal
+                    .getOrCreateInstance(
+                        modalElement
+                    );
+
+                transactionModal.show();
+
+            } catch (error) {
+
+                console.error(
+                    'Gagal membuka detail transaksi:',
+                    error
+                );
+
+                if (productContainer) {
+
+                    productContainer.innerHTML = `
+
+                <div class="
+                    text-center
+                    text-danger
+                    py-3
+                ">
+
+                    Gagal memuat
+                    data pesanan
+
+                </div>
+
+            `;
+
+                }
+
+                showAlert(
+                    error.message ||
+                    'Gagal memuat detail pesanan',
+                    'error'
+                );
+
+            }
+
+        }
 
         function filterNotifications() {
             const searchQuery = document.getElementById('searchInput')?.value.toLowerCase() || '';
@@ -781,6 +1484,10 @@
             }
 
             renderNotifications(filtered);
+        }
+
+        function showAlert(message, type = 'info') {
+            alert(message);
         }
     </script>
 @endsection

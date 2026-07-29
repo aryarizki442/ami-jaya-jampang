@@ -69,24 +69,28 @@
             position: relative;
             border: 1px dashed #cfd8e3;
             border-radius: 6px;
-            height: 300px;
+            height: 260px;
             overflow: hidden;
             background: #fff;
         }
 
+
         .upload-content {
             width: 100%;
-            height: 100%;
+            height: 260px;
+            /* atur tinggi area gambar */
             position: relative;
+            overflow: hidden;
+            border-radius: 8px;
         }
-
 
         .upload-content img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
+            /* gambar tampil utuh */
+            display: block;
         }
-
 
         /* overlay default tersembunyi */
         .image-overlay {

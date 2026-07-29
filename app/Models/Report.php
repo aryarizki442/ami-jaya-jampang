@@ -90,9 +90,10 @@ class Report extends Model
             'products.id as product_id',
             'products.name as product_name',
             'products.price as product_price',
+             'products.stock',
             'products.weight_kg',
             'order_items.product_image',
-            'order_items.product_unit',
+        //   'order_items.product_unit',
             'products.description',
             'categories.name as category_name',
 
@@ -103,9 +104,10 @@ class Report extends Model
             'products.id',
             'products.name',
             'products.price',
+            'products.stock',
             'products.weight_kg',
             'order_items.product_image',
-            'order_items.product_unit',
+            // 'order_items.product_unit',
             'products.description',
             'categories.name'
         );

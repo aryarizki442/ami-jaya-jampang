@@ -348,8 +348,12 @@
 
             <!-- PRINT BUTTON -->
             <div class="col-6 col-md-auto">
-                <button class="btn btn-main w-100 d-flex align-items-center justify-content-center gap-1" id="printBtn">
-                    <span class="iconify" data-icon="material-symbols-light:print"></span>
+                <button type="button" class="btn btn-main w-100 d-flex align-items-center justify-content-center gap-1"
+                    id="printBtn">
+
+                    <span class="iconify" data-icon="material-symbols-light:print">
+                    </span>
+
                     Cetak
                 </button>
             </div>
@@ -570,6 +574,7 @@
             const deleteBtn = document.getElementById("deleteSelected");
             const confirmBtn = document.getElementById("confirmDeleteBtn");
             const exportBtn = document.getElementById("exportBtn");
+            const printBtn = document.getElementById("printBtn");
             const totalRevenueEl = document.getElementById("totalRevenue");
 
             /* =========================
@@ -582,6 +587,519 @@
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 0
                 }).format(angka);
+            }
+
+            /* =========================
+               PRINT LAPORAN
+            ========================= */
+            function printReport() {
+
+                // Menggunakan data hasil pencarian/filter
+                const dataToPrint = allData;
+
+                if (!dataToPrint || dataToPrint.length === 0) {
+                    alert('Tidak ada data laporan yang dapat dicetak');
+                    return;
+                }
+
+                const monthText =
+                    document.getElementById('currentMonth')?.textContent ||
+                    '-';
+
+                const totalPendapatan = dataToPrint.reduce(
+                    (total, item) => {
+                        return total + Number(item.pendapatan || 0);
+                    },
+                    0
+                );
+
+                const totalTerjual = dataToPrint.reduce(
+                    (total, item) => {
+                        return total + Number(item.terjual || 0);
+                    },
+                    0
+                );
+
+                let tableRows = '';
+
+                dataToPrint.forEach((item, index) => {
+
+                    tableRows += `
+            <tr>
+                <td class="text-center">
+                    ${index + 1}
+                </td>
+
+                <td>
+                    ${item.nama_produk || '-'}
+                </td>
+
+                <td class="text-center">
+                    ${item.terjual || 0}
+                </td>
+
+                <td>
+                    ${item.tanggal || '-'}
+                </td>
+
+                <td class="text-end">
+                    ${formatRupiah(item.pendapatan || 0)}
+                </td>
+            </tr>
+        `;
+                });
+
+                const printWindow = window.open(
+                    '',
+                    '_blank',
+                    'width=1100,height=750'
+                );
+
+                if (!printWindow) {
+                    alert(
+                        'Preview cetak tidak dapat dibuka. ' +
+                        'Izinkan pop-up pada browser.'
+                    );
+
+                    return;
+                }
+
+                printWindow.document.open();
+
+                printWindow.document.write(`
+<!DOCTYPE html>
+
+<html lang="id">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>
+    Laporan Penjualan - ${monthText}
+</title>
+
+<style>
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family:
+            Arial,
+            Helvetica,
+            sans-serif;
+
+        color: #222;
+
+        margin: 0;
+
+        padding: 35px;
+
+        background: #f2f2f2;
+    }
+
+    .print-container {
+        width: 100%;
+
+        max-width: 1100px;
+
+        margin: auto;
+
+        background: white;
+
+        padding: 35px;
+
+        box-shadow:
+            0 2px 15px
+            rgba(0, 0, 0, 0.12);
+    }
+
+    .header {
+        display: flex;
+
+        justify-content: space-between;
+
+        align-items: flex-start;
+
+        border-bottom:
+            3px solid #0D3523;
+
+        padding-bottom: 18px;
+
+        margin-bottom: 25px;
+    }
+
+    .header h1 {
+        margin: 0 0 7px;
+
+        color: #0D3523;
+
+        font-size: 25px;
+    }
+
+    .header p {
+        margin: 0;
+
+        color: #666;
+
+        font-size: 14px;
+    }
+
+    .print-date {
+        text-align: right;
+
+        font-size: 12px;
+
+        color: #666;
+    }
+
+    .summary {
+        display: grid;
+
+        grid-template-columns:
+            repeat(3, 1fr);
+
+        gap: 15px;
+
+        margin-bottom: 25px;
+    }
+
+    .summary-card {
+        border:
+            1px solid #dddddd;
+
+        border-radius: 8px;
+
+        padding: 15px;
+    }
+
+    .summary-title {
+        display: block;
+
+        color: #666;
+
+        font-size: 12px;
+
+        margin-bottom: 7px;
+    }
+
+    .summary-value {
+        font-size: 20px;
+
+        font-weight: bold;
+
+        color: #0D3523;
+    }
+
+    table {
+        width: 100%;
+
+        border-collapse: collapse;
+
+        font-size: 13px;
+    }
+
+    thead {
+        background:
+            #0D3523;
+
+        color: white;
+    }
+
+    th {
+        padding: 11px 9px;
+
+        text-align: left;
+
+        border:
+            1px solid #0D3523;
+    }
+
+    td {
+        padding: 10px 9px;
+
+        border:
+            1px solid #dddddd;
+    }
+
+    tbody tr:nth-child(even) {
+        background: #f7f7f7;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .text-end {
+        text-align: right;
+    }
+
+    .footer {
+        margin-top: 25px;
+
+        padding-top: 12px;
+
+        border-top:
+            1px solid #dddddd;
+
+        display: flex;
+
+        justify-content: space-between;
+
+        font-size: 11px;
+
+        color: #777;
+    }
+
+    .print-button {
+        position: fixed;
+
+        right: 25px;
+
+        bottom: 25px;
+
+        background: #0D3523;
+
+        color: white;
+
+        border: none;
+
+        padding: 12px 20px;
+
+        border-radius: 8px;
+
+        cursor: pointer;
+
+        font-size: 14px;
+    }
+
+    @media print {
+
+        @page {
+            size: A4 landscape;
+            margin: 12mm;
+        }
+
+        body {
+            padding: 0;
+            background: white;
+        }
+
+        .print-container {
+            max-width: none;
+            padding: 0;
+            box-shadow: none;
+        }
+
+        .print-button {
+            display: none;
+        }
+
+        thead {
+            display: table-header-group;
+        }
+
+        tr {
+            page-break-inside: avoid;
+        }
+    }
+
+</style>
+
+</head>
+
+<body>
+
+<div class="print-container">
+
+    <div class="header">
+
+        <div>
+
+            <h1>
+                LAPORAN PENJUALAN
+            </h1>
+
+            <p>
+                Periode: ${monthText}
+            </p>
+
+        </div>
+
+        <div class="print-date">
+
+            Dicetak pada:
+
+            <br>
+
+            ${new Date().toLocaleDateString(
+                'id-ID',
+                {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric'
+                }
+            )}
+
+            <br>
+
+            ${new Date().toLocaleTimeString(
+                'id-ID',
+                {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }
+            )}
+
+        </div>
+
+    </div>
+
+
+    <div class="summary">
+
+        <div class="summary-card">
+
+            <span class="summary-title">
+                Total Produk
+            </span>
+
+            <div class="summary-value">
+                ${dataToPrint.length}
+            </div>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <span class="summary-title">
+                Total Terjual
+            </span>
+
+            <div class="summary-value">
+                ${totalTerjual}
+            </div>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <span class="summary-title">
+                Total Pendapatan
+            </span>
+
+            <div class="summary-value">
+                ${formatRupiah(totalPendapatan)}
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <table>
+
+        <thead>
+
+            <tr>
+
+                <th
+                    style="width:60px"
+                    class="text-center">
+
+                    No
+
+                </th>
+
+                <th>
+                    Nama Produk
+                </th>
+
+                <th
+                    style="width:100px"
+                    class="text-center">
+
+                    Terjual
+
+                </th>
+
+                <th
+                    style="width:180px">
+
+                    Tanggal
+
+                </th>
+
+                <th
+                    style="width:180px"
+                    class="text-end">
+
+                    Pendapatan
+
+                </th>
+
+            </tr>
+
+        </thead>
+
+
+        <tbody>
+
+            ${tableRows}
+
+        </tbody>
+
+    </table>
+
+
+    <div class="footer">
+
+        <span>
+            Laporan Penjualan
+        </span>
+
+        <span>
+            Total ${dataToPrint.length} data
+        </span>
+
+    </div>
+
+</div>
+
+
+<button
+    class="print-button"
+    onclick="window.print()">
+
+    Cetak / Simpan PDF
+
+</button>
+
+
+<script>
+
+window.onload = function() {
+
+    setTimeout(function() {
+
+        window.print();
+
+    }, 500);
+
+};
+
+<\/script>
+
+</body>
+
+</html>
+    `);
+
+                printWindow.document.close();
             }
 
             /* =========================
@@ -775,60 +1293,93 @@
             ========================== */
             function renderPagination() {
                 const paginationEl = document.getElementById('pagination');
+
                 if (!paginationEl) return;
 
                 const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
-                if (totalPages <= 1) {
+                // Jika benar-benar tidak ada data, pagination kosong
+                if (totalPages === 0) {
                     paginationEl.innerHTML = '';
                     return;
                 }
 
                 let html = '';
 
-                // Prev button
-                html +=
-                    `<a href="#" class="nav-text ${currentPage === 1 ? 'disabled' : ''}" data-page="prev" ${currentPage === 1 ? 'style="opacity:0.5; pointer-events:none;"' : ''}>« Sebelumnya</a>`;
+                // Tombol Sebelumnya
+                html += `
+        <a href="#"
+            class="nav-text ${currentPage === 1 ? 'disabled' : ''}"
+            data-page="prev"
+            ${currentPage === 1
+                ? 'style="opacity:1; pointer-events:none;"'
+                : ''}>
+            < Sebelumnya
+        </a>
+    `;
 
-                // Page numbers
+                // Nomor halaman
                 for (let i = 1; i <= totalPages; i++) {
-                    if (totalPages <= 7 || i === 1 || i === totalPages || (i >= currentPage - 1 && i <=
-                            currentPage + 1)) {
-                        html +=
-                            `<a href="#" class="page-number ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</a>`;
-                    } else if (i === currentPage - 2 || i === currentPage + 2) {
+                    if (
+                        totalPages <= 7 ||
+                        i === 1 ||
+                        i === totalPages ||
+                        (i >= currentPage - 1 && i <= currentPage + 1)
+                    ) {
+                        html += `
+                <a href="#"
+                    class="page-number ${i === currentPage ? 'active' : ''}"
+                    data-page="${i}">
+                    ${i}
+                </a>
+            `;
+                    } else if (
+                        i === currentPage - 2 ||
+                        i === currentPage + 2
+                    ) {
                         html += `<span class="page-number">...</span>`;
                     }
                 }
 
-                // Next button
-                html +=
-                    `<a href="#" class="nav-text ${currentPage === totalPages ? 'disabled' : ''}" data-page="next" ${currentPage === totalPages ? 'style="opacity:0.5; pointer-events:none;"' : ''}>Berikutnya »</a>`;
+                // Tombol Berikutnya
+                html += `
+        <a href="#"
+            class="nav-text ${currentPage === totalPages ? 'disabled' : ''}"
+            data-page="next"
+            ${currentPage === totalPages
+                ? 'style="opacity:1; pointer-events:none;"'
+                : ''}>
+            Berikutnya >
+        </a>
+    `;
 
                 paginationEl.innerHTML = html;
 
-                // Event listeners
+                // Event klik pagination
                 paginationEl.querySelectorAll('a').forEach(link => {
                     link.addEventListener('click', function(e) {
                         e.preventDefault();
+
                         if (this.classList.contains('disabled')) return;
 
                         const page = this.dataset.page;
-                        if (page === 'prev' && currentPage > 1) {
-                            currentPage--;
-                        } else if (page === 'next' && currentPage < totalPages) {
-                            currentPage++;
-                        } else if (!isNaN(parseInt(page))) {
-                            currentPage = parseInt(page);
+
+                        if (page === 'prev') {
+                            if (currentPage > 1) {
+                                currentPage--;
+                            }
+                        } else if (page === 'next') {
+                            if (currentPage < totalPages) {
+                                currentPage++;
+                            }
                         } else {
-                            return;
+                            currentPage = Number(page);
                         }
 
                         renderView();
                     });
                 });
             }
-
             /* =========================
                RENDER VIEW (TABEL/CARD)
             ========================== */
@@ -1048,6 +1599,9 @@
             });
             if (deleteBtn) deleteBtn.addEventListener('click', deleteSelected);
             if (exportBtn) exportBtn.addEventListener('click', exportToCSV);
+            if (printBtn) {
+                printBtn.addEventListener('click', printReport);
+            }
 
             // Update checkbox when clicking on row/card
             document.addEventListener('change', function(e) {

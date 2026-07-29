@@ -338,7 +338,8 @@
                                     <!-- Antar -->
                                     <div
                                         class="form-check-pengiriman d-flex justify-content-between align-items-center mb-2">
-                                        <label class="form-check-label " for="antar">
+                                        <label class="form-check-label  {{ $totalQty < 15 ? 'text-muted' : '' }}"
+                                            for="antar">
                                             Di Antar Oleh Penjual Ke Alamat Pembeli
                                         </label>
                                         <input class="form-check-input ms-2" type="radio" name="shipping"

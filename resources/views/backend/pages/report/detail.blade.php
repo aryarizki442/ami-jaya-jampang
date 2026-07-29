@@ -145,79 +145,27 @@
                 }).format(angka);
             }
 
-            // Data Dummy Laporan
-            const dummyData = [{
-                    id: 1,
-                    nama_produk: "Beras Putih Rojo Lele",
-                    deskripsi: "Beras Rojo Lele merupakan pilihan beras berkualitas unggulan dengan butiran yang putih bersih, utuh, dan minim patahan. Saat dimasak, beras ini menghasilkan nasi yang pulen, harum, dan lezat, sehingga cocok untuk konsumsi sehari-hari maupun hidangan spesial keluarga.",
-                    harga: 100000,
-                    stok: 200,
-                    berat: "50 Kg",
-                    kategori: "Premium",
-                    terjual: 120,
-                    tanggal: "Maret 2026",
-                    pendapatan: 12000000,
-                    image: "/images/home/category/beras-putih.png"
-                },
-                {
-                    id: 2,
-                    nama_produk: "Beras Putih Ramos",
-                    deskripsi: "Beras Ramos memiliki kualitas terbaik dengan butiran panjang dan putih bersih. Cocok untuk berbagai masakan sehari-hari karena teksturnya yang pulen dan tidak mudah lembek.",
-                    harga: 95000,
-                    stok: 180,
-                    berat: "50 Kg",
-                    kategori: "Medium",
-                    terjual: 115,
-                    tanggal: "Maret 2026",
-                    pendapatan: 11500000,
-                    image: "/images/home/category/beras-putih.png"
-                },
-                {
-                    id: 3,
-                    nama_produk: "Beras Putih Pandan Wangi",
-                    deskripsi: "Beras Pandan Wangi terkenal dengan aroma harum alami seperti pandan. Teksturnya pulen dan cocok untuk hidangan nasi gurih, nasi uduk, atau sekadar nasi putih hangat.",
-                    harga: 105000,
-                    stok: 150,
-                    berat: "50 Kg",
-                    kategori: "Premium",
-                    terjual: 110,
-                    tanggal: "Maret 2026",
-                    pendapatan: 11000000,
-                    image: "/images/home/category/beras-putih.png"
-                },
-                {
-                    id: 4,
-                    nama_produk: "Beras Merah Rojo Lele",
-                    deskripsi: "Beras merah organik dengan kandungan serat tinggi. Baik untuk kesehatan pencernaan dan cocok untuk diet sehat. Butiran beras merahnya bersih dan berkualitas.",
-                    harga: 120000,
-                    stok: 100,
-                    berat: "50 Kg",
-                    kategori: "Ketan",
-                    terjual: 100,
-                    tanggal: "Maret 2026",
-                    pendapatan: 10000000,
-                    image: "/images/home/category/beras-merah.png"
-                },
-                {
-                    id: 5,
-                    nama_produk: "Beras Putih BMW",
-                    deskripsi: "Beras BMW merupakan pilihan beras berkualitas unggulan dengan butiran yang putih bersih, utuh, dan minim patahan. Saat dimasak, beras ini menghasilkan nasi yang pulen, harum, dan lezat, sehingga cocok untuk konsumsi sehari-hari maupun hidangan spesial keluarga.",
-                    harga: 100000,
-                    stok: 125,
-                    berat: "50 Kg",
-                    kategori: "Premium",
-                    terjual: 75,
-                    tanggal: "Maret 2026",
-                    pendapatan: 7500000,
-                    image: "/images/home/category/beras-putih.png"
+
+            const API = {
+                baseUrl: '/api/admin/reports',
+
+                async getDetail(productId) {
+                    const response = await fetch(`${this.baseUrl}/${productId}`, {
+                        headers: {
+                            Accept: 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    return await response.json();
                 }
-            ];
+            };
+            document.addEventListener("DOMContentLoaded", async function() {
 
-            document.addEventListener("DOMContentLoaded", function() {
-                const id = parseInt(getReportIdFromUrl());
-
-                // Cari data berdasarkan ID
-                const data = dummyData.find(item => item.id === id);
+                const id = getReportIdFromUrl();
 
                 const elImage = document.getElementById('detailImage');
                 const elName = document.getElementById('detailName');
@@ -230,38 +178,67 @@
                 const elTanggal = document.getElementById('detailTanggal');
                 const elPendapatan = document.getElementById('detailPendapatan');
 
-                if (!data) {
-                    elName.textContent = 'Data tidak ditemukan';
-                    return;
+                try {
+
+                    const response = await API.getDetail(id);
+
+                    console.log(response);
+                    console.log(response.data);
+                    console.log(response.data.product);
+
+                    if (!response.success) {
+                        throw new Error('Data tidak ditemukan');
+                    }
+
+                    const product = response.data.product;
+                    const report = response.data.report;
+
+                    elImage.src = product.image || '/images/no-image.png';
+
+                    elName.textContent = product.name ?? '-';
+
+                    elDesc.textContent = product.description ?? '-';
+
+                    elHarga.textContent =
+                        product.price_format ?? formatRupiah(product.price);
+
+                    elStok.textContent = product.stock ?? "-";
+
+                    elBerat.textContent =
+                        (product.weight_kg ?? "-") + " Kg";
+
+                    elBadge.textContent =
+                        product.category ?? '-';
+
+                    elTerjual.textContent =
+                        report.total_sold ?? 0;
+
+                    elTanggal.textContent =
+                        report.period ?? '-';
+
+                    elPendapatan.textContent =
+                        report.total_revenue_format ??
+                        formatRupiah(report.total_revenue ?? 0);
+
+                    // Badge warna
+                    const badgeMap = {
+                        premium: 'premium-category fw-normal',
+                        medium: 'medium-category fw-normal',
+                        ketan: 'ketan-category fw-normal'
+                    };
+
+                    const key = (product.category || '').toLowerCase();
+
+                    elBadge.className =
+                        `badge ${badgeMap[key] || 'bg-secondary-subtle text-secondary'}`;
+
+                } catch (err) {
+
+                    console.error(err);
+
+                    elName.textContent = 'Gagal memuat data';
                 }
 
-                // IMAGE
-                elImage.src = data.image || '/images/home/category/beras-putih.png';
-
-                // TEXT DETAIL
-                elName.textContent = data.nama_produk;
-                elDesc.textContent = data.deskripsi;
-
-                // BADGE KATEGORI
-                const badgeMap = {
-                    premium: 'premium-category fw-normal',
-                    medium: 'medium-category fw-normal',
-                    ketan: 'ketan-category fw-normal'
-                };
-                const key = (data.kategori || '').toLowerCase();
-                const badgeClass = badgeMap[key] || 'bg-secondary-subtle text-secondary';
-                elBadge.className = `badge ${badgeClass}`;
-                elBadge.textContent = data.kategori;
-
-                // INFO PRODUK
-                elHarga.textContent = formatRupiah(data.harga);
-                elStok.textContent = data.stok;
-                elBerat.textContent = data.berat;
-
-                // TERJUAL & PENDAPATAN
-                elTerjual.textContent = data.terjual;
-                elTanggal.textContent = data.tanggal;
-                elPendapatan.textContent = formatRupiah(data.pendapatan);
             });
         </script>
 

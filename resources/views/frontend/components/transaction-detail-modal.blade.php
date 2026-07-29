@@ -219,7 +219,32 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="cancelOrderModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
 
+            <div class="modal-header">
+                <h5 class="modal-title">Konfirmasi</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                Apakah Anda yakin ingin membatalkan pesanan ini?
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">
+                    Tidak
+                </button>
+
+                <button class="btn btn-danger" id="confirmCancelOrderBtn">
+                    Ya, Batalkan
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
 <script>
     // Variabel untuk menyimpan orderId yang sedang diproses
     let currentOrderForPayment = null;
@@ -429,7 +454,7 @@
 
                 if (cancelBtn) {
                     cancelBtn.style.display = 'flex';
-                    cancelBtn.onclick = () => cancelOrder(order.id);
+                    cancelBtn.onclick = () => showCancelModal(order.id);
                 }
 
                 if (payBtn) {
@@ -732,10 +757,27 @@
         };
         return statusMap[status] || status;
     }
+    let selectedOrderId = null;
+    let cancelModal = null;
+
+    // Menampilkan modal konfirmasi
+    function showCancelModal(orderId) {
+        selectedOrderId = orderId;
+
+        const modalEl = document.getElementById('cancelOrderModal');
+        cancelModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        cancelModal.show();
+    }
+
+    // 👇 LETAKKAN DI SINI
+    document.getElementById('confirmCancelOrderBtn').addEventListener('click', function() {
+        if (selectedOrderId) {
+            cancelOrder(selectedOrderId);
+        }
+    });
 
     // Fungsi cancel order
     async function cancelOrder(orderId) {
-        if (!confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')) return;
 
         const token = localStorage.getItem('token');
         const cancelBtn = document.getElementById('trxCancelBtn');
@@ -820,18 +862,16 @@
 
             if (result.success) {
 
-                showAlert(
-                    result.message || 'Produk berhasil ditambahkan ke keranjang',
-                    'success'
+                const modal = new bootstrap.Modal(
+                    document.getElementById('reorderModal')
                 );
 
+                modal.show();
 
                 setTimeout(() => {
-
+                    modal.hide();
                     window.location.href = "/cart";
-
-                }, 1000);
-
+                }, 1500);
 
             } else {
 

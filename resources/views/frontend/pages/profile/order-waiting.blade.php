@@ -389,18 +389,6 @@
 
                 <div class="d-flex gap-2">
 
-                   <button
-                        class="btn btn-second btn-sm btn-payment-guide"
-                        data-bank="${order.payment_method}"
-                        data-va="${
-                            paymentDetail?.virtual_account_number
-                                ?.split(': ')
-                                ?.pop() || '-'
-                        }"
-                        data-total="${order.total_format}">
-                        Cara Pembayaran
-                    </button>
-
                     <button
                         class="btn btn-main btn-sm btn-transaction-detail"
                         data-id="${order.id}">

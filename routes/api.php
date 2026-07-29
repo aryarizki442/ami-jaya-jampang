@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\Admin\AdminReportController;
 use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\OtpController;
+use App\Http\Controllers\Api\Admin\AdminDashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -244,18 +245,24 @@ Route::get('/products/{product}/reviews', [ProductController::class, 'reviews'])
     });
 
     //laporan
-    Route::prefix('admin/reports')->group(function () {
+   Route::prefix('admin/reports')->group(function () {
+
     // List laporan
     Route::get('/', [AdminReportController::class, 'index']);
 
-    // Ringkasan laporan
+    // Ringkasan
     Route::get('/summary', [AdminReportController::class, 'summary']);
 
-    // Refresh/generate laporan
+    // Low Stock
+    Route::get('/low-stock', [AdminReportController::class, 'lowStock']);
+
+    // Refresh
     Route::post('/refresh', [AdminReportController::class, 'refresh']);
 
-    // Detail laporan per produk
+    // Detail produk (HARUS PALING BAWAH)
     Route::get('/{productId}', [AdminReportController::class, 'show']);
 
-   });
+});
+
+Route::get('/admin/dashboard/chart', [AdminDashboardController::class, 'chart']);
 

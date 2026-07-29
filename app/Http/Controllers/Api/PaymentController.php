@@ -378,7 +378,7 @@ class PaymentController extends Controller
             'expiry' => [
             'start_time' => now()->format('Y-m-d H:i:s O'),
             'unit'       => 'minute',
-            'duration'   => 1,
+            'duration'   => 10,
             ],
 
             'enabled_payments' => $this->enabledPayments($order),

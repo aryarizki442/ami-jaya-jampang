@@ -1009,8 +1009,8 @@ ${
 
             method = method.toLowerCase();
 
-            if (method.includes('cod')) {
-                return '/images/payments/bank/cod.png';
+            if (method.includes('qris')) {
+                return '/images/payments/bank/qris.png';
             }
             if (method.includes('bca')) {
                 return '/images/payments/bank/bca.png';

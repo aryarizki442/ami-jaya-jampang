@@ -631,7 +631,7 @@
                 'bni_va': 'bni.png',
                 'bri_va': 'bri.png',
                 'mandiri_va': 'mandiri.png',
-                'qris': 'qris.jpg'
+                'qris': 'qris.png'
             };
 
             try {

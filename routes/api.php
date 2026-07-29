@@ -15,11 +15,7 @@ use App\Http\Controllers\Api\Admin\AdminReportController;
 use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\OtpController;
-<<<<<<< HEAD
 use App\Http\Controllers\Api\Admin\AdminDashboardController;
-=======
-use App\Http\Controllers\Api\ReviewController;
->>>>>>> 7829549d2b652887b9d41510b8a7bb22aa647b47
 
 /*
 |--------------------------------------------------------------------------

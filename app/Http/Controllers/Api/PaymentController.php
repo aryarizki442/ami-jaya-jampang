@@ -77,13 +77,15 @@ class PaymentController extends Controller
 
         $methodCode = $payment->paymentMethod?->code;
 
-        if ($methodCode === 'cod') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Metode COD tidak menggunakan pembayaran Midtrans Snap.',
-            ], 422);
+        // Log untuk QRIS
+        if ($methodCode === 'qris') {
+            Log::info('QRIS payment initiated', [
+                'order_number' => $order->order_number,
+                'amount' => $order->total
+            ]);
         }
 
+        // Cek apakah snap_token masih valid
         if ($payment->snap_token && $payment->expired_at && now()->isBefore($payment->expired_at)) {
             return response()->json([
                 'success' => true,
@@ -93,19 +95,27 @@ class PaymentController extends Controller
         }
 
         try {
-            $expiredAt = now()->addMinutes(1);
-            // $expiredAt = now()->addHours(24);
+            // QRIS expired 10 menit, VA 30 menit
+            $expiredAt = $methodCode === 'qris' 
+                ? now()->addMinutes(10) 
+                : now()->addMinutes(30);
+            
             $snapParams = $this->buildSnapParams($order, $user, $expiredAt);
 
             $snapToken = \Midtrans\Snap::getSnapToken($snapParams);
 
+            // Simpan order_id yang digunakan di Midtrans ke transaction_id
+            $midtransOrderId = $snapParams['transaction_details']['order_id'];
+
             $payment->update([
                 'snap_token' => $snapToken,
                 'expired_at' => $expiredAt,
+                'transaction_id' => $midtransOrderId, // Simpan order_id Midtrans di transaction_id
             ]);
 
             Log::info('Midtrans: snap token dibuat', [
                 'order_number' => $order->order_number,
+                'midtrans_order_id' => $midtransOrderId,
                 'method_code'  => $methodCode,
                 'amount'       => $order->total,
                 'expired_at'   => $expiredAt,
@@ -159,9 +169,8 @@ class PaymentController extends Controller
                 return response()->json(['message' => 'OK - test notification received'], 200);
             }
 
-            if (app()->environment('local')) {
-                Log::warning('SIGNATURE BYPASSED LOCAL DEBUG', ['order_id' => $orderId]);
-            } else {
+            // Validasi signature (kecuali local)
+            if (! app()->environment('local')) {
                 $expectedSignature = hash(
                     'sha512',
                     $orderId . $statusCode . $grossAmount . config('midtrans.server_key')
@@ -176,23 +185,14 @@ class PaymentController extends Controller
                 }
             }
 
-            $order = Order::where('order_number', $orderId)
-                ->with(['items.product', 'user', 'payment.paymentMethod'])
-                ->first();
-
-            if (! $order && str_contains($orderId, '-')) {
-                $parts = explode('-', $orderId);
-                $lastSegment = array_pop($parts);
-                $baseOrderNumber = implode('-', $parts);
-
-                $order = Order::where('order_number', $baseOrderNumber)
-                    ->where('id', (int) $lastSegment)
-                    ->with(['items.product', 'user', 'payment.paymentMethod'])
-                    ->first();
-            }
+            // Cari order berdasarkan berbagai kemungkinan
+            $order = $this->findOrderByMidtransOrderId($orderId);
 
             if (! $order) {
-                Log::warning('Midtrans: order tidak ditemukan', ['order_id' => $orderId]);
+                Log::warning('Midtrans: order tidak ditemukan', [
+                    'order_id' => $orderId,
+                    'payload' => $payload
+                ]);
                 return response()->json(['message' => 'Order not found'], 404);
             }
 
@@ -206,10 +206,12 @@ class PaymentController extends Controller
                 return response()->json(['message' => 'Payment not found'], 404);
             }
 
+            // Cegah duplikasi proses
             if ($payment->status === 'paid' && $transactionStatus !== 'refund') {
                 return response()->json(['message' => 'Already processed'], 200);
             }
 
+            // Tentukan status payment
             $paymentStatus = match (true) {
                 $transactionStatus === 'capture' && $fraudStatus === 'accept'    => 'paid',
                 $transactionStatus === 'capture' && $fraudStatus === 'challenge' => 'pending',
@@ -226,7 +228,8 @@ class PaymentController extends Controller
                 $paymentType,
                 $transactionId,
                 $settlementTime,
-                $payload
+                $payload,
+                $orderId
             ) {
                 $virtualAccountNumber = $this->extractVirtualAccountNumber($payload);
 
@@ -238,9 +241,13 @@ class PaymentController extends Controller
                 $paymentUpdateData = [
                     'status'            => $paymentStatus,
                     'payment_type'      => $paymentType,
-                    'transaction_id'    => $transactionId,
                     'payment_method_id' => $paymentMethodId,
                 ];
+
+                // Update transaction_id dengan yang asli dari Midtrans
+                if ($transactionId) {
+                    $paymentUpdateData['transaction_id'] = $transactionId;
+                }
 
                 if ($virtualAccountNumber) {
                     $paymentUpdateData['virtual_account_number'] = $virtualAccountNumber;
@@ -275,6 +282,49 @@ class PaymentController extends Controller
         }
     }
 
+    /**
+     * Cari order berdasarkan midtrans order_id dengan berbagai metode
+     */
+    private function findOrderByMidtransOrderId(string $orderId): ?Order
+    {
+        // 1. Cari berdasarkan order_number langsung
+        $order = Order::where('order_number', $orderId)
+            ->with(['items.product', 'user', 'payment.paymentMethod'])
+            ->first();
+
+        if ($order) {
+            return $order;
+        }
+
+        // 2. Cari berdasarkan transaction_id di payment (menyimpan midtrans_order_id)
+        $payment = Payment::where('transaction_id', $orderId)->first();
+        if ($payment) {
+            return Order::with(['items.product', 'user', 'payment.paymentMethod'])
+                ->find($payment->order_id);
+        }
+
+        // 3. Parse order_id format: {order_number}-{timestamp}-{random}
+        if (str_contains($orderId, '-')) {
+            $parts = explode('-', $orderId);
+            $orderNumberParts = [];
+            
+            for ($i = 0; $i < count($parts); $i++) {
+                $orderNumberParts[] = $parts[$i];
+                $testOrderNumber = implode('-', $orderNumberParts);
+                
+                $order = Order::where('order_number', $testOrderNumber)
+                    ->with(['items.product', 'user', 'payment.paymentMethod'])
+                    ->first();
+                
+                if ($order) {
+                    return $order;
+                }
+            }
+        }
+
+        return null;
+    }
+
     public function uploadProof(Request $request, Order $order)
     {
         $user = JWTAuth::parseToken()->authenticate();
@@ -283,15 +333,23 @@ class PaymentController extends Controller
             return response()->json(['success' => false, 'message' => 'Akses ditolak'], 403);
         }
 
-        $request->validate([
-            'payment_proof' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-        ]);
-
         $payment = $order->payment;
 
         if (! $payment) {
             return response()->json(['success' => false, 'message' => 'Data pembayaran tidak ditemukan'], 404);
         }
+
+        // QRIS tidak memerlukan upload bukti
+        if ($payment->paymentMethod?->code === 'qris') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Metode QRIS tidak memerlukan upload bukti pembayaran',
+            ], 422);
+        }
+
+        $request->validate([
+            'payment_proof' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
 
         if ($payment->status !== 'pending') {
             return response()->json([
@@ -346,9 +404,14 @@ class PaymentController extends Controller
             ];
         }
 
-        return [
+        $methodCode = $order->payment?->paymentMethod?->code;
+
+        // Generate unique order_id untuk Midtrans
+        $uniqueOrderId = $order->order_number . '-' . time() . '-' . rand(1000, 9999);
+
+        $params = [
             'transaction_details' => [
-                'order_id' => $order->order_number,
+                'order_id' => $uniqueOrderId,
                 'gross_amount' => (int) $order->total,
             ],
 
@@ -369,24 +432,28 @@ class PaymentController extends Controller
                 ],
             ],
 
-            // 'expiry' => [
-            //     'start_time' => now()->format('Y-m-d H:i:s O'),
-            //     'unit'       => 'hours',
-            //     'duration'   => 24,
-            // ],
-
             'expiry' => [
-            'start_time' => now()->format('Y-m-d H:i:s O'),
-            'unit'       => 'minute',
-            'duration'   => 10,
+                'start_time' => now()->format('Y-m-d H:i:s O'),
+                'unit'       => 'minute',
+                'duration'   => 10,
             ],
-
-            'enabled_payments' => $this->enabledPayments($order),
 
             'callbacks' => [
                 'finish' => config('app.url') . '/payment/finish',
             ],
         ];
+
+        // Konfigurasi khusus untuk QRIS
+        if ($methodCode === 'qris') {
+            $params['enabled_payments'] = ['gopay', 'shopeepay'];
+            $params['qris'] = [
+                'acquirer' => 'gopay'
+            ];
+        } else {
+            $params['enabled_payments'] = $this->enabledPayments($order);
+        }
+
+        return $params;
     }
 
     private function enabledPayments(Order $order): array
@@ -397,15 +464,15 @@ class PaymentController extends Controller
             'bca_va'     => ['bca_va'],
             'bni_va'     => ['bni_va'],
             'bri_va'     => ['bri_va'],
-
-            // Midtrans untuk Mandiri biasanya pakai echannel
             'mandiri_va' => ['echannel'],
-
+            'qris'       => ['gopay', 'shopeepay'],
             default => [
                 'bca_va',
                 'bni_va',
                 'bri_va',
                 'echannel',
+                'gopay',
+                'shopeepay'
             ],
         };
     }
@@ -428,6 +495,11 @@ class PaymentController extends Controller
             return 'MANDIRI: ' . $billerCode . $payload['bill_key'];
         }
 
+        // Untuk QRIS
+        if (isset($payload['payment_type']) && in_array($payload['payment_type'], ['gopay', 'shopeepay', 'qris'])) {
+            return 'QRIS Payment';
+        }
+
         return null;
     }
 
@@ -442,6 +514,9 @@ class PaymentController extends Controller
             'bni_va'    => 'bni_va',
             'bri_va'    => 'bri_va',
             'echannel'  => 'mandiri_va',
+            'gopay'     => 'qris',
+            'shopeepay' => 'qris',
+            'qris'      => 'qris',
         ];
 
         $methodCode = $codeMap[$paymentType] ?? null;
@@ -471,11 +546,15 @@ class PaymentController extends Controller
             'amount'        => $order->total,
             'amount_format' => 'Rp.' . number_format($order->total, 0, ',', '.'),
             'expired_at'    => $payment->expired_at,
+            'payment_method' => $payment->paymentMethod?->code,
+            'is_qris'       => $payment->paymentMethod?->code === 'qris',
         ];
     }
 
     private function formatPayment(Order $order, Payment $payment): array
     {
+        $isQris = $payment->paymentMethod?->code === 'qris';
+        
         return [
             'order_number'           => $order->order_number,
             'amount'                 => $payment->amount,
@@ -496,6 +575,11 @@ class PaymentController extends Controller
             'expired_at'             => $payment->expired_at,
             'paid_at'                => $payment->paid_at,
             'refunded_at'            => $payment->refunded_at,
+            'is_qris'                => $isQris,
+            'qris_info'              => $isQris ? [
+                'acquirer' => 'Gopay / ShopeePay',
+                'how_to_pay' => 'Scan QR code menggunakan aplikasi Gopay atau ShopeePay'
+            ] : null,
         ];
     }
 
@@ -554,131 +638,116 @@ class PaymentController extends Controller
     }
 
     public function index(Request $request)
-{
-    $query = Payment::with([
-        'order.user',
-        'order',
-        'paymentMethod'
-    ])->latest();
+    {
+        $query = Payment::with([
+            'order.user',
+            'order',
+            'paymentMethod'
+        ])->latest();
 
-$allowed = [
-    'pending',
-    'paid',
-    'failed',
-    'expired',
-    'refunded',
-    'partially_refunded'
-];
-
-if ($request->filled('status') && $request->status !== 'all' && in_array($request->status, $allowed)) {
-
-    $query->where('status', $request->status);
-}
-
-    if ($request->filled('start_date') && $request->filled('end_date')) {
-        $query->whereDate('created_at', '>=', $request->start_date)
-              ->whereDate('created_at', '<=', $request->end_date);
-    }
-
-    $payments = $query->paginate(10);
-
-    $payments->getCollection()->transform(function ($payment) {
-
-        return [
-            'id' => $payment->id,
-
-            'order_number' => $payment->order?->order_number ?? '-',
-
-            'customer_name' => $payment->order?->user?->name ?? '-',
-
-            // 🔥 FIX UTAMA: jadikan NESTED payment (biar sama kayak frontend kamu)
-            'payment' => [
-                'method' => $payment->paymentMethod?->name ?? '-',
-                'method_code' => $payment->paymentMethod?->code ?? null,
-
-                'virtual_account_number' => $payment->virtual_account_number ?? null,
-                'expired_at' => $payment->expired_at,
-
-                'status' => $payment->status,
-                'status_label' => $this->statusLabel($payment->status),
-            ],
-
-            'amount' => $payment->amount,
-            'amount_format' => 'Rp ' . number_format($payment->amount, 0, ',', '.'),
-
-            'created_at' => $payment->created_at
-                ? $payment->created_at->translatedFormat('d M Y, H:i')
-                : '-',
+        $allowed = [
+            'pending',
+            'paid',
+            'failed',
+            'expired',
+            'refunded',
+            'partially_refunded'
         ];
-    });
 
-    return response()->json([
-        'success' => true,
-        'data' => $payments
-    ]);
-}
+        if ($request->filled('status') && $request->status !== 'all' && in_array($request->status, $allowed)) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date)
+                  ->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        $payments = $query->paginate(10);
+
+        $payments->getCollection()->transform(function ($payment) {
+            return [
+                'id' => $payment->id,
+                'order_number' => $payment->order?->order_number ?? '-',
+                'customer_name' => $payment->order?->user?->name ?? '-',
+                'payment' => [
+                    'method' => $payment->paymentMethod?->name ?? '-',
+                    'method_code' => $payment->paymentMethod?->code ?? null,
+                    'virtual_account_number' => $payment->virtual_account_number ?? null,
+                    'expired_at' => $payment->expired_at,
+                    'status' => $payment->status,
+                    'status_label' => $this->statusLabel($payment->status),
+                    'is_qris' => $payment->paymentMethod?->code === 'qris',
+                ],
+                'amount' => $payment->amount,
+                'amount_format' => 'Rp ' . number_format($payment->amount, 0, ',', '.'),
+                'created_at' => $payment->created_at
+                    ? $payment->created_at->translatedFormat('d M Y, H:i')
+                    : '-',
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $payments
+        ]);
+    }
 
     public function adminShow($id)
-{
-    $payment = Payment::with([
-        'order.user',
-        'order.items.product',
-        'paymentMethod'
-    ])->find($id);
+    {
+        $payment = Payment::with([
+            'order.user',
+            'order.items.product',
+            'paymentMethod'
+        ])->find($id);
 
-    if (! $payment) {
+        if (! $payment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Payment tidak ditemukan'
+            ], 404);
+        }
+
+        $isQris = $payment->paymentMethod?->code === 'qris';
+
         return response()->json([
-            'success' => false,
-            'message' => 'Payment tidak ditemukan'
-        ], 404);
+            'success' => true,
+            'data' => [
+                'id' => $payment->id,
+                'order_number' => $payment->order?->order_number ?? '-',
+                'customer_name' => $payment->order?->user?->name ?? '-',
+                'customer_email' => $payment->order?->user?->email ?? '-',
+                'payment_method' => $payment->paymentMethod?->name ?? '-',
+                'payment_method_code' => $payment->paymentMethod?->code ?? null,
+                'payment_type' => $payment->payment_type ?? '-',
+                'status' => $payment->status,
+                'status_label' => $this->statusLabel($payment->status),
+                'virtual_account_number' => $payment->virtual_account_number ?? null,
+                'expired_at' => $payment->expired_at,
+                'paid_at' => $payment->paid_at,
+                'amount' => $payment->amount,
+                'amount_format' => 'Rp ' . number_format($payment->amount, 0, ',', '.'),
+                'transaction_id' => $payment->transaction_id ?? '-',
+                'is_qris' => $isQris,
+                'qris_info' => $isQris ? [
+                    'acquirer' => 'Gopay / ShopeePay',
+                    'payment_type' => 'QRIS'
+                ] : null,
+                'items' => $payment->order?->items->map(function ($item) {
+                    return [
+                        'name' => $item->product_name ?? $item->product?->name,
+                        'qty' => $item->quantity,
+                        'price' => $item->unit_price,
+                        'subtotal' => $item->subtotal,
+                    ];
+                }) ?? [],
+                'created_at' => $payment->created_at
+                    ? $payment->created_at->translatedFormat('d F Y H:i')
+                    : '-',
+                'paid_at' => $payment->paid_at
+                    ? $payment->paid_at->translatedFormat('d F Y H:i')
+                    : '-',
+            ]
+        ]);
     }
-
-    return response()->json([
-        'success' => true,
-        'data' => [
-
-            'id' => $payment->id,
-
-            'order_number' => $payment->order?->order_number ?? '-',
-
-            'customer_name' => $payment->order?->user?->name ?? '-',
-            'customer_email' => $payment->order?->user?->email ?? '-',
-
-            'payment_method' => $payment->paymentMethod?->name ?? '-',
-            'payment_method_code' => $payment->paymentMethod?->code ?? null,
-
-            'payment_type' => $payment->payment_type ?? '-',
-
-            'status' => $payment->status,
-            'status_label' => $this->statusLabel($payment->status),
-
-            // 🔥 IMPORTANT
-            'virtual_account_number' => $payment->virtual_account_number ?? null,
-            'expired_at' => $payment->expired_at,
-            'paid_at' => $payment->paid_at,
-
-            'amount' => $payment->amount,
-            'amount_format' => 'Rp ' . number_format($payment->amount, 0, ',', '.'),
-
-            'transaction_id' => $payment->transaction_id ?? '-',
-
-            'items' => $payment->order?->items->map(function ($item) {
-                return [
-                    'name' => $item->product_name ?? $item->product?->name,
-                    'qty' => $item->quantity,
-                    'price' => $item->unit_price,
-                    'subtotal' => $item->subtotal,
-                ];
-            }) ?? [],
-
-            'created_at' => $payment->created_at
-                ? $payment->created_at->translatedFormat('d F Y H:i')
-                : '-',
-
-            'paid_at' => $payment->paid_at
-                ? $payment->paid_at->translatedFormat('d F Y H:i')
-                : '-',
-        ]
-    ]);
-}
 }

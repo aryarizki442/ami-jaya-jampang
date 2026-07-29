@@ -14,8 +14,8 @@ class PaymentMethodSeeder extends Seeder
     {
         PaymentMethod::insert([
             [
-                'name' => 'Cash On Delivery (COD)',
-                'code' => 'cod',
+                'name' => 'QRIS',
+                'code' => 'qris',
                 'is_active' => 1,
             ],
             [

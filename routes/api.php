@@ -118,7 +118,7 @@ Route::prefix('admin')->group(function () {
     Route::post('/orders/{order}/refund', [AdminOrderController::class, 'refund']);
     Route::post('/orders/{order}/refund-manual', [AdminOrderController::class, 'refundManual']);
     Route::post('/{order}/reject', [OrderController::class, 'reject']);
-    Route::post('/{order}/reject', [OrderController::class, 'accept']);
+    //Route::post('/{order}/acc', [OrderController::class, 'accept']);
     Route::post('/{order}/complete', [OrderController::class, 'complete']);
 });
 

@@ -1,5 +1,6 @@
 <?php
 
+// use App\Http\Controllers\Admin\AdminCategoryController as AdminAdminCategoryController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
@@ -14,7 +15,11 @@ use App\Http\Controllers\Api\Admin\AdminReportController;
 use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\OtpController;
+<<<<<<< HEAD
 use App\Http\Controllers\Api\Admin\AdminDashboardController;
+=======
+use App\Http\Controllers\Api\ReviewController;
+>>>>>>> 7829549d2b652887b9d41510b8a7bb22aa647b47
 
 /*
 |--------------------------------------------------------------------------
@@ -116,6 +121,7 @@ Route::prefix('admin')->group(function () {
     Route::post('/orders/{order}/refund', [AdminOrderController::class, 'refund']);
     Route::post('/orders/{order}/refund-manual', [AdminOrderController::class, 'refundManual']);
     Route::post('/{order}/reject', [OrderController::class, 'reject']);
+    Route::post('/{order}/reject', [OrderController::class, 'accept']);
     Route::post('/{order}/complete', [OrderController::class, 'complete']);
 });
 
@@ -265,4 +271,11 @@ Route::get('/products/{product}/reviews', [ProductController::class, 'reviews'])
 });
 
 Route::get('/admin/dashboard/chart', [AdminDashboardController::class, 'chart']);
+
+    Route::get('pendingriview', [ReviewController::class, 'pending'])->name('reviews.pending');
+    Route::get('myriview', [ReviewController::class, 'myReviews'])->name('reviews.my');
+    Route::post('/riview', [ReviewController::class, 'store'])->name('reviews.store');
+    Route::put('{review}', [ReviewController::class, 'update'])->name('reviews.update');
+    Route::delete('{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+
 

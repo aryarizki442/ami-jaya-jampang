@@ -305,6 +305,34 @@
             </div>
         </div>
     </div>
+    <!-- Reorder Success Modal -->
+    <div class="modal fade" id="reorderModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4">
+
+                <div class="modal-body text-center p-4">
+
+                    <div class="mb-3">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size:60px;"></i>
+                    </div>
+
+                    <h5 class="fw-bold" id="reorderModalTitle">
+                        Berhasil
+                    </h5>
+
+                    <p class="text-muted mb-4" id="reorderModalMessage">
+                        Produk berhasil dimasukkan ke keranjang
+                    </p>
+
+                    <button class="btn btn-main px-5 rounded-3" data-bs-dismiss="modal">
+                        OK
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
     @include('frontend.components.transaction-detail-modal')
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -601,23 +629,23 @@
 
 
                  ${order.shipping_address ? `
-                                                                                                                                                                                                                                                                              <div class="modal-info-row">
-                                                                                                                                                                                                                                                                             <span class="modal-info-label">
-                                                                                                                                                                                                                                                                              Alamat Pengiriman
-                                                                                                                                                                                                                                                                              </span>
-                                                                                                                                                                                                                                                                            <span class="modal-info-value">
-                                                                                                                                                                                                                                                                                 ${order.shipping_address}
-                                                                                                                                                                                                                                                                                 </span>
-                                                                                                                                                                                                                                                                              </div>
-                                                                                                                                                                                                                                                                              ` : ''}
+                                                                                                                                                                                                                                                                                                  <div class="modal-info-row">
+                                                                                                                                                                                                                                                                                                 <span class="modal-info-label">
+                                                                                                                                                                                                                                                                                                  Alamat Pengiriman
+                                                                                                                                                                                                                                                                                                  </span>
+                                                                                                                                                                                                                                                                                                <span class="modal-info-value">
+                                                                                                                                                                                                                                                                                                     ${order.shipping_address}
+                                                                                                                                                                                                                                                                                                     </span>
+                                                                                                                                                                                                                                                                                                  </div>
+                                                                                                                                                                                                                                                                                                  ` : ''}
 
 
                                 ${description ? `
-                                                                                                                                                                                                                                                                              <div class="modal-divider"></div>
-                                                                                                                                                                                                                                                                            <div>
-                                                                                                                                                                                                                                                                            ${description}
-                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                               ` : ''}
+                                                                                                                                                                                                                                                                                                  <div class="modal-divider"></div>
+                                                                                                                                                                                                                                                                                                <div>
+                                                                                                                                                                                                                                                                                                ${description}
+                                                                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                                                                                   ` : ''}
                     `;
 
             document.getElementById('modalBody').innerHTML = modalBody;
@@ -989,7 +1017,7 @@
             const modalElement = document.getElementById(
                 'transactionDetailModal'
             );
-
+            console.log(modalElement);
             const productContainer = document.getElementById(
                 'trxProductItems'
             );
@@ -1169,18 +1197,18 @@
                                     ${
                                         item.unit
                                         ? `
-                                                <div
-                                                    class="
-                                                        text-muted
-                                                        small
-                                                    "
-                                                >
-                                                    Satuan:
-                                                    ${escapeHtml(
-                                                        item.unit
-                                                    )}
-                                                </div>
-                                            `
+                                                                    <div
+                                                                        class="
+                                                                            text-muted
+                                                                            small
+                                                                        "
+                                                                    >
+                                                                        Satuan:
+                                                                        ${escapeHtml(
+                                                                            item.unit
+                                                                        )}
+                                                                    </div>
+                                                                `
                                         : ''
                                     }
 
@@ -1191,19 +1219,19 @@
                             ${
                                 productId
                                 ? `
-                                        <a
-                                            href="/product/${productId}"
+                                                            <a
+                                                                href="/product/${productId}"
 
-                                            class="
-                                                text-success
-                                                fw-semibold
-                                                small
-                                                text-decoration-none
-                                            "
-                                        >
-                                            Lihat Produk
-                                        </a>
-                                    `
+                                                                class="
+                                                                    text-success
+                                                                    fw-semibold
+                                                                    small
+                                                                    text-decoration-none
+                                                                "
+                                                            >
+                                                                Lihat Produk
+                                                            </a>
+                                                        `
                                 : ''
                             }
 
@@ -1488,6 +1516,125 @@
 
         function showAlert(message, type = 'info') {
             alert(message);
+        }
+        async function reorderOrder(orderId, btn) {
+
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                window.location.href = "{{ route('login') }}";
+                return;
+            }
+
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `
+                <span class="spinner-border spinner-border-sm"></span>
+                Memproses...
+            `;
+            }
+
+
+            try {
+
+                const response = await fetch(
+                    `/api/orders/${orderId}/reorder`, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+
+
+                const result = await response.json();
+
+
+                if (!response.ok || !result.success) {
+                    throw new Error(
+                        result.message || 'Gagal membeli ulang'
+                    );
+                }
+
+
+                // Tutup modal detail transaksi
+                const trxModal = bootstrap.Modal.getInstance(
+                    document.getElementById('transactionDetailModal')
+                );
+
+                if (trxModal) {
+                    trxModal.hide();
+                }
+
+                // Tunggu animasi modal selesai
+                setTimeout(() => {
+
+                    showReorderModal(
+                        result.message || 'Produk berhasil dimasukkan ke keranjang',
+                        'success'
+                    );
+
+                    // Redirect setelah user melihat modal sukses
+                    setTimeout(() => {
+                        window.location.href = "{{ route('cart') }}";
+                    }, 1500);
+
+                }, 300);
+
+
+            } catch (error) {
+
+
+                showReorderModal(
+                    error.message || 'Terjadi kesalahan',
+                    'error'
+                );
+
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Beli Lagi';
+                }
+
+            }
+
+        }
+
+        function showReorderModal(message, type = 'success') {
+
+            const modal = document.getElementById('reorderModal');
+
+            const icon = modal.querySelector('i');
+            const title = document.getElementById('reorderModalTitle');
+            const text = document.getElementById('reorderModalMessage');
+
+
+            if (type === 'success') {
+
+                icon.className =
+                    'bi bi-check-circle-fill text-success';
+
+                title.innerText = 'Berhasil';
+
+            } else {
+
+                icon.className =
+                    'bi bi-x-circle-fill text-danger';
+
+                title.innerText = 'Gagal';
+
+            }
+
+
+            text.innerText = message;
+
+
+            const bsModal = bootstrap.Modal.getOrCreateInstance(modal);
+
+            bsModal.show();
+
         }
     </script>
 @endsection

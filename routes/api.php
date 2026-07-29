@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\Admin\AdminReportController;
 use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\OtpController;
+use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\Admin\AdminDashboardController;
 
 /*
@@ -273,5 +274,6 @@ Route::get('/admin/dashboard/chart', [AdminDashboardController::class, 'chart'])
     Route::post('/riview', [ReviewController::class, 'store'])->name('reviews.store');
     Route::put('{review}', [ReviewController::class, 'update'])->name('reviews.update');
     Route::delete('{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+    Route::get('/reviews/statistics/{product}', [ReviewController::class, 'statistics']);
 
 

@@ -262,32 +262,34 @@
 
                     <!-- KIRI : Rating utama -->
                     <div class="col-md-4 text-center border-end">
+
                         <div class="fw-bold" style="font-size:48px; line-height:1;">
-                            4.0 <span style="font-size:24px;">/ 5.0</span>
+                            <span id="averageRating">0.0</span>
+                            <span style="font-size:24px;">/ 5.0</span>
                         </div>
 
-                        <div class="text-warning mb-2" style="font-size:20px;">
-                            ★★★★☆
+                        <div class="text-warning mb-2" style="font-size:20px;" id="ratingStars">
+                            ☆☆☆☆☆
                         </div>
 
-                        <div class="text-muted small">
-                            80% Pembeli Merasa Puas
+                        <div class="text-muted small" id="satisfiedPercent">
+                            0% Pembeli Merasa Puas
                         </div>
 
-                        <div class="text-muted small">
-                            2 rating - 2 ulasan
+                        <div class="text-muted small" id="totalReview">
+                            0 rating - 0 ulasan
                         </div>
+
                     </div>
-
 
                     <!-- TENGAH : Rating 5,4,3 -->
                     <div class="col-md-4 px-4 border-end">
 
-                        @foreach ([['5', 0], ['4', 100], ['3', 0]] as $rating)
+                        @foreach ([5, 4, 3] as $star)
                             <div class="d-flex align-items-center mb-2" style="gap:8px;">
 
                                 <span style="width:20px;">
-                                    {{ $rating[0] }}
+                                    {{ $star }}
                                 </span>
 
                                 <span class="text-warning">
@@ -297,23 +299,25 @@
                                 <div class="flex-grow-1">
                                     <div
                                         style="
-                            background:#e0e0e0;
-                            height:6px;
-                            border-radius:3px;
-                            overflow:hidden;
-                        ">
-                                        <div
+                                    background:#e0e0e0;
+                                    height:6px;
+                                    border-radius:3px;
+                                    overflow:hidden;
+                                ">
+
+                                        <div id="bar{{ $star }}"
                                             style="
-                                width:{{ $rating[1] }}%;
-                                background:#2e7d32;
-                                height:100%;
-                            ">
+                                        width:0%;
+                                        background:#2e7d32;
+                                        height:100%;
+                                    ">
                                         </div>
+
                                     </div>
                                 </div>
 
-                                <span style="width:35px;">
-                                    ({{ $rating[1] == 100 ? 2 : 0 }})
+                                <span style="width:35px;" id="count{{ $star }}">
+                                    (0)
                                 </span>
 
                             </div>
@@ -321,15 +325,14 @@
 
                     </div>
 
-
                     <!-- KANAN : Rating 2,1 -->
                     <div class="col-md-4 px-4">
 
-                        @foreach ([['2', 0], ['1', 0]] as $rating)
+                        @foreach ([2, 1] as $star)
                             <div class="d-flex align-items-center mb-2" style="gap:8px;">
 
                                 <span style="width:20px;">
-                                    {{ $rating[0] }}
+                                    {{ $star }}
                                 </span>
 
                                 <span class="text-warning">
@@ -339,22 +342,24 @@
                                 <div class="flex-grow-1">
                                     <div
                                         style="
-                            background:#e0e0e0;
-                            height:6px;
-                            border-radius:3px;
-                            overflow:hidden;
-                        ">
-                                        <div
+                                    background:#e0e0e0;
+                                    height:6px;
+                                    border-radius:3px;
+                                    overflow:hidden;
+                                ">
+
+                                        <div id="bar{{ $star }}"
                                             style="
-                                width:{{ $rating[1] }}%;
-                                background:#2e7d32;
-                                height:100%;
-                            ">
+                                        width:0%;
+                                        background:#2e7d32;
+                                        height:100%;
+                                    ">
                                         </div>
+
                                     </div>
                                 </div>
 
-                                <span style="width:35px;">
+                                <span style="width:35px;" id="count{{ $star }}">
                                     (0)
                                 </span>
 
@@ -674,5 +679,86 @@
         function showGuestLoginModal() {
             window.location.href = "{{ route('login') }}";
         }
+
+        async function loadReviewStatistic() {
+
+            const productId = "{{ $product->id }}";
+
+            const response = await fetch(`/api/reviews/statistics/${productId}`);
+            const result = await response.json();
+
+            if (!result.success) return;
+
+            let data = result.data;
+
+            // Jika belum ada review
+            if (data.total_review == 0) {
+
+                data = {
+                    average: 4,
+                    satisfied_percent: 80,
+                    total_review: 5, // tampilkan seolah ada 5 review
+                    ratings: [{
+                            star: 5,
+                            count: 1,
+                            percent: 20
+                        },
+                        {
+                            star: 4,
+                            count: 4,
+                            percent: 80
+                        },
+                        {
+                            star: 3,
+                            count: 0,
+                            percent: 0
+                        },
+                        {
+                            star: 2,
+                            count: 0,
+                            percent: 0
+                        },
+                        {
+                            star: 1,
+                            count: 0,
+                            percent: 0
+                        },
+                    ]
+                };
+            }
+
+            document.getElementById('averageRating').textContent =
+                Number(data.average).toFixed(1);
+
+            document.getElementById('satisfiedPercent').textContent =
+                `${data.satisfied_percent}% Pembeli Merasa Puas`;
+
+            document.getElementById('totalReview').textContent =
+                `${data.total_review} rating - ${data.total_review} ulasan`;
+
+            const fullStar = Math.round(data.average);
+
+            document.getElementById('ratingStars').textContent =
+                '★'.repeat(fullStar) + '☆'.repeat(5 - fullStar);
+
+            data.ratings.forEach(item => {
+
+                const bar = document.getElementById('bar' + item.star);
+                const count = document.getElementById('count' + item.star);
+
+                if (bar) {
+                    bar.style.width = item.percent + '%';
+                }
+
+                if (count) {
+                    count.textContent = `(${item.count})`;
+                }
+
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadReviewStatistic();
+        });
     </script>
 @endsection

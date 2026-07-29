@@ -90,6 +90,47 @@
             background: #a8a8a8;
         }
 
+        /* ==================================
+                                                                                                                               MODAL PENILAIAN
+                                                                                                                            ================================== */
+
+        #reviewModal .modal-content {
+            border-radius: 0;
+        }
+
+        #reviewModal .modal-header {
+            padding: 14px 45px;
+        }
+
+        #reviewModal .modal-title {
+            font-size: 16px;
+        }
+
+        #reviewModal .modal-body {
+            padding-top: 15px;
+            padding-bottom: 20px;
+        }
+
+        .review-star {
+            border: none;
+            background: transparent;
+            padding: 0;
+            font-size: 38px;
+            line-height: 1;
+            color: #e0ab00;
+            cursor: pointer;
+            transition: transform 0.15s ease;
+        }
+
+        .review-star:hover {
+            transform: scale(1.12);
+        }
+
+        /* Bintang sudah dipilih */
+        .review-star.active {
+            color: #ffc107;
+        }
+
         /* ========== RESPONSIVE STYLES ========== */
 
         /* Tablet (max-width: 768px) */
@@ -336,12 +377,84 @@
             </div>
         </div>
     </div>
+
+    {{-- MODAL PENILAIAN PRODUK --}}
+    <div class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true">
+
+        <div class="modal-dialog modal-dialog-centered">
+
+            <div class="modal-content border-0 rounded-0">
+
+                {{-- HEADER --}}
+                <div class="modal-header border-0 justify-content-center position-relative">
+
+                    <h5 class="modal-title fw-bold">
+                        Penilaian Produk
+                    </h5>
+
+                    <button type="button" class="btn-close position-absolute" style="right: 15px;" data-bs-dismiss="modal"
+                        aria-label="Close">
+                    </button>
+
+                </div>
+
+                {{-- BINTANG --}}
+                <div class="modal-body text-center pb-4">
+
+                    <div id="reviewStars" class="d-flex justify-content-center gap-3" data-rating="0">
+
+                        @for ($star = 1; $star <= 5; $star++)
+                            <button type="button" class="review-star" data-rating="{{ $star }}">
+                                ☆
+                            </button>
+                        @endfor
+
+                    </div>
+
+                </div>
+
+                {{-- TOMBOL --}}
+                <div class="modal-footer border-0 pt-0">
+
+                    <button type="button" class="btn btn-main w-100" id="submitReviewButton">
+
+                        Kirim Penilaian
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <script>
+        let pendingReviewOrderIds = [];
+        async function loadPendingReviews() {
+
+            const token = localStorage.getItem('token');
+
+            const response = await fetch('/api/pendingriview', {
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const result = await response.json();
+
+            const items = result?.data?.data ?? [];
+
+            pendingReviewOrderIds = [...new Set(
+                items.map(item => Number(item.order_id))
+            )];
+        }
         async function fetchOrders() {
 
             try {
-
+                await loadPendingReviews();
                 const token = localStorage.getItem('token');
 
                 const response = await fetch('http://127.0.0.1:8000/api/orders', {
@@ -742,17 +855,25 @@
 
                 <div class="d-flex justify-content-end gap-2">
 
-                <button
-                    class="btn btn-second btn-sm btn-transaction-detail"
-                        data-id="${order.id}">
-                    Detail Transaksi
-                 </button>
+    <button
+        class="btn btn-second btn-sm btn-transaction-detail"
+        data-id="${order.id}">
+        Detail Transaksi
+    </button>
 
-                    <button class="btn btn-main btn-sm">
-                        Nilai
-                    </button>
-
-                </div>
+${
+    pendingReviewOrderIds.includes(Number(order.id))
+        ? `
+    <button
+        type="button"
+        class="btn btn-main btn-sm btn-review"
+        data-order-id="${order.id}">
+        Nilai
+    </button>
+    `
+        : ''
+}
+</div>
 
             </div>
 
@@ -766,15 +887,45 @@
                             let allItemsHtml = '';
 
                             (order.items || []).forEach(item => {
+
+                                console.log('DATA ITEM:', item);
+
+                                const orderItemId =
+                                    item.order_item_id ??
+                                    item.orderItemId ??
+                                    item.id ??
+                                    '';
+
                                 allItemsHtml += `
-            <div class="d-flex align-items-center gap-3 order-product mb-3">
-                <img src="${item.image}" style="width:100px;">
+        <div class="d-flex align-items-center gap-3 order-product mb-3">
+
+            <img
+                src="${item.image}"
+                style="width:100px;"
+            >
+
+            <div class="flex-grow-1">
+
+                <strong>
+                    ${item.name}
+                </strong>
+
                 <div>
-                    <strong>${item.name}</strong>
-                    <div>x ${item.quantity}</div>
+                    x ${item.quantity}
                 </div>
+
+                <button
+                    type="button"
+                    class="btn btn-main btn-sm btn-review mt-2"
+                    data-order-item-id="${orderItemId}"
+                >
+                    Nilai
+                </button>
+
             </div>
-        `;
+
+        </div>
+    `;
                             });
 
                             html += `
@@ -1056,5 +1207,602 @@
 
         }
     </script>
+    <script>
+        // ID order item yang akan dinilai
+        let selectedOrderItemId = null;
 
+        // Rating yang dipilih
+        let selectedRating = 0;
+
+
+        // ==================================================
+        // AMBIL ITEM YANG BELUM DINILAI
+        // ==================================================
+
+        async function getPendingReviewItem(orderId) {
+
+            const token = localStorage.getItem('token');
+
+            const response = await fetch(
+                '/api/pendingriview', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+
+            const result = await response.json();
+
+            console.log(
+                'PENDING REVIEW:',
+                result
+            );
+
+
+            if (!response.ok || !result.success) {
+
+                throw new Error(
+                    result.message ||
+                    'Gagal mengambil data produk'
+                );
+
+            }
+
+
+            const items =
+                result?.data?.data ?? [];
+
+
+            /*
+            |------------------------------------------------
+            | CARI ITEM BERDASARKAN ORDER
+            |------------------------------------------------
+            */
+
+            const item = items.find(
+                item => String(
+                    item.order_id
+                ) === String(
+                    orderId
+                )
+            );
+
+
+            return item;
+
+        }
+
+
+        // ==================================================
+        // KLIK TOMBOL NILAI
+        // ==================================================
+
+        document.addEventListener(
+            'click',
+            async function(e) {
+
+                const button =
+                    e.target.closest(
+                        '.btn-review'
+                    );
+
+
+                if (!button) return;
+
+
+                const orderId =
+                    button.dataset.orderId;
+
+
+                console.log(
+                    'ORDER ID:',
+                    orderId
+                );
+
+
+                const token =
+                    localStorage.getItem(
+                        'token'
+                    );
+
+
+                if (!token) {
+
+                    window.location.href =
+                        "{{ route('login') }}";
+
+                    return;
+
+                }
+
+
+                // Loading tombol
+                const originalText =
+                    button.innerHTML;
+
+
+                button.disabled = true;
+
+
+                button.innerHTML = `
+
+                <span
+                    class="
+                        spinner-border
+                        spinner-border-sm
+                    "
+                ></span>
+
+                Memuat...
+
+            `;
+
+
+                try {
+
+                    /*
+                    |------------------------------------------
+                    | AMBIL ITEM DARI API PENDING REVIEW
+                    |------------------------------------------
+                    */
+
+                    const item =
+                        await getPendingReviewItem(
+                            orderId
+                        );
+
+
+                    console.log(
+                        'ITEM REVIEW:',
+                        item
+                    );
+
+
+                    /*
+                    |------------------------------------------
+                    | CEK ITEM
+                    |------------------------------------------
+                    */
+
+                    if (!item) {
+
+                        throw new Error(
+                            'Produk tidak ditemukan atau sudah dinilai'
+                        );
+
+                    }
+
+
+                    /*
+                    |------------------------------------------
+                    | SIMPAN ORDER ITEM ID
+                    |------------------------------------------
+                    */
+
+                    selectedOrderItemId =
+                        item.order_item_id;
+
+
+                    console.log(
+                        'ORDER ITEM ID:',
+                        selectedOrderItemId
+                    );
+
+
+                    /*
+                    |------------------------------------------
+                    | RESET RATING
+                    |------------------------------------------
+                    */
+
+                    selectedRating = 0;
+
+
+                    document
+                        .querySelectorAll(
+                            '#reviewStars .review-star'
+                        )
+                        .forEach(
+                            function(star) {
+
+                                star.textContent =
+                                    '☆';
+
+                                star.classList.remove(
+                                    'active'
+                                );
+
+                            }
+                        );
+
+
+                    /*
+                    |------------------------------------------
+                    | BUKA MODAL
+                    |------------------------------------------
+                    */
+
+                    const modalElement =
+                        document.getElementById(
+                            'reviewModal'
+                        );
+
+
+                    const reviewModal =
+                        bootstrap.Modal
+                        .getOrCreateInstance(
+                            modalElement
+                        );
+
+
+                    reviewModal.show();
+
+
+                } catch (error) {
+
+                    console.error(
+                        'Review item error:',
+                        error
+                    );
+
+
+                    alert(
+                        error.message ||
+                        'Gagal mengambil produk'
+                    );
+
+
+                } finally {
+
+                    button.disabled = false;
+
+                    button.innerHTML =
+                        originalText;
+
+                }
+
+            }
+        );
+
+
+        // ==================================================
+        // PILIH BINTANG
+        // ==================================================
+
+        document.addEventListener(
+            'click',
+            function(e) {
+
+                const clickedStar =
+                    e.target.closest(
+                        '#reviewStars .review-star'
+                    );
+
+
+                if (!clickedStar) return;
+
+
+                selectedRating =
+                    Number(
+                        clickedStar.dataset.rating
+                    );
+
+
+                document
+                    .querySelectorAll(
+                        '#reviewStars .review-star'
+                    )
+                    .forEach(
+                        function(star) {
+
+                            const starNumber =
+                                Number(
+                                    star.dataset.rating
+                                );
+
+
+                            if (
+                                starNumber <=
+                                selectedRating
+                            ) {
+
+                                star.textContent =
+                                    '★';
+
+
+                                star.classList.add(
+                                    'active'
+                                );
+
+                            } else {
+
+                                star.textContent =
+                                    '☆';
+
+
+                                star.classList.remove(
+                                    'active'
+                                );
+
+                            }
+
+                        }
+                    );
+
+            }
+        );
+
+
+        // ==================================================
+        // KIRIM PENILAIAN
+        // ==================================================
+
+        document
+            .getElementById(
+                'submitReviewButton'
+            )
+            .addEventListener(
+                'click',
+                async function() {
+
+                    const submitButton =
+                        this;
+
+
+                    /*
+                    |------------------------------------------
+                    | CEK ORDER ITEM
+                    |------------------------------------------
+                    */
+
+                    if (
+                        !selectedOrderItemId
+                    ) {
+
+                        alert(
+                            'Item pesanan tidak ditemukan'
+                        );
+
+                        return;
+
+                    }
+
+
+                    /*
+                    |------------------------------------------
+                    | CEK RATING
+                    |------------------------------------------
+                    */
+
+                    if (
+                        selectedRating < 1
+                    ) {
+
+                        alert(
+                            'Silakan pilih rating bintang'
+                        );
+
+                        return;
+
+                    }
+
+
+                    const token =
+                        localStorage.getItem(
+                            'token'
+                        );
+
+
+                    /*
+                    |------------------------------------------
+                    | LOADING
+                    |------------------------------------------
+                    */
+
+                    submitButton.disabled =
+                        true;
+
+
+                    submitButton.innerHTML = `
+
+                    <span
+                        class="
+                            spinner-border
+                            spinner-border-sm
+                            me-1
+                        "
+                    ></span>
+
+                    Mengirim...
+
+                `;
+
+
+                    try {
+
+                        /*
+                        |--------------------------------------
+                        | POST REVIEW
+                        |--------------------------------------
+                        */
+
+                        const response =
+                            await fetch(
+                                '/api/riview', {
+
+                                    method: 'POST',
+
+
+                                    headers: {
+
+                                        'Accept': 'application/json',
+
+                                        'Content-Type': 'application/json',
+
+                                        'Authorization': `Bearer ${token}`
+
+                                    },
+
+
+                                    body: JSON.stringify({
+
+                                        order_item_id: Number(
+                                            selectedOrderItemId
+                                        ),
+
+                                        rating: selectedRating,
+
+                                        comment: ''
+
+                                    })
+
+                                }
+                            );
+
+
+                        const result =
+                            await response.json();
+
+
+                        console.log(
+                            'RESPONSE REVIEW:',
+                            result
+                        );
+
+
+                        /*
+                        |--------------------------------------
+                        | VALIDASI ERROR
+                        |--------------------------------------
+                        */
+
+                        if (
+                            !response.ok ||
+                            !result.success
+                        ) {
+
+                            let message =
+                                result.message ||
+                                'Gagal mengirim penilaian';
+
+
+                            if (
+                                result.errors
+                            ) {
+
+                                message =
+                                    Object
+                                    .values(
+                                        result.errors
+                                    )
+                                    .flat()
+                                    .join(
+                                        '\n'
+                                    );
+
+                            }
+
+
+                            throw new Error(
+                                message
+                            );
+
+                        }
+
+
+                        /*
+                        |--------------------------------------
+                        | TUTUP MODAL
+                        |--------------------------------------
+                        */
+
+                        const modalElement =
+                            document.getElementById(
+                                'reviewModal'
+                            );
+
+
+                        const modalInstance =
+                            bootstrap.Modal
+                            .getInstance(
+                                modalElement
+                            );
+
+
+                        if (
+                            modalInstance
+                        ) {
+
+                            modalInstance.hide();
+
+                        }
+
+
+                        /*
+                        |--------------------------------------
+                        | PESAN BERHASIL
+                        |--------------------------------------
+                        */
+
+                        showReorderModal(
+
+                            result.message ||
+                            'Penilaian berhasil dikirim',
+
+                            'success'
+
+                        );
+
+
+                        /*
+                        |--------------------------------------
+                        | RESET
+                        |--------------------------------------
+                        */
+
+                        selectedOrderItemId =
+                            null;
+
+
+                        selectedRating =
+                            0;
+
+
+                        /*
+                        |--------------------------------------
+                        | REFRESH PESANAN
+                        |--------------------------------------
+                        */
+
+                        await fetchOrders();
+
+
+                    } catch (error) {
+
+                        console.error(
+                            'Review error:',
+                            error
+                        );
+
+
+                        alert(
+                            error.message ||
+                            'Gagal mengirim penilaian'
+                        );
+
+                    } finally {
+
+                        submitButton.disabled =
+                            false;
+
+
+                        submitButton.innerHTML =
+                            'Kirim Penilaian';
+
+                    }
+
+                }
+            );
+    </script>
 @endsection

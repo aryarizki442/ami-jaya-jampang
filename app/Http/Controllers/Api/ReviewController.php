@@ -21,7 +21,7 @@ class ReviewController extends Controller
     {
         $user = $this->user();
 
-        $items = OrderItem::with(['product.primaryImage', 'order'])
+        $items = OrderItem::with(['product', 'order'])
             ->whereHas('order', fn($q) =>
                 $q->where('user_id', $user->id)
                   ->where('status', 'completed')
@@ -31,9 +31,10 @@ class ReviewController extends Controller
             ->paginate(10);
 
         $items->getCollection()->transform(fn($item) => [
+            'order_id'          => $item->order_id,
             'order_item_id'     => $item->id,
             'order_number'      => $item->order->order_number,
-            'order_date'        => $item->order->created_at->format('d M Y'),
+            'order_date' => $item->order?->created_at?->format('d M Y') ?? '-',
             'product_id'        => $item->product_id,
             'product_name'      => $item->product_name,
             'product_image'     => $item->product_image,
@@ -53,34 +54,41 @@ class ReviewController extends Controller
     // GET /api/reviews/my
     // Semua ulasan yang pernah dikirim oleh user
     // ──────────────────────────────────────────────────────────────
-    public function myReviews(Request $request)
-    {
-        $user = $this->user();
+   public function myReviews(Request $request)
+{
+    $user = $this->user();
 
-        $reviews = ProductReview::with(['product.primaryImage', 'orderItem.order'])
-            ->where('user_id', $user->id)
-            ->latest('created_at')
-            ->paginate($request->get('per_page', 10));
+    $reviews = ProductReview::with([
+        'product',
+        'orderItem.order'
+    ])
+        ->where('user_id', $user->id)
+        ->latest('created_at')
+        ->paginate($request->get('per_page', 10));
 
-        $reviews->getCollection()->transform(fn($review) => [
-            'id'           => $review->id,
-            'rating'       => $review->rating,
-            'rating_stars' => str_repeat('⭐', $review->rating),
-            'comment'      => $review->comment,
-            'created_at'   => $review->created_at->format('d M Y'),
-            'product' => [
-                'id'    => $review->product->id,
-                'name'  => $review->product->name,
-                'image' => $review->product->primaryImage?->image_url,
-            ],
-            'order_number' => $review->orderItem?->order?->order_number,
-        ]);
+    $reviews->getCollection()->transform(fn($review) => [
+        'id'           => $review->id,
+        'rating'       => $review->rating,
+        'rating_stars' => str_repeat($review->rating),
+        'comment'      => $review->comment,
 
-        return response()->json([
-            'success' => true,
-            'data'    => $reviews,
-        ]);
-    }
+        'created_at' => $review->created_at?->format('d M Y') ?? '-',
+
+        'product' => [
+            'id'    => $review->product?->id,
+            'name'  => $review->product?->name ?? '-',
+            'image' => $review->product?->image_url,
+        ],
+
+        'order_number' =>
+            $review->orderItem?->order?->order_number ?? '-',
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'data'    => $reviews,
+    ]);
+}
 
     // ──────────────────────────────────────────────────────────────
     // POST /api/reviews
@@ -163,7 +171,7 @@ class ReviewController extends Controller
                 'id'         => $review->id,
                 'rating'     => $review->rating,
                 'comment'    => $review->comment,
-                'created_at' => $review->created_at->format('d M Y'),
+                'created_at' => $review->created_at?->format('d M Y') ?? '-',
             ],
         ], 201);
     }
@@ -185,7 +193,11 @@ class ReviewController extends Controller
         }
 
         // Hanya bisa edit dalam 24 jam
-        if ($review->created_at->diffInHours(now()) > 24) {
+        // Hanya bisa edit dalam 24 jam
+        if (
+            $review->created_at &&
+            $review->created_at->diffInHours(now()) > 24
+        ) {
             return response()->json([
                 'success' => false,
                 'message' => 'Ulasan hanya bisa diedit dalam 24 jam setelah dikirim',
@@ -219,7 +231,7 @@ class ReviewController extends Controller
                 'id'         => $review->id,
                 'rating'     => $review->rating,
                 'comment'    => $review->comment,
-                'created_at' => $review->created_at->format('d M Y'),
+                'created_at' => $review->created_at?->format('d M Y') ?? '-',
             ],
         ]);
     }
@@ -256,4 +268,60 @@ class ReviewController extends Controller
             'message' => 'Ulasan berhasil dihapus',
         ]);
     }
+    public function statistics($productId)
+{
+    $reviews = ProductReview::where('product_id', $productId);
+
+    $total = $reviews->count();
+
+    $rating5 = (clone $reviews)->where('rating', 5)->count();
+    $rating4 = (clone $reviews)->where('rating', 4)->count();
+    $rating3 = (clone $reviews)->where('rating', 3)->count();
+    $rating2 = (clone $reviews)->where('rating', 2)->count();
+    $rating1 = (clone $reviews)->where('rating', 1)->count();
+
+    $average = $total
+        ? round((clone $reviews)->avg('rating'), 1)
+        : 0;
+
+    return response()->json([
+        'success' => true,
+        'data' => [
+            'average' => $average,
+            'total_review' => $total,
+
+            'satisfied_percent' => $total
+                ? round((($rating5 + $rating4) / $total) * 100)
+                : 0,
+
+            'ratings' => [
+                [
+                    'star' => 5,
+                    'count' => $rating5,
+                    'percent' => $total ? round($rating5 / $total * 100) : 0,
+                ],
+                [
+                    'star' => 4,
+                    'count' => $rating4,
+                    'percent' => $total ? round($rating4 / $total * 100) : 0,
+                ],
+                [
+                    'star' => 3,
+                    'count' => $rating3,
+                    'percent' => $total ? round($rating3 / $total * 100) : 0,
+                ],
+                [
+                    'star' => 2,
+                    'count' => $rating2,
+                    'percent' => $total ? round($rating2 / $total * 100) : 0,
+                ],
+                [
+                    'star' => 1,
+                    'count' => $rating1,
+                    'percent' => $total ? round($rating1 / $total * 100) : 0,
+                ],
+            ],
+        ],
+    ]);
+}
 }

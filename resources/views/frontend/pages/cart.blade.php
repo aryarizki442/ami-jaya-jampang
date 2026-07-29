@@ -6,15 +6,15 @@
 
     <style>
         /* =======================
-                                                                                         TYPOGRAPHY
-                                                                                        ======================= */
+                                                                                                     TYPOGRAPHY
+                                                                                                    ======================= */
         .title-cart {
             font-size: 28px;
         }
 
         /* =======================
-                                                                                           CART ITEM & CARD
-                                                                                        ======================= */
+                                                                                                       CART ITEM & CARD
+                                                                                                    ======================= */
         .cart-item,
         .card {
             background-color: #fff;
@@ -32,8 +32,8 @@
         }
 
         /* =======================
-                                                                                        FORM CHECKBOX
-                                                                                        ======================= */
+                                                                                                    FORM CHECKBOX
+                                                                                                    ======================= */
         .form-check {
             background-color: #fff;
             border: 1px solid #F6F6F6;
@@ -61,8 +61,8 @@
         }
 
         /* =======================
-                                                                                         QUANTITY CONTROL
-                                                                                        ======================= */
+                                                                                                     QUANTITY CONTROL
+                                                                                                    ======================= */
         .qty-group {
             border: 1px solid #adadad;
             border-radius: 5px;
@@ -99,8 +99,8 @@
         }
 
         /* =======================
-                                                                                                                                                                                                                               CART CONTAINER
-                                                                                                                                                                                                                            ======================= */
+                                                                                                                                                                                                                                           CART CONTAINER
+                                                                                                                                                                                                                                        ======================= */
         .cart-scroll {
             max-height: 650px;
             overflow-y: auto;
@@ -114,8 +114,8 @@
         }
 
         /* =======================
-                                                                                                                                                                                                                               SKELETON LOADING
-                                                                                                                                                                                                                            ======================= */
+                                                                                                                                                                                                                                           SKELETON LOADING
+                                                                                                                                                                                                                                        ======================= */
         .skeleton {
             background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
             background-size: 200% 100%;
@@ -134,8 +134,8 @@
         }
 
         /* =======================
-                                                                                                                                                                                                                               TOAST NOTIFICATION
-                                                                                                                                                                                                                            ======================= */
+                                                                                                                                                                                                                                           TOAST NOTIFICATION
+                                                                                                                                                                                                                                        ======================= */
         #cartToast {
             position: fixed;
             bottom: 24px;
@@ -153,8 +153,8 @@
         }
 
         /* =======================
-                                                                                                                                                                                                                               RESPONSIVE
-                                                                                                                                                                                                                            ======================= */
+                                                                                                                                                                                                                                           RESPONSIVE
+                                                                                                                                                                                                                                        ======================= */
         @media (max-width: 576px) {
             .qty-group {
                 max-width: 80px;
@@ -381,17 +381,22 @@
             div.innerHTML = `
                 <input class="form-check-input me-3 item-checkbox" type="checkbox" ${item.is_selected ? 'checked' : ''}>
               <img src="${imgSrc}"
-     alt="${item.product_name}"
-     class=" me-3"
+        alt="${item.product_name}"
      width="100"
      height="100"
-     style="object-fit: cover; border-radius: 8px;"
+     style="
+        width:100px;
+        height:100px;
+        object-fit:contain;
+        object-position:center;
+        background:#fff;
+        border-radius:8px;
      onerror="this.src='{{ asset('images/home/category/beras-putih.png') }}'">
                 <div class="flex-grow-1">
                     <p class="mb-0">${item.product_name}</p>
                 </div>
                 <div class="text-end">
-                    <h5 class="mb-4 fw-semibold item-price">${formatRupiah(item.price)}</h5>
+                    <h6 class="mb-4 fw-semibold item-price">${formatRupiah(item.price)}</h6>
                     <div class="d-flex align-items-center justify-content-end">
                         <button class="btn btn-lg me-2 btn-delete">
                             <i class="bi bi-trash"></i>

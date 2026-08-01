@@ -46,9 +46,65 @@
 
         </div>
     </div>
+    <!-- MODAL NOTIFIKASI -->
+    <div class="modal fade" id="notificationModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center border-0 p-4">
+
+                <!-- JUDUL -->
+                <h5 id="modalTitle" class="fw-bold mb-3">
+                    Terjadi Kesalahan
+                </h5>
+
+                <!-- PESAN -->
+                <p id="modalMessage" class="text-muted mb-4">
+                    Pesan notifikasi
+                </p>
+
+                <!-- BUTTON -->
+                <button type="button" class="btn btn-login text-white w-100" data-bs-dismiss="modal">
+                    MENGERTI
+                </button>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function showNotification(message, type = 'error') {
+
+            const modalTitle =
+                document.getElementById('modalTitle');
+
+            const modalMessage =
+                document.getElementById('modalMessage');
+
+            // isi pesan
+            modalMessage.textContent = message;
+
+            // modal sukses
+            if (type === 'success') {
+
+                modalTitle.textContent = 'Berhasil';
 
 
+            } else {
 
+                modalTitle.textContent = 'Terjadi Kesalahan';
+
+
+            }
+
+            // tampilkan modal
+            const modal = new bootstrap.Modal(
+                document.getElementById('notificationModal')
+            );
+
+            modal.show();
+        }
+    </script>
     <script>
         document.getElementById('btn-next').addEventListener('click', async function(e) {
             e.preventDefault();
@@ -68,7 +124,9 @@
             }
 
             if (!email) {
-                alert('Email tidak ditemukan, ulangi dari awal');
+                showNotification(
+                    'Email tidak ditemukan. Silakan ulangi proses dari awal.'
+                );
                 return;
             }
 
@@ -109,7 +167,10 @@
 
             } catch (err) {
                 console.error(err);
-                alert('Server error');
+
+                showNotification(
+                    'Terjadi kesalahan pada server. Silakan coba lagi.'
+                );
             }
         });
     </script>
@@ -169,13 +230,18 @@
                     btn.innerText = 'Kode terkirim ulang';
                     btn.style.color = 'green';
 
-                    alert('Kode OTP berhasil dikirim ulang');
+                    showNotification(
+                        'Kode OTP berhasil dikirim ulang. Silakan cek email Anda.',
+                        'success'
+                    );
 
                 } catch (err) {
 
                     console.error(err);
 
-                    alert('Server error');
+                    showNotification(
+                        'Terjadi kesalahan pada server. Silakan coba lagi.'
+                    );
 
                 } finally {
 

@@ -157,7 +157,6 @@
                 return;
             }
 
-            console.log('Alamat tersimpan:', result.data);
 
             loadUserAddress?.();
 

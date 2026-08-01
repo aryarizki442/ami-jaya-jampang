@@ -41,6 +41,37 @@
         </div>
     </div>
 
+    <!-- MODAL CEK EMAIL -->
+    <div class="modal fade" id="checkEmailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0">
+
+                <div class="modal-body text-center p-4">
+
+                    <h4 class="fw-bold mt-3">
+                        OTP Berhasil Dikirim
+                    </h4>
+
+                    <p class="text-muted">
+                        Silakan cek email Anda sekarang untuk mendapatkan kode OTP.
+                    </p>
+
+                    <p class="small text-muted">
+                        Kode OTP dikirim ke:
+                        <br>
+                        <strong id="modal-email"></strong>
+                    </p>
+
+                    <button type="button" id="btn-to-otp" class="btn btn-login w-100 text-white mt-3">
+                        MASUKKAN KODE OTP
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.getElementById('btn-next')
@@ -75,7 +106,6 @@
 
                     const result = await res.json();
 
-                    console.log(result);
 
                     // gagal
                     if (!res.ok) {
@@ -95,7 +125,15 @@
                     localStorage.setItem('register_email', email);
 
                     // redirect ke halaman OTP
-                    window.location.href = "{{ route('send-otp') }}";
+                    // tampilkan email pada modal
+                    document.getElementById('modal-email').textContent = email;
+
+                    // tampilkan modal cek email
+                    const checkEmailModal = new bootstrap.Modal(
+                        document.getElementById('checkEmailModal')
+                    );
+
+                    checkEmailModal.show();
 
                 } catch (err) {
 
@@ -103,6 +141,13 @@
 
                     alert('Terjadi kesalahan server');
                 }
+
+            });
+
+        document.getElementById('btn-to-otp')
+            .addEventListener('click', function() {
+
+                window.location.href = "{{ route('send-otp') }}";
 
             });
     </script>

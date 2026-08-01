@@ -91,8 +91,8 @@
         }
 
         /* ==================================
-                                                                                                                               MODAL PENILAIAN
-                                                                                                                            ================================== */
+                                                                                                                                                               MODAL PENILAIAN
+                                                                                                                                                            ================================== */
 
         #reviewModal .modal-content {
             border-radius: 0;
@@ -719,16 +719,6 @@
         </div>
     `;
                         } else if (order.status === 'shipped') {
-                            console.log(JSON.stringify(order, null, 2));
-                            console.log('DELIVERY METHOD:', order.delivery_method);
-                            console.log(
-                                'Order:',
-                                order.id,
-                                'Status:',
-                                order.status,
-                                'Delivery:',
-                                order.delivery_method
-                            );
                             let allItemsHtml = '';
 
                             (order.items || []).forEach(item => {
@@ -864,13 +854,13 @@
 ${
     pendingReviewOrderIds.includes(Number(order.id))
         ? `
-    <button
-        type="button"
-        class="btn btn-main btn-sm btn-review"
-        data-order-id="${order.id}">
-        Nilai
-    </button>
-    `
+                                    <button
+                                        type="button"
+                                        class="btn btn-main btn-sm btn-review"
+                                        data-order-id="${order.id}">
+                                        Nilai
+                                    </button>
+                                    `
         : ''
 }
 </div>
@@ -888,7 +878,6 @@ ${
 
                             (order.items || []).forEach(item => {
 
-                                console.log('DATA ITEM:', item);
 
                                 const orderItemId =
                                     item.order_item_id ??
@@ -1234,10 +1223,6 @@ ${
 
             const result = await response.json();
 
-            console.log(
-                'PENDING REVIEW:',
-                result
-            );
 
 
             if (!response.ok || !result.success) {
@@ -1295,12 +1280,6 @@ ${
                     button.dataset.orderId;
 
 
-                console.log(
-                    'ORDER ID:',
-                    orderId
-                );
-
-
                 const token =
                     localStorage.getItem(
                         'token'
@@ -1353,12 +1332,6 @@ ${
                         );
 
 
-                    console.log(
-                        'ITEM REVIEW:',
-                        item
-                    );
-
-
                     /*
                     |------------------------------------------
                     | CEK ITEM
@@ -1382,12 +1355,6 @@ ${
 
                     selectedOrderItemId =
                         item.order_item_id;
-
-
-                    console.log(
-                        'ORDER ITEM ID:',
-                        selectedOrderItemId
-                    );
 
 
                     /*
@@ -1440,11 +1407,6 @@ ${
 
 
                 } catch (error) {
-
-                    console.error(
-                        'Review item error:',
-                        error
-                    );
 
 
                     alert(
@@ -1663,12 +1625,6 @@ ${
 
                         const result =
                             await response.json();
-
-
-                        console.log(
-                            'RESPONSE REVIEW:',
-                            result
-                        );
 
 
                         /*

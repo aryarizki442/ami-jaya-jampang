@@ -159,8 +159,6 @@
             return;
         }
 
-        console.log('TOKEN YANG DIPAKAI:', updateToken);
-
         try {
             changePhoneBtn.disabled = true;
             changePhoneBtn.innerText = 'Memproses...';
@@ -180,7 +178,6 @@
 
             const result = await response.json();
 
-            console.log(result);
 
             if (!response.ok) {
                 alert(result.message || 'Gagal update nomor telepon');

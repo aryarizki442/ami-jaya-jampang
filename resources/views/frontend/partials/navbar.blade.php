@@ -979,8 +979,6 @@
 
         const token = localStorage.getItem('token');
 
-        console.log('TOKEN:', token);
-
         // =========================
         // BELUM LOGIN
         // =========================
@@ -1003,8 +1001,6 @@
             });
 
             const data = await response.json();
-
-            console.log('ME:', JSON.stringify(data, null, 2));
 
             // =========================
             // LOGIN VALID
@@ -1204,8 +1200,6 @@
             });
 
             const data = await res.json();
-
-            console.log('LOGIN:', data);
 
             // sesuaikan dengan response API kamu
             const token =

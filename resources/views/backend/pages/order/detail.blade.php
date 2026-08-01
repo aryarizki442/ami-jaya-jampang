@@ -495,7 +495,7 @@
                 </div>
                 <div class="modal-footer justify-content-center gap-2">
                     <button class="btn btn-delete-second" data-bs-dismiss="modal">Batal</button>
-                    <button class="btn btn-delete-main" id="confirmRejectBtn">Ya, Tolak</button>
+                    <button class="btn btn-delete-main" id="confirmRejectBtn">Tolak</button>
                 </div>
             </div>
         </div>
@@ -692,7 +692,7 @@
                     document.getElementById('modalMessage').innerHTML =
                         'Apakah Anda yakin ingin mengkonfirmasi pembelian ini?<br><small class="text-muted">Status akan berubah menjadi "Dikirim/Dijemput"</small>';
                     document.getElementById('confirmActionBtn').style.background = '#147a4b';
-                    document.getElementById('confirmActionBtn').textContent = 'Ya, Konfirmasi';
+                    document.getElementById('confirmActionBtn').textContent = 'Konfirmasi';
                     currentAction = 'confirm';
                     confirmModal.show();
                 });

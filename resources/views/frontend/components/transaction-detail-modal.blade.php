@@ -238,7 +238,7 @@
                 </button>
 
                 <button class="btn btn-danger" id="confirmCancelOrderBtn">
-                    Ya, Batalkan
+                    Batalkan
                 </button>
             </div>
 
@@ -306,9 +306,6 @@
                     );
 
 
-                    console.log('=== ADMIN ORDER DETAIL ===');
-                    console.log(adminOrder);
-
 
                     if (adminOrder) {
 
@@ -341,19 +338,6 @@
             if (!order) {
                 throw new Error('Data order tidak ditemukan');
             }
-
-            console.log('========== ORDER DETAIL DEBUG ==========');
-            console.log('Full Order:', order);
-            console.log('Status:', order.status);
-
-            console.log('cancel_reason:', order.cancel_reason);
-            console.log('cancelled_reason:', order.cancelled_reason);
-            console.log('reason:', order.reason);
-            console.log('cancelled_by:', order.cancelled_by);
-            console.log('cancel_by:', order.cancel_by);
-            console.log('cancelledBy:', order.cancelledBy);
-
-            console.log('========================================');
 
             // Isi data ke modal
             // Status - gunakan status_label dari response
@@ -660,7 +644,6 @@
             // Buka popup pembayaran Midtrans
             window.snap.pay(snap_token, {
                 onSuccess: function(result) {
-                    console.log('Payment Success:', result);
                     showAlert('Pembayaran berhasil!', 'success');
                     // Tutup modal
                     const modal = bootstrap.Modal.getInstance(document.getElementById(
@@ -676,7 +659,6 @@
                     }, 1500);
                 },
                 onPending: function(result) {
-                    console.log('Payment Pending:', result);
                     showAlert('Menunggu konfirmasi pembayaran', 'info');
                     // Tutup modal
                     const modal = bootstrap.Modal.getInstance(document.getElementById(
@@ -691,7 +673,6 @@
                     }, 1500);
                 },
                 onError: function(result) {
-                    console.error('Payment Error:', result);
                     showAlert('Pembayaran gagal. Silakan coba lagi.', 'error');
                     if (payBtn) {
                         payBtn.disabled = false;
@@ -699,7 +680,6 @@
                     }
                 },
                 onClose: function() {
-                    console.log('Payment popup closed');
                     // User menutup popup tanpa menyelesaikan pembayaran
                     if (payBtn) {
                         payBtn.disabled = false;
@@ -732,7 +712,6 @@
             script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
             script.setAttribute('data-client-key', clientKey);
             script.onload = () => {
-                console.log('Snap script loaded');
                 resolve();
             };
             script.onerror = () => {

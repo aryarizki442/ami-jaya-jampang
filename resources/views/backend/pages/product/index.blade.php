@@ -714,7 +714,6 @@
 
             //  KALENDER
             document.addEventListener('dateRangeSelected', function(e) {
-                console.log('EVENT MASUK:', e.detail);
 
                 const {
                     start,
@@ -905,7 +904,6 @@
                 if (!catList) return;
 
                 if (!Array.isArray(data)) {
-                    console.error('Data bukan array:', data);
                     return;
                 }
 

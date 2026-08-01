@@ -587,7 +587,6 @@
                 }
             });
 
-            console.log("IDS:", selectedIds);
 
             if (selectedIds.some(id => !id)) {
                 showError("ID tidak valid");

@@ -157,7 +157,6 @@
             return;
         }
 
-        console.log('TOKEN YANG DIPAKAI:', updateToken);
         try {
             changeEmailBtn.disabled = true;
             changeEmailBtn.innerText = 'Memproses...';
@@ -177,7 +176,6 @@
 
             const result = await response.json();
 
-            console.log(result);
 
             if (!response.ok) {
                 alert(result.message || 'Gagal update email');

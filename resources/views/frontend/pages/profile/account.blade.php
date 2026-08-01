@@ -184,8 +184,8 @@
         }
 
         /* ======================
-                                                                                                                                                                                                                                                                                                                                                                       RESPONSIVE PROFILE
-                                                                                                                                                                                                                                                                                                                                                                    ====================== */
+                                                                                                                                                                                                                                                                                                                                                                           RESPONSIVE PROFILE
+                                                                                                                                                                                                                                                                                                                                                                        ====================== */
 
         /* tablet */
         @media (max-width: 992px) {
@@ -427,11 +427,6 @@
 
                     const nameEl = document.getElementById('profileUsername');
                     const avatarEl = document.getElementById('profileAvatar');
-
-                    console.log('nameEl:', nameEl); // ← cek null atau ada
-                    console.log('avatarEl:', avatarEl); // ← cek null atau ada
-                    console.log('user.name:', user.name);
-
                     if (nameEl) nameEl.textContent = user.name || 'User';
                     if (avatarEl) avatarEl.src = avatarUrl(user.avatar);
                 }

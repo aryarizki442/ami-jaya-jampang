@@ -278,7 +278,6 @@
                             p.category_id ?? p.category?.id ?? ''
                         );
 
-                        console.log('SET CATEGORY VALUE:', value);
 
                         categoryEl.value = value;
 

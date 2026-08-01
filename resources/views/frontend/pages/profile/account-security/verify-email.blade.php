@@ -209,7 +209,6 @@
             const result = await response.json();
 
             if (!response.ok) {
-                console.log(result);
                 alert(result.message || 'Verifikasi gagal');
                 verifyEmailBtn.disabled = false;
                 verifyEmailBtn.innerText = 'BERIKUTNYA';

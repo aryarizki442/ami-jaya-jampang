@@ -629,23 +629,23 @@
 
 
                  ${order.shipping_address ? `
-                                                                                                                                                                                                                                                                                                  <div class="modal-info-row">
-                                                                                                                                                                                                                                                                                                 <span class="modal-info-label">
-                                                                                                                                                                                                                                                                                                  Alamat Pengiriman
-                                                                                                                                                                                                                                                                                                  </span>
-                                                                                                                                                                                                                                                                                                <span class="modal-info-value">
-                                                                                                                                                                                                                                                                                                     ${order.shipping_address}
-                                                                                                                                                                                                                                                                                                     </span>
-                                                                                                                                                                                                                                                                                                  </div>
-                                                                                                                                                                                                                                                                                                  ` : ''}
+                                                                                                                                                                                                                                                                                                                              <div class="modal-info-row">
+                                                                                                                                                                                                                                                                                                                             <span class="modal-info-label">
+                                                                                                                                                                                                                                                                                                                              Alamat Pengiriman
+                                                                                                                                                                                                                                                                                                                              </span>
+                                                                                                                                                                                                                                                                                                                            <span class="modal-info-value">
+                                                                                                                                                                                                                                                                                                                                 ${order.shipping_address}
+                                                                                                                                                                                                                                                                                                                                 </span>
+                                                                                                                                                                                                                                                                                                                              </div>
+                                                                                                                                                                                                                                                                                                                              ` : ''}
 
 
                                 ${description ? `
-                                                                                                                                                                                                                                                                                                  <div class="modal-divider"></div>
-                                                                                                                                                                                                                                                                                                <div>
-                                                                                                                                                                                                                                                                                                ${description}
-                                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                                   ` : ''}
+                                                                                                                                                                                                                                                                                                                              <div class="modal-divider"></div>
+                                                                                                                                                                                                                                                                                                                            <div>
+                                                                                                                                                                                                                                                                                                                            ${description}
+                                                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                                                               ` : ''}
                     `;
 
             document.getElementById('modalBody').innerHTML = modalBody;
@@ -887,7 +887,6 @@
                 script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
                 script.setAttribute('data-client-key', clientKey);
                 script.onload = () => {
-                    console.log('Snap script loaded');
                     resolve();
                 };
                 script.onerror = () => {
@@ -946,7 +945,6 @@
                 // Buka popup pembayaran Midtrans
                 window.snap.pay(snap_token, {
                     onSuccess: function(result) {
-                        console.log('Payment Success:', result);
                         showAlert('Pembayaran berhasil!', 'success');
                         // Tutup modal
                         const modal = bootstrap.Modal.getInstance(document.getElementById(
@@ -962,7 +960,6 @@
                         }, 1500);
                     },
                     onPending: function(result) {
-                        console.log('Payment Pending:', result);
                         showAlert('Menunggu konfirmasi pembayaran', 'info');
                         // Tutup modal
                         const modal = bootstrap.Modal.getInstance(document.getElementById(
@@ -977,7 +974,6 @@
                         }, 1500);
                     },
                     onError: function(result) {
-                        console.error('Payment Error:', result);
                         showAlert('Pembayaran gagal. Silakan coba lagi.', 'error');
                         if (payBtn) {
                             payBtn.disabled = false;
@@ -985,8 +981,6 @@
                         }
                     },
                     onClose: function() {
-                        console.log('Payment popup closed');
-                        // User menutup popup tanpa menyelesaikan pembayaran
                         if (payBtn) {
                             payBtn.disabled = false;
                             payBtn.innerHTML = '</i> Bayar Sekarang';
@@ -1017,7 +1011,6 @@
             const modalElement = document.getElementById(
                 'transactionDetailModal'
             );
-            console.log(modalElement);
             const productContainer = document.getElementById(
                 'trxProductItems'
             );
@@ -1060,10 +1053,6 @@
                     );
                 }
 
-                console.log(
-                    'Detail transaksi dari notifikasi:',
-                    order
-                );
 
                 /*
                 ==================================
@@ -1197,18 +1186,18 @@
                                     ${
                                         item.unit
                                         ? `
-                                                                    <div
-                                                                        class="
-                                                                            text-muted
-                                                                            small
-                                                                        "
-                                                                    >
-                                                                        Satuan:
-                                                                        ${escapeHtml(
-                                                                            item.unit
-                                                                        )}
-                                                                    </div>
-                                                                `
+                                                                                                <div
+                                                                                                    class="
+                                                                                                        text-muted
+                                                                                                        small
+                                                                                                    "
+                                                                                                >
+                                                                                                    Satuan:
+                                                                                                    ${escapeHtml(
+                                                                                                        item.unit
+                                                                                                    )}
+                                                                                                </div>
+                                                                                            `
                                         : ''
                                     }
 
@@ -1219,19 +1208,19 @@
                             ${
                                 productId
                                 ? `
-                                                            <a
-                                                                href="/product/${productId}"
+                                                                                        <a
+                                                                                            href="/product/${productId}"
 
-                                                                class="
-                                                                    text-success
-                                                                    fw-semibold
-                                                                    small
-                                                                    text-decoration-none
-                                                                "
-                                                            >
-                                                                Lihat Produk
-                                                            </a>
-                                                        `
+                                                                                            class="
+                                                                                                text-success
+                                                                                                fw-semibold
+                                                                                                small
+                                                                                                text-decoration-none
+                                                                                            "
+                                                                                        >
+                                                                                            Lihat Produk
+                                                                                        </a>
+                                                                                    `
                                 : ''
                             }
 

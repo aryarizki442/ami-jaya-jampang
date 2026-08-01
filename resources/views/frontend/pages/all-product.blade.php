@@ -14,15 +14,15 @@
         }
 
         /* .custom-dropdown {
-                                                                border: 1px solid #1F7D53;
-                                                                border-radius: 6px;
-                                                                position: relative;
-                                                            }
+                                                                    border: 1px solid #1F7D53;
+                                                                    border-radius: 6px;
+                                                                    position: relative;
+                                                                }
 
-                                                            .dropdown-list {
-                                                                border-top: 1px solid #1F7D53;
-                                                                display: none;
-                                                            } */
+                                                                .dropdown-list {
+                                                                    border-top: 1px solid #1F7D53;
+                                                                    display: none;
+                                                                } */
 
         .produk-grid {
             display: flex;
@@ -321,7 +321,6 @@
                 });
 
                 const data = await res.json();
-                console.log("User:", data);
 
             } catch (err) {
                 console.error(err);

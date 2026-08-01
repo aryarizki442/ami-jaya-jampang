@@ -57,6 +57,32 @@
                 </a>
             </form>
         </div>
+
+        <!-- MODAL PASSWORD BERHASIL -->
+        <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content text-center border-0 p-4">
+
+                    <!-- ICON -->
+                    <div style="font-size: 50px;" class="mb-3">
+                        ✅
+                    </div>
+
+                    <!-- JUDUL -->
+                    <h5 class="fw-bold mb-3">
+                        Password Berhasil Diubah
+                    </h5>
+
+                    <!-- PESAN -->
+                    <p class="text-muted mb-4">
+                        Password Anda berhasil diubah.
+                        Anda akan diarahkan ke halaman login.
+                    </p>
+
+                </div>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
 
@@ -181,8 +207,17 @@
                         localStorage.removeItem('reset_email');
                         localStorage.removeItem('reset_token');
 
-                        alert('Password berhasil diubah');
-                        window.location.href = '/login';
+                        // tampilkan modal berhasil
+                        const successModal = new bootstrap.Modal(
+                            document.getElementById('successModal')
+                        );
+
+                        successModal.show();
+
+                        // pindah ke halaman login setelah 2 detik
+                        setTimeout(() => {
+                            window.location.href = '/login';
+                        }, 2000);
 
                     } catch (err) {
                         console.error(err);

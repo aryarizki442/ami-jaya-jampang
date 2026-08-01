@@ -1111,7 +1111,6 @@ window.onload = function() {
             function updateTotalRevenue() {
                 const totalRevenueEl = document.getElementById("totalRevenue");
                 if (!totalRevenueEl) {
-                    console.warn('Element #totalRevenue not found');
                     return;
                 }
 
@@ -1280,7 +1279,6 @@ window.onload = function() {
                 </div>
             `;
 
-                        console.log(detailHtml);
                     }
                 } catch (error) {
                     console.error('Error loading detail:', error);

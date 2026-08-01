@@ -283,7 +283,6 @@
 
                         const paymentResult = await paymentResponse.json();
 
-                        console.log('PAYMENT DETAIL:', paymentResult);
 
                         if (paymentResult.success) {
                             paymentDetail = paymentResult.data;

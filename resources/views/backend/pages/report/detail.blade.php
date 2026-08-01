@@ -182,10 +182,6 @@
 
                     const response = await API.getDetail(id);
 
-                    console.log(response);
-                    console.log(response.data);
-                    console.log(response.data.product);
-
                     if (!response.success) {
                         throw new Error('Data tidak ditemukan');
                     }

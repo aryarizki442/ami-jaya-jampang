@@ -14,6 +14,42 @@
         .send-code:hover {
             color: var(--info-button-500);
         }
+
+        /* MODAL NOTIFIKASI */
+        #notificationModal .modal-content {
+            border-radius: 20px;
+        }
+
+        .modal-icon {
+            width: 65px;
+            height: 65px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            margin: auto;
+
+            border-radius: 50%;
+
+            font-size: 32px;
+            font-weight: bold;
+
+            color: white;
+            background-color: #dc3545;
+        }
+
+        .modal-icon.success {
+            background-color: #198754;
+        }
+
+        .modal-icon.error {
+            background-color: #dc3545;
+        }
+
+        .modal-icon.warning {
+            background-color: #f0ad4e;
+        }
     </style>
     <div class="login-page">
         <div class="login-card text-center">
@@ -56,7 +92,73 @@
 
         </div>
     </div>
+    <!-- MODAL NOTIFIKASI -->
+    <div class="modal fade" id="notificationModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
 
+                <div class="modal-body text-center p-4">
+
+                    <div id="modal-icon" class="modal-icon">
+                        !
+                    </div>
+
+                    <h4 id="modal-title" class="fw-bold mt-3">
+                        Informasi
+                    </h4>
+
+                    <p id="modal-message" class="text-muted mb-4">
+                        Pesan notifikasi
+                    </p>
+
+                    <button type="button" class="btn btn-login w-100 text-white" data-bs-dismiss="modal">
+                        MENGERTI
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function showNotification(
+            message,
+            type = 'error',
+            title = 'Terjadi Kesalahan'
+        ) {
+
+            const modalElement =
+                document.getElementById('notificationModal');
+
+            const modal =
+                new bootstrap.Modal(modalElement);
+
+            const icon =
+                document.getElementById('modal-icon');
+
+            document.getElementById('modal-title')
+                .textContent = title;
+
+            document.getElementById('modal-message')
+                .textContent = message;
+
+            icon.className = 'modal-icon ' + type;
+
+            if (type === 'success') {
+                icon.innerHTML = '✓';
+            } else if (type === 'warning') {
+                icon.innerHTML = '!';
+            } else {
+                icon.innerHTML = '×';
+            }
+
+            modal.show();
+        }
+    </script>
     <script>
         document.getElementById('btn-next')
             .addEventListener('click', async function(e) {
@@ -69,18 +171,30 @@
                 const email = localStorage.getItem('register_email');
 
                 if (!email) {
-                    alert('Email tidak ditemukan');
+                    showNotification(
+                        'Email tidak ditemukan. Silakan kembali dan masukkan email Anda.',
+                        'error',
+                        'Email Tidak Ditemukan'
+                    );
                     return;
                 }
 
                 // validasi OTP
                 if (!otp) {
-                    alert('Kode OTP wajib diisi');
+                    showNotification(
+                        'Kode verifikasi wajib diisi.',
+                        'warning',
+                        'Kode Belum Diisi'
+                    );
                     return;
                 }
 
                 if (otp.length !== 6) {
-                    alert('Kode OTP harus 6 digit');
+                    showNotification(
+                        'Kode verifikasi harus terdiri dari 6 digit.',
+                        'warning',
+                        'Kode Tidak Valid'
+                    );
                     return;
                 }
 
@@ -101,17 +215,24 @@
 
                     const result = await res.json();
 
-                    console.log(result);
 
                     // gagal
                     if (!res.ok) {
 
                         if (result.errors?.otp) {
-                            alert(result.errors.otp[0]);
+                            showNotification(
+                                result.errors.otp[0],
+                                'error',
+                                'Kode Tidak Valid'
+                            );
                             return;
                         }
 
-                        alert(result.message || 'OTP tidak valid');
+                        showNotification(
+                            result.message || 'Kode OTP tidak valid.',
+                            'error',
+                            'Verifikasi Gagal'
+                        );
                         return;
                     }
 
@@ -122,7 +243,11 @@
                         null;
 
                     if (!token) {
-                        alert('Token dari server tidak valid');
+                        showNotification(
+                            'Token dari server tidak valid.',
+                            'error',
+                            'Terjadi Kesalahan'
+                        );
                         return;
                     }
 
@@ -134,7 +259,11 @@
 
                     console.error(err);
 
-                    alert('Terjadi kesalahan server');
+                    showNotification(
+                        'Terjadi kesalahan pada server. Silakan coba lagi.',
+                        'error',
+                        'Kesalahan Server'
+                    );
                 }
 
             });
@@ -173,7 +302,6 @@
 
                     const result = await res.json();
 
-                    console.log(result);
 
                     // ✔ FIX DI SINI (setelah result ada)
                     const token =
@@ -185,17 +313,28 @@
                     }
 
                     if (!res.ok) {
-                        alert(result.message || 'Gagal mengirim ulang OTP');
+                        showNotification(
+                            result.message || 'Gagal mengirim ulang OTP',
+                            'error',
+                            'Kesalahan'
+                        );
                         return;
                     }
 
-                    alert('Kode OTP berhasil dikirim ulang');
+                    showNotification(
+                        'Kode OTP berhasil dikirim ulang. Silakan cek email Anda.',
+                        'success',
+                        'Kode Berhasil Dikirim'
+                    );
 
                 } catch (err) {
 
                     console.error(err);
-                    alert('Terjadi kesalahan server');
-
+                    showNotification(
+                        'Terjadi kesalahan pada server. Silakan coba lagi.',
+                        'error',
+                        'Kesalahan Server'
+                    );
                 } finally {
 
                     const btn = document.getElementById('resend-code');

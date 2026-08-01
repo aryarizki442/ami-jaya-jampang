@@ -69,8 +69,40 @@
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- MODAL ERROR -->
+    <div class="modal fade" id="errorModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center p-4">
+
+                <h5 class="modal-title mb-3">
+                    Terjadi Kesalahan
+                </h5>
+
+                <p id="errorModalMessage" class="mb-4">
+                    Pesan error
+                </p>
+
+                <button type="button" class="btn btn-login text-white w-100" data-bs-dismiss="modal">
+                    MENGERTI
+                </button>
+
+            </div>
+        </div>
+    </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+
+            const showErrorModal = (message) => {
+
+                document.getElementById('errorModalMessage')
+                    .textContent = message;
+
+                const errorModal = new bootstrap.Modal(
+                    document.getElementById('errorModal')
+                );
+
+                errorModal.show();
+            };
 
             const adjustIconPosition = (input) => {
                 const icon = input.parentNode.querySelector('.password-toggle');
@@ -140,17 +172,10 @@
                         return;
                     }
 
-                    // ambil data dari proses sebelumnya
-
-                    console.log({
-                        email,
-                        registerToken,
-                        name,
-                        phone
-                    });
 
                     if (!registerToken || !email) {
-                        alert('Session registrasi tidak ditemukan');
+                        showErrorModal(
+                            'Session registrasi tidak ditemukan. Silakan ulangi proses pendaftaran.');
                         return;
                     }
 
@@ -174,8 +199,6 @@
 
                         const result = await res.json();
 
-                        console.log(result);
-
                         // gagal
                         if (!res.ok) {
 
@@ -192,18 +215,19 @@
                                 }
 
                                 if (result.errors.phone) {
-                                    alert(result.errors.phone[
-                                        0]); // kalau belum ada inputnya, masih boleh alert
+                                    showErrorModal(result.errors.phone[0]);
                                 }
 
                                 if (result.errors.name) {
-                                    alert(result.errors.name[0]);
+                                    showErrorModal(result.errors.name[0]);
                                 }
 
                                 return;
                             }
 
-                            alert(result.message || 'Registrasi gagal');
+                            showErrorModal(
+                                result.message || 'Registrasi gagal. Silakan coba lagi.'
+                            );
                             return;
                         }
 
@@ -237,7 +261,9 @@
 
                         console.error(err);
 
-                        alert('Terjadi kesalahan server');
+                        showErrorModal(
+                            'Terjadi kesalahan server. Silakan coba lagi.'
+                        );
                     }
 
                 });

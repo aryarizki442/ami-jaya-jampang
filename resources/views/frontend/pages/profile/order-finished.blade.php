@@ -456,13 +456,13 @@
 ${
     pendingReviewOrderIds.includes(Number(order.id))
         ? `
-            <button
-                type="button"
-                class="btn btn-main btn-sm btn-review"
-                data-order-id="${order.id}">
-                Nilai
-            </button>
-            `
+                                <button
+                                    type="button"
+                                    class="btn btn-main btn-sm btn-review"
+                                    data-order-id="${order.id}">
+                                    Nilai
+                                </button>
+                                `
         : ''
 }
 </div>
@@ -638,11 +638,6 @@ ${
 
             const result = await response.json();
 
-            console.log(
-                'PENDING REVIEW:',
-                result
-            );
-
 
             if (!response.ok || !result.success) {
 
@@ -699,11 +694,6 @@ ${
                     button.dataset.orderId;
 
 
-                console.log(
-                    'ORDER ID:',
-                    orderId
-                );
-
 
                 const token =
                     localStorage.getItem(
@@ -757,11 +747,6 @@ ${
                         );
 
 
-                    console.log(
-                        'ITEM REVIEW:',
-                        item
-                    );
-
 
                     /*
                     |------------------------------------------
@@ -787,11 +772,6 @@ ${
                     selectedOrderItemId =
                         item.order_item_id;
 
-
-                    console.log(
-                        'ORDER ITEM ID:',
-                        selectedOrderItemId
-                    );
 
 
                     /*
@@ -1068,11 +1048,6 @@ ${
                         const result =
                             await response.json();
 
-
-                        console.log(
-                            'RESPONSE REVIEW:',
-                            result
-                        );
 
 
                         /*

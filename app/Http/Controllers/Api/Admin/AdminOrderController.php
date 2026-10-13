@@ -5,13 +5,11 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class AdminOrderController extends Controller
 {
-    // Konstanta ongkir (sama dengan OrderController)
     const ONGKIR_PER_SACK  = 2000;
     const MIN_QTY_DELIVERY = 15;
 
@@ -25,11 +23,7 @@ class AdminOrderController extends Controller
 
     // ──────────────────────────────────────────────────────────────
     // GET /api/admin/orders
-    // Filter: status, search, date_from, date_to, per_page
     // ──────────────────────────────────────────────────────────────
-
-
-
     public function index(Request $request)
     {
         $query = Order::with(['user:id,name,email,phone', 'payment.paymentMethod'])
@@ -43,7 +37,7 @@ class AdminOrderController extends Controller
             $query->where(function ($q) use ($request) {
                 $q->where('order_number', 'like', '%' . $request->search . '%')
                   ->orWhereHas('user', fn($u) =>
-                        $u->where('name',  'like', '%' . $request->search . '%')
+                        $u->where('name', 'like', '%' . $request->search . '%')
                           ->orWhere('email', 'like', '%' . $request->search . '%')
                           ->orWhere('phone', 'like', '%' . $request->search . '%')
                   );
@@ -60,10 +54,9 @@ class AdminOrderController extends Controller
 
         $orders = $query->latest()->paginate($request->get('per_page', 15));
 
-        // Tambah status_label dan total_format di list
         $orders->getCollection()->transform(function ($order) {
-            $order->status_label  = $this->statusLabel($order->status);
-            $order->total_format  = 'Rp.' . number_format($order->total, 0, ',', '.');
+            $order->status_label = $this->statusLabel($order->status);
+            $order->total_format = 'Rp.' . number_format($order->total, 0, ',', '.');
             return $order;
         });
 
@@ -72,7 +65,6 @@ class AdminOrderController extends Controller
 
     // ──────────────────────────────────────────────────────────────
     // GET /api/admin/orders/{order}
-    // Detail order lengkap + breakdown ongkir
     // ──────────────────────────────────────────────────────────────
     public function show(Order $order)
     {
@@ -99,7 +91,6 @@ class AdminOrderController extends Controller
                 'created_at'        => $order->created_at->format('d M Y H:i'),
                 'updated_at'        => $order->updated_at->format('d M Y H:i'),
 
-                // ── Customer ──────────────────────────────────────
                 'customer' => [
                     'id'    => $order->user->id,
                     'name'  => $order->user->name,
@@ -107,7 +98,6 @@ class AdminOrderController extends Controller
                     'phone' => $order->user->phone,
                 ],
 
-                // ── Alamat pengiriman ─────────────────────────────
                 'address' => $order->address ? [
                     'recipient' => $order->address->recipient_name,
                     'phone'     => $order->address->phone,
@@ -119,7 +109,6 @@ class AdminOrderController extends Controller
                     'postal'    => $order->address->postal_code,
                 ] : null,
 
-                // ── Item produk ───────────────────────────────────
                 'items' => $order->items->map(fn($item) => [
                     'id'                => $item->id,
                     'product_id'        => $item->product_id,
@@ -135,14 +124,12 @@ class AdminOrderController extends Controller
                     'current_stock'     => $item->product?->stock,
                 ]),
 
-                // ── Ringkasan harga ───────────────────────────────
                 'summary' => [
                     'total_quantity'       => $totalQty,
                     'subtotal'             => $order->subtotal,
                     'subtotal_format'      => 'Rp.' . number_format($order->subtotal, 0, ',', '.'),
                     'shipping_cost'        => $order->shipping_cost,
                     'shipping_cost_format' => 'Rp.' . number_format($order->shipping_cost, 0, ',', '.'),
-                    // ── Breakdown ongkir ─────────────────────────
                     'shipping_breakdown'   => $this->ongkirBreakdown($order, $totalQty),
                     'other_fee'            => $order->other_fee,
                     'other_fee_format'     => 'Rp.' . number_format($order->other_fee, 0, ',', '.'),
@@ -150,7 +137,6 @@ class AdminOrderController extends Controller
                     'total_format'         => 'Rp.' . number_format($order->total, 0, ',', '.'),
                 ],
 
-                // ── Pembayaran ────────────────────────────────────
                 'payment' => $order->payment ? [
                     'id'                     => $order->payment->id,
                     'status'                 => $order->payment->status,
@@ -172,7 +158,6 @@ class AdminOrderController extends Controller
                     'refunded_at'            => $order->payment->refunded_at,
                 ] : null,
 
-                // ── Aksi yang tersedia untuk admin ────────────────
                 'available_actions' => $this->availableActions($order),
             ],
         ]);
@@ -180,17 +165,10 @@ class AdminOrderController extends Controller
 
     // ──────────────────────────────────────────────────────────────
     // GET /api/admin/orders/export
-    // Export data order ke CSV
-    // Query: status, date_from, date_to
     // ──────────────────────────────────────────────────────────────
     public function export(Request $request)
     {
-        $query = Order::with([
-            'user:id,name,email,phone',
-            'items',
-            'payment.paymentMethod',
-            'address',
-        ]);
+        $query = Order::with(['user:id,name,email,phone', 'items', 'payment.paymentMethod', 'address']);
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -206,7 +184,6 @@ class AdminOrderController extends Controller
 
         $orders = $query->latest()->get();
 
-        // ── Generate CSV ──────────────────────────────────────────
         $filename = 'orders-' . now()->format('Ymd-His') . '.csv';
 
         $headers = [
@@ -219,29 +196,13 @@ class AdminOrderController extends Controller
 
         $callback = function () use ($orders) {
             $file = fopen('php://output', 'w');
-
-            // BOM untuk Excel agar bisa baca karakter Indonesia
             fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-            // Header kolom
             fputcsv($file, [
-                'No. Order',
-                'Tanggal',
-                'Nama Customer',
-                'Email',
-                'No. HP',
-                'Kota Tujuan',
-                'Metode Kirim',
-                'Total Qty (Sack)',
-                'Subtotal',
-                'Ongkir',
-                'Breakdown Ongkir',
-                'Total',
-                'Status Order',
-                'Metode Bayar',
-                'Status Bayar',
-                'Tanggal Bayar',
-                'Catatan',
+                'No. Order', 'Tanggal', 'Nama Customer', 'Email', 'No. HP',
+                'Kota Tujuan', 'Metode Kirim', 'Total Qty (Sack)', 'Subtotal',
+                'Ongkir', 'Breakdown Ongkir', 'Total', 'Status Order',
+                'Metode Bayar', 'Status Bayar', 'Tanggal Bayar', 'Catatan',
             ]);
 
             foreach ($orders as $order) {
@@ -259,7 +220,7 @@ class AdminOrderController extends Controller
                     $totalQty,
                     $order->subtotal,
                     $order->shipping_cost,
-                    $ongkirBreakdown['formula'],   // contoh: "18 sack × Rp2.000 = Rp36.000"
+                    $ongkirBreakdown['formula'],
                     $order->total,
                     $this->statusLabel($order->status),
                     $order->payment?->paymentMethod?->name,
@@ -281,7 +242,7 @@ class AdminOrderController extends Controller
     public function updateStatus(Request $request, Order $order)
     {
         $request->validate([
-            'status' => 'required|in:awaiting_payment,paid,shipped,completed,cancelled',
+            'status' => 'required|in:awaiting_payment,paid,shipped,ready_to_pickup,completed,cancelled',
         ], [
             'status.required' => 'Status wajib diisi',
             'status.in'       => 'Status tidak valid',
@@ -289,8 +250,9 @@ class AdminOrderController extends Controller
 
         $allowed = [
             'awaiting_payment' => ['paid', 'cancelled'],
-            'paid'             => ['shipped', 'cancelled'],
+            'paid'             => ['shipped', 'ready_to_pickup', 'cancelled'],
             'shipped'          => ['completed'],
+            'ready_to_pickup'  => ['completed'],
             'completed'        => [],
             'cancelled'        => [],
             'refunded'         => [],
@@ -308,11 +270,15 @@ class AdminOrderController extends Controller
 
             if ($request->status === 'cancelled') {
                 $order->payment?->update(['status' => 'failed']);
+
                 foreach ($order->items as $item) {
-                    $item->product->increment('stock', $item->quantity);
-                    $item->product->decrement('total_sold', $item->quantity);
+                    if ($item->product) {   // ✅ null check
+                        $item->product->increment('stock', $item->quantity);
+                        $item->product->decrement('total_sold', $item->quantity);
+                    }
                 }
-                $order->user->notifications()->create([
+
+                $order->user?->notifications()->create([
                     'type'     => 'order',
                     'title'    => 'Order Dibatalkan',
                     'message'  => "Order {$order->order_number} telah dibatalkan oleh admin.",
@@ -323,7 +289,8 @@ class AdminOrderController extends Controller
 
             if ($request->status === 'paid') {
                 $order->payment?->update(['status' => 'paid', 'paid_at' => now()]);
-                $order->user->notifications()->create([
+
+                $order->user?->notifications()->create([
                     'type'     => 'payment',
                     'title'    => 'Pembayaran Dikonfirmasi ✅',
                     'message'  => "Pembayaran order {$order->order_number} telah dikonfirmasi oleh admin.",
@@ -333,7 +300,7 @@ class AdminOrderController extends Controller
             }
 
             if ($request->status === 'shipped') {
-                $order->user->notifications()->create([
+                $order->user?->notifications()->create([
                     'type'     => 'order',
                     'title'    => 'Pesanan Sedang Dikirim 🚚',
                     'message'  => "Order {$order->order_number} sedang dalam pengiriman. Estimasi: {$order->estimated_arrival}.",
@@ -343,7 +310,7 @@ class AdminOrderController extends Controller
             }
 
             if ($request->status === 'completed') {
-                $order->user->notifications()->create([
+                $order->user?->notifications()->create([
                     'type'     => 'order',
                     'title'    => 'Pesanan Selesai ✅',
                     'message'  => "Order {$order->order_number} telah selesai. Terima kasih sudah berbelanja!",
@@ -399,7 +366,7 @@ class AdminOrderController extends Controller
             ], 422);
         }
 
-        $refundAmount      = $request->filled('amount') ? (float) $request->amount : $payment->amount;
+        $refundAmount        = $request->filled('amount') ? (float) $request->amount : $payment->amount;
         $remainingRefundable = $payment->amount - $payment->refunded_amount;
 
         if ($refundAmount > $remainingRefundable) {
@@ -412,7 +379,7 @@ class AdminOrderController extends Controller
         try {
             $refundKey = 'REFUND-' . $order->order_number . '-' . time();
 
-            $refundResult = \Midtrans\Transaction::refund($order->order_number, [
+            \Midtrans\Transaction::refund($order->order_number, [
                 'refund_key' => $refundKey,
                 'amount'     => (int) $refundAmount,
                 'reason'     => $request->reason,
@@ -432,13 +399,16 @@ class AdminOrderController extends Controller
 
                 if ($isFullyRefunded) {
                     $order->update(['status' => 'refunded']);
+
                     foreach ($order->items as $item) {
-                        $item->product->increment('stock', $item->quantity);
-                        $item->product->decrement('total_sold', $item->quantity);
+                        if ($item->product) {   // ✅ null check
+                            $item->product->increment('stock', $item->quantity);
+                            $item->product->decrement('total_sold', $item->quantity);
+                        }
                     }
                 }
 
-                $order->user->notifications()->create([
+                $order->user?->notifications()->create([
                     'type'     => 'payment',
                     'title'    => 'Refund Berhasil 💰',
                     'message'  => "Refund Rp" . number_format($refundAmount, 0, ',', '.') . " untuk order {$order->order_number} sedang diproses. Alasan: {$request->reason}",
@@ -464,6 +434,7 @@ class AdminOrderController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('Midtrans: refund gagal', ['order' => $order->order_number, 'error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Refund gagal. ' . (config('app.debug') ? $e->getMessage() : 'Silakan coba lagi.'),
@@ -509,13 +480,16 @@ class AdminOrderController extends Controller
 
             if ($isFullyRefunded) {
                 $order->update(['status' => 'refunded']);
+
                 foreach ($order->items as $item) {
-                    $item->product->increment('stock', $item->quantity);
-                    $item->product->decrement('total_sold', $item->quantity);
+                    if ($item->product) {   // ✅ null check
+                        $item->product->increment('stock', $item->quantity);
+                        $item->product->decrement('total_sold', $item->quantity);
+                    }
                 }
             }
 
-            $order->user->notifications()->create([
+            $order->user?->notifications()->create([
                 'type'     => 'payment',
                 'title'    => 'Refund Manual Diproses 💰',
                 'message'  => "Refund manual Rp" . number_format($refundAmount, 0, ',', '.') . " untuk order {$order->order_number} telah dicatat.",
@@ -546,6 +520,7 @@ class AdminOrderController extends Controller
             'awaiting_payment'   => Order::where('status', 'awaiting_payment')->count(),
             'paid'               => Order::where('status', 'paid')->count(),
             'shipped'            => Order::where('status', 'shipped')->count(),
+            'ready_to_pickup'    => Order::where('status', 'ready_to_pickup')->count(),
             'completed'          => Order::where('status', 'completed')->count(),
             'cancelled'          => Order::where('status', 'cancelled')->count(),
             'refunded'           => Order::where('status', 'refunded')->count(),
@@ -559,32 +534,27 @@ class AdminOrderController extends Controller
     // ──────────────────────────────────────────────────────────────
     // PRIVATE HELPERS
     // ──────────────────────────────────────────────────────────────
-
-    /**
-     * Breakdown perhitungan ongkir
-     * Return: formula teks + detail angka
-     */
     private function ongkirBreakdown(Order $order, int $totalQty): array
     {
         if ($order->delivery_method === 'pickup') {
             return [
-                'method'        => 'pickup',
-                'formula'       => 'Ambil Sendiri (Gratis)',
-                'total_qty'     => $totalQty,
+                'method'          => 'pickup',
+                'formula'         => 'Ambil Sendiri (Gratis)',
+                'total_qty'       => $totalQty,
                 'ongkir_per_sack' => 0,
-                'shipping_cost' => 0,
+                'shipping_cost'   => 0,
             ];
         }
 
         if ($totalQty < self::MIN_QTY_DELIVERY) {
             return [
-                'method'           => 'delivery',
-                'formula'          => "Dibawah minimum ({$totalQty} dari " . self::MIN_QTY_DELIVERY . " sack)",
-                'total_qty'        => $totalQty,
-                'min_qty'          => self::MIN_QTY_DELIVERY,
-                'ongkir_per_sack'  => self::ONGKIR_PER_SACK,
-                'shipping_cost'    => 0,
-                'note'             => 'Ongkir tidak dikenakan karena di bawah minimum',
+                'method'          => 'delivery',
+                'formula'         => "Dibawah minimum ({$totalQty} dari " . self::MIN_QTY_DELIVERY . " sack)",
+                'total_qty'       => $totalQty,
+                'min_qty'         => self::MIN_QTY_DELIVERY,
+                'ongkir_per_sack' => self::ONGKIR_PER_SACK,
+                'shipping_cost'   => 0,
+                'note'            => 'Ongkir tidak dikenakan karena di bawah minimum',
             ];
         }
 
@@ -600,15 +570,15 @@ class AdminOrderController extends Controller
         ];
     }
 
-    /** Aksi yang tersedia untuk admin berdasarkan status order */
     private function availableActions(Order $order): array
     {
         $actions = [];
 
         $allowed = [
             'awaiting_payment' => ['paid', 'cancelled'],
-            'paid'             => ['shipped', 'cancelled'],
+            'paid'             => ['shipped', 'ready_to_pickup', 'cancelled'],
             'shipped'          => ['completed'],
+            'ready_to_pickup'  => ['completed'],
             'completed'        => [],
             'cancelled'        => [],
             'refunded'         => [],
@@ -619,16 +589,16 @@ class AdminOrderController extends Controller
                 'action' => 'update_status',
                 'value'  => $status,
                 'label'  => match($status) {
-                    'paid'      => 'Konfirmasi Pembayaran',
-                    'shipped'   => 'Tandai Sedang Dikirim',
-                    'completed' => 'Tandai Selesai',
-                    'cancelled' => 'Batalkan Order',
-                    default     => ucfirst($status),
+                    'paid'            => 'Konfirmasi Pembayaran',
+                    'shipped'         => 'Tandai Sedang Dikirim',
+                    'ready_to_pickup' => 'Tandai Siap Diambil',
+                    'completed'       => 'Tandai Selesai',
+                    'cancelled'       => 'Batalkan Order',
+                    default           => ucfirst($status),
                 },
             ];
         }
 
-        // Tombol refund hanya muncul jika sudah paid
         if ($order->payment?->status === 'paid') {
             $actions[] = [
                 'action' => 'refund',
@@ -645,6 +615,7 @@ class AdminOrderController extends Controller
             'awaiting_payment' => 'Menunggu Pembayaran',
             'paid'             => 'Sudah Dibayar',
             'shipped'          => 'Sedang Dikirim',
+            'ready_to_pickup'  => 'Siap Diambil',
             'completed'        => 'Selesai',
             'cancelled'        => 'Dibatalkan',
             'refunded'         => 'Dikembalikan',
@@ -665,12 +636,6 @@ class AdminOrderController extends Controller
         };
     }
 
-
-
-
-
-
-
     public function frontendOrderDetail(Order $order)
     {
         $order->load([
@@ -682,64 +647,60 @@ class AdminOrderController extends Controller
 
         return view('backend.pages.order.detail', compact('order'));
     }
-public function frontendOrderIndex(Request $request)
-{
-    $query = Order::with(['user:id,name,email,phone', 'payment.paymentMethod', 'items.product.category'])
-        ->withCount('items');
 
-    // Apply filter kategori produk
-    if ($request->filled('category_id')) {
-        $query->whereHas('items.product', function($q) use ($request) {
-            $q->where('category_id', $request->category_id);
-        });
-    }
-   if ($request->filled('start_date') && $request->filled('end_date')) {
-        $query->whereDate('created_at', '>=', $request->start_date)
-              ->whereDate('created_at', '<=', $request->end_date);
-    }
+    public function frontendOrderIndex(Request $request)
+    {
+        $query = Order::with(['user:id,name,email,phone', 'payment.paymentMethod', 'items.product.category'])
+            ->withCount('items');
 
-    // Apply filter status pembayaran
-    if ($request->filled('payment_status')) {
-        $query->whereHas('payment', function($q) use ($request) {
-            $q->where('status', $request->payment_status);
-        });
-    }
-
-    $orders = $query->latest()->paginate(15);
-
-    $orders->getCollection()->transform(function ($order) {
-        $order->status_label = $this->statusLabel($order->status);
-        $order->total_format = 'Rp.' . number_format($order->total ?? 0, 0, ',', '.');
-
-        // Tambahkan data payment status
-        if ($order->payment) {
-            $order->payment_status = $order->payment->status;
+        if ($request->filled('category_id')) {
+            $query->whereHas('items.product', function ($q) use ($request) {
+                $q->where('category_id', $request->category_id);
+            });
         }
 
-        return $order;
-    });
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date)
+                  ->whereDate('created_at', '<=', $request->end_date);
+        }
 
-    // Jika request AJAX, return JSON
-    if ($request->ajax()) {
-        return response()->json([
-            'success' => true,
-            'data' => $orders->items(),
-            'pagination' => [
-                'current_page' => $orders->currentPage(),
-                'last_page' => $orders->lastPage(),
+        if ($request->filled('payment_status')) {
+            $query->whereHas('payment', function ($q) use ($request) {
+                $q->where('status', $request->payment_status);
+            });
+        }
+
+        $orders = $query->latest()->paginate(15);
+
+        $orders->getCollection()->transform(function ($order) {
+            $order->status_label = $this->statusLabel($order->status);
+            $order->total_format = 'Rp.' . number_format($order->total ?? 0, 0, ',', '.');
+
+            if ($order->payment) {
+                $order->payment_status = $order->payment->status;
+            }
+
+            return $order;
+        });
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'data'    => $orders->items(),
+                'pagination' => [
+                    'current_page' => $orders->currentPage(),
+                    'last_page'    => $orders->lastPage(),
+                    'total'        => $orders->total(),
+                    'per_page'     => $orders->perPage(),
+                    'from'         => $orders->firstItem(),
+                    'to'           => $orders->lastItem(),
+                ],
                 'total' => $orders->total(),
-                'per_page' => $orders->perPage(),
-                'from' => $orders->firstItem(),
-                'to' => $orders->lastItem()
-            ],
-            'total' => $orders->total()
-        ]);
+            ]);
+        }
+
+        $categories = \App\Models\Category::all();
+
+        return view('backend.pages.order.index', compact('orders', 'categories'));
     }
-
-    // Ambil categories untuk filter
-    $categories = \App\Models\Category::all();
-
-    return view('backend.pages.order.index', compact('orders', 'categories'));
-}
-
 }

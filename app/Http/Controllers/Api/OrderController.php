@@ -13,11 +13,13 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class OrderController extends Controller
 {
-    // Konstanta ongkir
-    const ONGKIR_PER_SACK       = 2000;  // Rp2.000 per sack
-    const MIN_QTY_DELIVERY      = 15;    // minimal 15 sack untuk bisa delivery
+    const ONGKIR_PER_SACK  = 2000;
+    const MIN_QTY_DELIVERY = 15;
 
-    private function user() { return JWTAuth::parseToken()->authenticate(); }
+    private function user()
+    {
+        return JWTAuth::parseToken()->authenticate();
+    }
 
     // ──────────────────────────────────────────────────────────────
     // GET /api/orders
@@ -32,10 +34,7 @@ class OrderController extends Controller
 
         $orders->getCollection()->transform(fn($order) => $this->formatOrder($order));
 
-        return response()->json([
-            'success' => true,
-            'data'    => $orders,
-        ]);
+        return response()->json(['success' => true, 'data' => $orders]);
     }
 
     // ──────────────────────────────────────────────────────────────
@@ -45,11 +44,39 @@ class OrderController extends Controller
     {
         abort_if($order->user_id !== $this->user()->id, 403, 'Akses ditolak');
 
-        $order->load([
-            'items.product',
-            'address',
-            'payment.paymentMethod',
-        ]);
+        // ✅ Auto-expire kalau sudah lewat & payment masih pending
+        if ($order->status === 'awaiting_payment'
+            && $order->payment
+            && $order->payment->expired_at
+            && $order->payment->expired_at->isPast()
+            && $order->payment->status === 'pending') {
+
+            DB::transaction(function () use ($order) {
+                $fresh = Order::where('id', $order->id)->lockForUpdate()->first();
+                if (! $fresh || $fresh->status !== 'awaiting_payment') {
+                    return;
+                }
+
+                $payment = $fresh->payment()->lockForUpdate()->first();
+                if (! $payment || $payment->status !== 'pending') {
+                    return;
+                }
+
+                foreach ($fresh->items as $item) {
+                    if ($item->product) {
+                        $item->product->increment('stock', $item->quantity);
+                        $item->product->decrement('total_sold', $item->quantity);
+                    }
+                }
+
+                $fresh->update(['status' => 'cancelled']);
+                $payment->update(['status' => 'expired']);
+            });
+
+            $order->refresh();
+        }
+
+        $order->load(['items.product', 'address', 'payment.paymentMethod']);
 
         return response()->json([
             'success' => true,
@@ -59,8 +86,6 @@ class OrderController extends Controller
 
     // ──────────────────────────────────────────────────────────────
     // GET /api/orders/shipping-calculate
-    // Hitung estimasi ongkir sebelum checkout
-    // Query: item_ids[] atau pakai semua yang is_selected
     // ──────────────────────────────────────────────────────────────
     public function calculateShipping(Request $request)
     {
@@ -85,27 +110,19 @@ class OrderController extends Controller
         return response()->json([
             'success' => true,
             'data'    => [
-                'total_quantity'    => $totalQty,
-                'min_qty_delivery'  => self::MIN_QTY_DELIVERY,
-                'ongkir_per_sack'   => self::ONGKIR_PER_SACK,
-                'can_delivery'      => $result['can_delivery'],
-                'shipping_cost'     => $result['shipping_cost'],
+                'total_quantity'       => $totalQty,
+                'min_qty_delivery'     => self::MIN_QTY_DELIVERY,
+                'ongkir_per_sack'      => self::ONGKIR_PER_SACK,
+                'can_delivery'         => $result['can_delivery'],
+                'shipping_cost'        => $result['shipping_cost'],
                 'shipping_cost_format' => 'Rp.' . number_format($result['shipping_cost'], 0, ',', '.'),
-                'info'              => $result['info'],
+                'info'                 => $result['info'],
             ],
         ]);
     }
 
     // ──────────────────────────────────────────────────────────────
     // POST /api/orders
-    // Buat order baru dari keranjang
-    // Body: {
-    //   address_id*        → id alamat pengiriman
-    //   payment_method_id* → id metode pembayaran
-    //   delivery_method*   → delivery / pickup
-    //   note               → catatan (opsional)
-    //   item_ids           → id cart_items (opsional, default semua is_selected)
-    // }
     // ──────────────────────────────────────────────────────────────
     public function store(Request $request)
     {
@@ -127,7 +144,6 @@ class OrderController extends Controller
 
         $user = $this->user();
 
-        // Pastikan alamat milik user ini
         $address = UserAddress::where('id', $request->address_id)
             ->where('user_id', $user->id)
             ->firstOrFail();
@@ -141,7 +157,6 @@ class OrderController extends Controller
             ], 404);
         }
 
-        // Ambil item yang akan dicheckout
         $itemsQuery = $cart->items()->with('product');
         if (! empty($request->item_ids)) {
             $itemsQuery->whereIn('id', $request->item_ids);
@@ -157,7 +172,6 @@ class OrderController extends Controller
             ], 422);
         }
 
-        // Validasi produk & stok
         foreach ($cartItems as $ci) {
             if (! $ci->product->is_active) {
                 return response()->json([
@@ -181,11 +195,9 @@ class OrderController extends Controller
             }
         }
 
-        // ── Hitung ongkir berdasarkan total quantity ──────────────
         $totalQty = $cartItems->sum('quantity');
         $ongkir   = $this->hitungOngkir($totalQty);
 
-        // Validasi: jika pilih delivery tapi quantity kurang dari minimal
         if ($request->delivery_method === 'delivery' && ! $ongkir['can_delivery']) {
             return response()->json([
                 'success' => false,
@@ -200,7 +212,6 @@ class OrderController extends Controller
             $subtotal     = $cartItems->sum(fn($ci) => $ci->product->price * $ci->quantity);
             $shippingCost = $request->delivery_method === 'delivery' ? $ongkir['shipping_cost'] : 0;
 
-            // Buat order
             $order = Order::create([
                 'order_number'      => Order::generateOrderNumber(),
                 'user_id'           => $user->id,
@@ -215,7 +226,6 @@ class OrderController extends Controller
                 'estimated_arrival' => $request->delivery_method === 'delivery' ? 'Hari ini - Besok' : null,
             ]);
 
-            // Buat order items + kurangi stok
             foreach ($cartItems as $ci) {
                 $order->items()->create([
                     'product_id'    => $ci->product_id,
@@ -227,31 +237,22 @@ class OrderController extends Controller
                     'subtotal'      => $ci->product->price * $ci->quantity,
                 ]);
 
+                // Kurangi stok (reserve) saat order dibuat
                 $ci->product->decrement('stock', $ci->quantity);
                 $ci->product->increment('total_sold', $ci->quantity);
             }
 
-            // Buat record payment
+            // ✅ Create payment — expired_at di sini placeholder, akan di-overwrite
+            //    oleh getSnapToken() sesuai metode pembayaran (QRIS 10m / VA 30m).
             Payment::create([
                 'order_id'          => $order->id,
                 'payment_method_id' => $request->payment_method_id,
                 'status'            => 'pending',
                 'amount'            => $order->total,
-                'expired_at'        => now()->addHours(24),
+                'expired_at'        => now()->addMinutes(1),
             ]);
 
-            // Hapus item dari keranjang
             $cartItems->each->delete();
-
-            // Notifikasi ke user
-            // $user->notifications()->create([
-            //     'type'     => 'order',
-            //     'title'    => 'Order Berhasil Dibuat 🎉',
-            //     'message'  => "Order {$order->order_number} berhasil dibuat. Segera bayar sebelum " .
-            //                   now()->addHours(24)->format('d M Y H:i') . ".",
-            //     'ref_type' => 'order',
-            //     'ref_id'   => $order->id,
-            // ]);
 
             DB::commit();
 
@@ -262,15 +263,14 @@ class OrderController extends Controller
                 'message' => 'Order berhasil dibuat! Silakan lakukan pembayaran.',
                 'data'    => $this->formatOrderDetail($order),
             ], 201);
-
         } catch (\Throwable $e) {
-    DB::rollBack();
+            DB::rollBack();
 
-    return response()->json([
-        'success' => false,
-        'message' => 'Gagal membuat order',
-        'error'   => $e->getMessage(), // 🔥 ini penting
-    ], 500);
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal membuat order',
+                'error'   => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
         }
     }
 
@@ -289,20 +289,27 @@ class OrderController extends Controller
         }
 
         DB::transaction(function () use ($order) {
-            foreach ($order->items as $item) {
-                $item->product->increment('stock', $item->quantity);
-                $item->product->decrement('total_sold', $item->quantity);
+            $fresh = Order::where('id', $order->id)->lockForUpdate()->first();
+            if (! $fresh || $fresh->status !== 'awaiting_payment') {
+                return;
             }
 
-            $order->update(['status' => 'cancelled']);
-            $order->payment?->update(['status' => 'failed']);
+            foreach ($fresh->items as $item) {
+                if ($item->product) {   // ✅ null check
+                    $item->product->increment('stock', $item->quantity);
+                    $item->product->decrement('total_sold', $item->quantity);
+                }
+            }
 
-            $order->user->notifications()->create([
+            $fresh->update(['status' => 'cancelled']);
+            $fresh->payment?->update(['status' => 'failed']);
+
+            $fresh->user?->notifications()->create([
                 'type'     => 'order',
                 'title'    => 'Order Dibatalkan',
-                'message'  => "Order {$order->order_number} berhasil dibatalkan.",
+                'message'  => "Order {$fresh->order_number} berhasil dibatalkan.",
                 'ref_type' => 'order',
-                'ref_id'   => $order->id,
+                'ref_id'   => $fresh->id,
             ]);
         });
 
@@ -400,13 +407,13 @@ class OrderController extends Controller
                     'postal'    => $order->address->postal_code,
                 ],
                 'items' => $order->items->map(fn($item) => [
-                    'name'             => $item->product_name,
-                    'unit'             => $item->product_unit,
-                    'quantity'         => $item->quantity,
-                    'unit_price'       => $item->unit_price,
-                    'unit_price_format'=> 'Rp.' . number_format($item->unit_price, 0, ',', '.'),
-                    'subtotal'         => $item->subtotal,
-                    'subtotal_format'  => 'Rp.' . number_format($item->subtotal, 0, ',', '.'),
+                    'name'              => $item->product_name,
+                    'unit'              => $item->product_unit,
+                    'quantity'          => $item->quantity,
+                    'unit_price'        => $item->unit_price,
+                    'unit_price_format' => 'Rp.' . number_format($item->unit_price, 0, ',', '.'),
+                    'subtotal'          => $item->subtotal,
+                    'subtotal_format'   => 'Rp.' . number_format($item->subtotal, 0, ',', '.'),
                 ]),
                 'summary' => [
                     'subtotal'             => $order->subtotal,
@@ -428,8 +435,8 @@ class OrderController extends Controller
                     'method'    => $order->delivery_method === 'delivery' ? 'Pengiriman' : 'Ambil Sendiri',
                     'estimated' => $order->estimated_arrival,
                 ],
-                'note'              => $order->note,
-                'ongkir_info'       => [
+                'note'        => $order->note,
+                'ongkir_info' => [
                     'total_quantity'   => $order->items->sum('quantity'),
                     'ongkir_per_sack'  => self::ONGKIR_PER_SACK,
                     'min_qty_delivery' => self::MIN_QTY_DELIVERY,
@@ -439,22 +446,8 @@ class OrderController extends Controller
     }
 
     // ──────────────────────────────────────────────────────────────
-    // PRIVATE — Logika hitung ongkir
+    // Private: hitung ongkir
     // ──────────────────────────────────────────────────────────────
-
-    /**
-     * Hitung ongkir berdasarkan total quantity
-     *
-     * Aturan:
-     * - Minimal 15 sack untuk bisa delivery
-     * - Ongkir = quantity × Rp2.000
-     * - Di bawah 15 sack → tidak bisa delivery (harus pickup)
-     *
-     * Contoh:
-     * - 18 sack → 18 × 2.000 = Rp36.000
-     * - 15 sack → 15 × 2.000 = Rp30.000
-     * - 14 sack → tidak bisa delivery
-     */
     private function hitungOngkir(int $totalQty): array
     {
         if ($totalQty < self::MIN_QTY_DELIVERY) {
@@ -478,36 +471,32 @@ class OrderController extends Controller
     }
 
     // ── Format helpers ────────────────────────────────────────────
-
     private function formatOrder(Order $order): array
     {
         return [
-            'id'             => $order->id,
-            'order_number'   => $order->order_number,
-            'status'         => $order->status,
-            'status_label'   => $this->statusLabel($order->status),
-            'delivery_method'=> $order->delivery_method,
-            'total'          => $order->total,
-            'total_format'   => 'Rp.' . number_format($order->total, 0, ',', '.'),
-            'items_count'    => $order->items->count(),
-            'first_item'     => $order->items->first() ? [
+            'id'              => $order->id,
+            'order_number'    => $order->order_number,
+            'status'          => $order->status,
+            'status_label'    => $this->statusLabel($order->status),
+            'delivery_method' => $order->delivery_method,
+            'total'           => $order->total,
+            'total_format'    => 'Rp.' . number_format($order->total, 0, ',', '.'),
+            'items_count'     => $order->items->count(),
+            'first_item'      => $order->items->first() ? [
                 'name'  => $order->items->first()->product_name,
                 'image' => $order->items->first()->product_image,
             ] : null,
-
-            // TAMBAHKAN INI ↓
             'items'          => $order->items->map(function ($item) {
                 return [
-                    'name'           => $item->product_name,
-                    'image'          => $item->product_image,
-                    'quantity'       => $item->quantity,
-                    'price'          => $item->price,
-                    'price_format'   => 'Rp.' . number_format($item->price, 0, ',', '.'),
-                    'subtotal'       => $item->price * $item->quantity,
-                    'subtotal_format'=> 'Rp.' . number_format($item->price * $item->quantity, 0, ',', '.')
+                    'name'            => $item->product_name,
+                    'image'           => $item->product_image,
+                    'quantity'        => $item->quantity,
+                    'price'           => $item->unit_price,
+                    'price_format'    => 'Rp.' . number_format($item->unit_price, 0, ',', '.'),
+                    'subtotal'        => $item->unit_price * $item->quantity,
+                    'subtotal_format' => 'Rp.' . number_format($item->unit_price * $item->quantity, 0, ',', '.'),
                 ];
             }),
-
             'payment_status' => $order->payment?->status,
             'payment_method' => $order->payment?->paymentMethod?->name,
             'created_at'     => $order->created_at->format('d M Y H:i'),
@@ -519,15 +508,15 @@ class OrderController extends Controller
         $totalQty = $order->items->sum('quantity');
 
         return [
-            'id'               => $order->id,
-            'order_number'     => $order->order_number,
-            'status'           => $order->status,
-            'status_label'     => $this->statusLabel($order->status),
-             'cancel_reason'    => $order->cancel_reason,
-            'delivery_method'  => $order->delivery_method,
-            'delivery_label'   => $order->delivery_method === 'delivery' ? 'Pengiriman' : 'Ambil Sendiri',
-            'estimated_arrival'=> $order->estimated_arrival,
-            'note'             => $order->note,
+            'id'                => $order->id,
+            'order_number'      => $order->order_number,
+            'status'            => $order->status,
+            'status_label'      => $this->statusLabel($order->status),
+            'cancel_reason'     => $order->cancel_reason,
+            'delivery_method'   => $order->delivery_method,
+            'delivery_label'    => $order->delivery_method === 'delivery' ? 'Pengiriman' : 'Ambil Sendiri',
+            'estimated_arrival' => $order->estimated_arrival,
+            'note'              => $order->note,
 
             'address' => $order->address ? [
                 'recipient' => $order->address->recipient_name,
@@ -570,17 +559,17 @@ class OrderController extends Controller
             ],
 
             'payment' => $order->payment ? [
-            'status'                 => $order->payment->status,
-            'status_label'           => $this->paymentStatusLabel($order->payment->status),
-            'method'                 => $order->payment->paymentMethod?->name,
-            'method_code'            => $order->payment->paymentMethod?->code,
-            'payment_type'           => $order->payment->payment_type,
-            'virtual_account_number' => $order->payment->virtual_account_number,
-            'snap_token'             => $order->payment->snap_token,
-            'amount'                 => $order->payment->amount,
-            'amount_format'          => 'Rp.' . number_format($order->payment->amount, 0, ',', '.'),
-            'expired_at'             => $order->payment->expired_at,
-            'paid_at'                => $order->payment->paid_at,
+                'status'                 => $order->payment->status,
+                'status_label'           => $this->paymentStatusLabel($order->payment->status),
+                'method'                 => $order->payment->paymentMethod?->name,
+                'method_code'            => $order->payment->paymentMethod?->code,
+                'payment_type'           => $order->payment->payment_type,
+                'virtual_account_number' => $order->payment->virtual_account_number,
+                'snap_token'             => $order->payment->snap_token,
+                'amount'                 => $order->payment->amount,
+                'amount_format'          => 'Rp.' . number_format($order->payment->amount, 0, ',', '.'),
+                'expired_at'             => $order->payment->expired_at,
+                'paid_at'                => $order->payment->paid_at,
             ] : null,
 
             'can_cancel'  => $order->status === 'awaiting_payment',
@@ -598,6 +587,7 @@ class OrderController extends Controller
             'awaiting_payment' => 'Menunggu Pembayaran',
             'paid'             => 'Sudah Dibayar',
             'shipped'          => 'Sedang Dikirim',
+            'ready_to_pickup'  => 'Siap Diambil',
             'completed'        => 'Selesai',
             'cancelled'        => 'Dibatalkan',
             'refunded'         => 'Dikembalikan',
@@ -619,97 +609,86 @@ class OrderController extends Controller
     }
 
     public function accept(Order $order)
-{
-    if ($order->status !== 'paid') {
-        return response()->json([
-            'success' => false,
-            'message' => 'Order hanya bisa di-ACC setelah pembayaran lunas',
-        ], 422);
-    }
-
-    $status = $order->delivery_method === 'delivery'
-        ? 'shipped'
-        : 'ready_to_pickup';
-
-    $order->update(['status' => $status]);
-
-    return response()->json([
-        'success' => true,
-        'message' => $status === 'shipped'
-            ? 'Order di-ACC dan sedang dikirim'
-            : 'Order di-ACC dan siap dijemput',
-        'data' => $order->fresh(),
-    ]);
-}
-
-public function reject(Request $request, Order $order)
-{
-    $request->validate([
-        'reason' => 'required|string|max:255',
-    ], [
-        'reason.required' => 'Alasan pembatalan wajib diisi',
-    ]);
-
-    if ($order->status !== 'paid') {
-        return response()->json([
-            'success' => false,
-            'message' => 'Order tidak bisa direfund',
-        ], 422);
-    }
-
-    DB::transaction(function () use ($request, $order) {
-
-        // ubah status order
-        $order->update([
-            'status'        => 'refunded',
-            'cancel_reason' => $request->reason,
-        ]);
-
-        // balikin stok
-        foreach ($order->items as $item) {
-
-            $item->product->increment('stock', $item->quantity);
-
-            $item->product->decrement('total_sold', $item->quantity);
+    {
+        if ($order->status !== 'paid') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order hanya bisa di-ACC setelah pembayaran lunas',
+            ], 422);
         }
 
-        // notif customer
-        $order->user->notifications()->create([
-            'type'     => 'order',
-            'title'    => 'Pesanan Direfund 💰',
-            'message'  => "Pesanan {$order->order_number} direfund oleh admin. Alasan: {$request->reason}. Untuk proses pengembalian dana silakan hubungi CS melalui WhatsApp.",
-            'ref_type' => 'order',
-            'ref_id'   => $order->id,
-        ]);
-    });
+        $status = $order->delivery_method === 'delivery' ? 'shipped' : 'ready_to_pickup';
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Pesanan berhasil direfund',
-        'data'    => $order->fresh([
-            'items',
-            'payment',
-        ]),
-    ]);
-}
+        $order->update(['status' => $status]);
 
-public function complete(Order $order)
-{
-    if (! in_array($order->status, ['shipped', 'ready_to_pickup'])) {
         return response()->json([
-            'success' => false,
-            'message' => 'Order belum bisa diselesaikan',
-        ], 422);
+            'success' => true,
+            'message' => $status === 'shipped'
+                ? 'Order di-ACC dan sedang dikirim'
+                : 'Order di-ACC dan siap dijemput',
+            'data' => $order->fresh(),
+        ]);
     }
 
-    $order->update([
-        'status' => 'completed'
-    ]);
+    public function reject(Request $request, Order $order)
+    {
+        $request->validate([
+            'reason' => 'required|string|max:255',
+        ], [
+            'reason.required' => 'Alasan pembatalan wajib diisi',
+        ]);
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Order berhasil diselesaikan',
-        'data' => $order->fresh(),
-    ]);
-}
+        if ($order->status !== 'paid') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order tidak bisa direfund',
+            ], 422);
+        }
+
+        DB::transaction(function () use ($request, $order) {
+            $order->update([
+                'status'        => 'refunded',
+                'cancel_reason' => $request->reason,
+            ]);
+
+            foreach ($order->items as $item) {
+                if ($item->product) {   // ✅ null check
+                    $item->product->increment('stock', $item->quantity);
+                    $item->product->decrement('total_sold', $item->quantity);
+                }
+            }
+
+            $order->user->notifications()->create([
+                'type'     => 'order',
+                'title'    => 'Pesanan Direfund 💰',
+                'message'  => "Pesanan {$order->order_number} direfund oleh admin. Alasan: {$request->reason}. Untuk proses pengembalian dana silakan hubungi CS melalui WhatsApp.",
+                'ref_type' => 'order',
+                'ref_id'   => $order->id,
+            ]);
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pesanan berhasil direfund',
+            'data'    => $order->fresh(['items', 'payment']),
+        ]);
+    }
+
+    public function complete(Order $order)
+    {
+        if (! in_array($order->status, ['shipped', 'ready_to_pickup'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order belum bisa diselesaikan',
+            ], 422);
+        }
+
+        $order->update(['status' => 'completed']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order berhasil diselesaikan',
+            'data'    => $order->fresh(),
+        ]);
+    }
 }

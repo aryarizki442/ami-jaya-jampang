@@ -491,6 +491,33 @@
         </div>
     </div>
 
+    <!-- Modal Stok Tidak Mencukupi -->
+    <div class="modal fade" id="modalStok" tabindex="-1" aria-labelledby="modalStokLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-body text-center p-4">
+                    <div class="mb-3 text-danger">
+                        <i class="bi bi-exclamation-circle-fill" style="font-size: 55px;"></i>
+                    </div>
+
+                    <h5 class="fw-bold mb-2" id="modalStokLabel">
+                        Stok Tidak Mencukupi
+                    </h5>
+
+                    <p class="text-muted mb-4" id="pesanStok">
+                        Stok produk tidak tersedia.
+                    </p>
+
+
+                    <button type="button" class="btn btn-success px-5 rounded-3" onclick="window.location.href='/'">
+                        Mengerti
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     @include('frontend.components.address-modal')
     @include('frontend.components.address-list-modal')
@@ -696,6 +723,15 @@
         }
 
 
+        function tampilkanModalStok(pesan) {
+            document.getElementById('pesanStok').textContent = pesan;
+
+            const modalElement = document.getElementById('modalStok');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+
+            modal.show();
+        }
+
 
         // =============================================
         //  SUBMIT ORDER + HIT SNAP TOKEN
@@ -752,10 +788,21 @@
 
                 const orderJson = await orderRes.json();
 
+
                 if (!orderRes.ok || !orderJson.success) {
-                    alert(orderJson.message || 'Gagal membuat order');
+                    const pesan = orderJson.message || 'Gagal membuat order';
+
+                    if (pesan.toLowerCase().includes('stok')) {
+                        tampilkanModalStok(pesan);
+                    } else {
+                        alert(pesan);
+                    }
+
+                    btn.disabled = false;
+                    btn.innerHTML = 'Bayar';
                     return;
                 }
+
 
                 const orderNumber = orderJson.data.order_number;
 

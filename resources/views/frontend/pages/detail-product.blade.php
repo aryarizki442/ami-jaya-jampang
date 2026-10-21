@@ -433,6 +433,44 @@
             </div>
         </div>
     </div>
+
+
+    <!-- Modal Gagal Memproses Pembelian -->
+    <div class="modal fade" id="purchaseErrorModal" tabindex="-1" aria-labelledby="purchaseErrorTitle"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0 rounded-4 shadow">
+
+                <div class="modal-body text-center px-4 pt-4 pb-3">
+
+                    <div class="d-flex align-items-center justify-content-center
+                    rounded-circle mx-auto mb-3"
+                        style="width: 76px; height: 76px; background: #fff3cd;">
+
+                        <i id="purchaseErrorIcon" class="bi bi-exclamation-triangle-fill"
+                            style="font-size: 34px; color: #d99a00;">
+                        </i>
+                    </div>
+
+                    <h5 class="fw-bold mb-2" id="purchaseErrorTitle">
+                        Pembelian Belum Bisa Diproses
+                    </h5>
+
+                    <p class="text-muted small mb-4" id="purchaseErrorMessage">
+                        Maaf, pembelian kamu belum dapat diproses.
+                        Silakan coba kembali.
+                    </p>
+
+                    <button type="button" class="btn btn-success rounded-3 w-100 py-2 fw-semibold"
+                        data-bs-dismiss="modal">
+                        Mengerti
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
     @include('frontend.components.guest-login')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -611,19 +649,26 @@
             //  BELI LANGSUNG (tambah ke cart lalu redirect)
             // =============================================
 
+
             document.getElementById('btnBeliLangsung').addEventListener('click', async function() {
                 const btn = this;
 
+                if (btn.disabled || btn.classList.contains('btn-loading')) return;
+
                 const token = localStorage.getItem('token');
 
-                // Belum login → arahkan ke login
                 if (!token) {
-                    showGuestLoginModal();
+                    window.location.href = "{{ route('login') }}";
                     return;
                 }
 
                 const productId = btn.dataset.productId;
                 const qty = getQty();
+
+                if (!productId || !Number.isInteger(qty) || qty < 1) {
+                    alert('Produk atau jumlah pembelian tidak valid.');
+                    return;
+                }
 
                 setLoading(btn, true);
 
@@ -633,19 +678,45 @@
                         body: JSON.stringify({
                             product_id: productId,
                             quantity: qty
-                        }),
+                        })
                     });
 
-                    const cartItemId = response.data.id;
+                    // Mendukung beberapa struktur respons API.
+                    const cartItemId =
+                        response?.data?.id ??
+                        response?.data?.cart_item?.id ??
+                        response?.id;
 
-                    window.location.href =
-                        "{{ route('checkout') }}?items=[" + cartItemId + "]";
+                    if (!cartItemId) {
+                        console.error('Respons API keranjang:', response);
+                        throw new Error(
+                            'ID item keranjang tidak ditemukan pada respons API.'
+                        );
+                    }
 
-                } catch (e) {
-                    showToast(e.message || 'Gagal memproses', true);
+                    const checkoutUrl = new URL(
+                        "{{ route('checkout') }}",
+                        window.location.origin
+                    );
+
+                    checkoutUrl.searchParams.set(
+                        'items',
+                        JSON.stringify([cartItemId])
+                    );
+
+                    window.location.href = checkoutUrl.toString();
+
+
+                } catch (error) {
+                    console.error('Gagal Beli Langsung:', error);
+
+                    showPurchaseErrorModal(error.message || 'Terjadi kesalahan.');
+
                     setLoading(btn, false);
                 }
+
             });
+
 
             function showAddToCartModal(product, qty) {
                 const image = document.getElementById('modalProductImage');
@@ -675,6 +746,34 @@
             }
         });
 
+
+        function showPurchaseErrorModal(message) {
+            const modalElement = document.getElementById('purchaseErrorModal');
+            const titleElement = document.getElementById('purchaseErrorTitle');
+            const messageElement = document.getElementById('purchaseErrorMessage');
+            const iconElement = document.getElementById('purchaseErrorIcon');
+
+            const isStockError = /stok tidak mencukupi/i.test(message);
+
+            if (isStockError) {
+                titleElement.textContent = 'Stok Tidak Mencukupi';
+                messageElement.textContent =
+                    'Maaf, stok produk tidak cukup untuk jumlah pembelian kamu. ' +
+                    'Silakan kurangi jumlah pembelian atau periksa kembali stok yang tersedia.';
+
+                iconElement.className = 'bi bi-box-seam-fill';
+                iconElement.style.color = '#d99a00';
+            } else {
+                titleElement.textContent = 'Pembelian Belum Bisa Diproses';
+                messageElement.textContent =
+                    message || 'Terjadi kesalahan. Silakan coba kembali.';
+
+                iconElement.className = 'bi bi-exclamation-circle-fill';
+                iconElement.style.color = '#dc3545';
+            }
+
+            bootstrap.Modal.getOrCreateInstance(modalElement).show();
+        }
 
         function showGuestLoginModal() {
             window.location.href = "{{ route('login') }}";

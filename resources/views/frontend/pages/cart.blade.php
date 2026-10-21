@@ -6,15 +6,15 @@
 
     <style>
         /* =======================
-                                                                                                         TYPOGRAPHY
-                                                                                                        ======================= */
+                                                                                                                 TYPOGRAPHY
+                                                                                                                ======================= */
         .title-cart {
             font-size: 28px;
         }
 
         /* =======================
-                                                                                                           CART ITEM & CARD
-                                                                                                        ======================= */
+                                                                                                                   CART ITEM & CARD
+                                                                                                                ======================= */
         .cart-item,
         .card {
             background-color: #fff;
@@ -32,8 +32,8 @@
         }
 
         /* =======================
-                                                                                                        FORM CHECKBOX
-                                                                                                        ======================= */
+                                                                                                                FORM CHECKBOX
+                                                                                                                ======================= */
         .form-check {
             background-color: #fff;
             border: 1px solid #F6F6F6;
@@ -61,8 +61,8 @@
         }
 
         /* =======================
-                                                                                                         QUANTITY CONTROL
-                                                                                                        ======================= */
+                                                                                                                 QUANTITY CONTROL
+                                                                                                                ======================= */
         .qty-group {
             border: 1px solid #adadad;
             border-radius: 5px;
@@ -99,8 +99,8 @@
         }
 
         /* =======================
-                                                                                                                                                                                                                                               CART CONTAINER
-                                                                                                                                                                                                                                            ======================= */
+                                                                                                                                                                                                                                                       CART CONTAINER
+                                                                                                                                                                                                                                                    ======================= */
         .cart-scroll {
             max-height: 650px;
             overflow-y: auto;
@@ -114,8 +114,8 @@
         }
 
         /* =======================
-                                                                                                                                                                                                                                               SKELETON LOADING
-                                                                                                                                                                                                                                            ======================= */
+                                                                                                                                                                                                                                                       SKELETON LOADING
+                                                                                                                                                                                                                                                    ======================= */
         .skeleton {
             background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
             background-size: 200% 100%;
@@ -134,8 +134,8 @@
         }
 
         /* =======================
-                                                                                                                                                                                                                                               TOAST NOTIFICATION
-                                                                                                                                                                                                                                            ======================= */
+                                                                                                                                                                                                                                                       TOAST NOTIFICATION
+                                                                                                                                                                                                                                                    ======================= */
         #cartToast {
             position: fixed;
             bottom: 24px;
@@ -153,21 +153,33 @@
         }
 
         /* =======================
-                                                                                                                                                                                                                                               RESPONSIVE
-                                                                                                                                                                                                                                            ======================= */
+                                                                                                                                                                                                                                                       RESPONSIVE
+                                                                                                                                                                                                                                                    ======================= */
         @media (max-width: 576px) {
             .qty-group {
-                max-width: 80px;
-                height: 28px;
+                width: 90px;
+                min-width: 90px;
+                max-width: 90px;
+                height: 32px;
+                border-radius: 5px;
+                flex-shrink: 0;
             }
 
             .qty-group .qty-btn {
+                width: 28px;
+                min-width: 28px;
+                padding: 0;
                 font-size: 14px;
-                padding: 0 4px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
 
             .qty-group .form-control {
+                width: 34px;
+                min-width: 34px;
                 font-size: 12px;
+                padding: 0;
             }
         }
     </style>

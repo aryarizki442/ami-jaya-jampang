@@ -6,7 +6,21 @@
 
 @section('content')
     <style>
-        /* GLOBAL FONT SIZE (lebih kecil & rapi) */
+        /* =========================================================
+                       GLOBAL
+                       ========================================================= */
+
+        html,
+        body {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-size: 13px;
         }
@@ -40,17 +54,25 @@
             font-size: 11px;
         }
 
-        /* EQUAL HEIGHT */
+
+        /* =========================================================
+                       EQUAL HEIGHT
+                       ========================================================= */
+
         .row-equal {
             display: flex;
             flex-wrap: wrap;
         }
 
-        .row-equal>[class*='col-'] {
+        .row-equal>[class*="col-"] {
             display: flex;
         }
 
-        /* CARD GRADIENT */
+
+        /* =========================================================
+                       CARD GRADIENT
+                       ========================================================= */
+
         .card-custom {
             width: 100%;
             display: flex;
@@ -64,16 +86,377 @@
             flex: 1;
         }
 
-        /* TABLE FULL HEIGHT */
+
+        /* =========================================================
+                       TABLE
+                       ========================================================= */
+
         .table {
             height: 100%;
         }
 
-        /* .table thead th {
-                                                                                                                                                                                                                                                                                                                                                                                                    color: #D1D3D8 !important;
-                                                                                                                                                                                                                                                                                                                                                                                                    font-weight: 500;
-                                                                                                                                                                                                                                                                                                                                                                                                } */
+
+        /* =========================================================
+                       TABLE HEADER - OPTIONAL
+                       ========================================================= */
+
+        /*
+                    .table thead th {
+                        color: #D1D3D8 !important;
+                        font-weight: 500;
+                    }
+                    */
+
+
+        /* =========================================================
+                       CONTAINER
+                       ========================================================= */
+
+        .container,
+        .container-fluid {
+            max-width: 100%;
+        }
+
+        .card {
+            max-width: 100%;
+        }
+
+
+        /* =========================================================
+                       TABLET
+                       992px ke bawah
+                       ========================================================= */
+
+        @media (max-width: 991.98px) {
+
+            /* Statistik */
+            .row.mb-4>[class*="col-"] {
+                margin-bottom: 15px;
+            }
+
+            /* Grafik + tabel menjadi full width */
+            .row-equal>[class*="col-"] {
+                width: 100%;
+                flex: 0 0 100%;
+                max-width: 100%;
+                margin-bottom: 15px;
+            }
+
+            /* Hilangkan margin tambahan */
+            .row.mt-4 {
+                margin-top: 0 !important;
+            }
+
+            /* Card header */
+            .card-custom .card-header {
+                min-height: 48px;
+                padding: 12px 14px;
+            }
+
+            /* Card body */
+            .card-custom .card-body {
+                max-width: 100%;
+            }
+
+            #salesChart {
+                max-width: 100%;
+            }
+        }
+
+
+        /* =========================================================
+                       MOBILE
+                       767px ke bawah
+                       ========================================================= */
+
+        @media (max-width: 767.98px) {
+
+            html,
+            body {
+                width: 100% !important;
+                min-width: 0 !important;
+                max-width: 100% !important;
+                overflow-x: hidden !important;
+            }
+
+            /* Paksa semua wrapper utama mengikuti viewport */
+            #app,
+            main,
+            .main-content,
+            .content,
+            .page-content,
+            .content-wrapper,
+            .dashboard-content {
+                width: 100% !important;
+                min-width: 0 !important;
+                max-width: 100% !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+
+            /* Container Bootstrap */
+            .container,
+            .container-fluid {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+                padding-left: 12px !important;
+                padding-right: 12px !important;
+            }
+
+            /* Row jangan mempertahankan lebar desktop */
+            .row {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+
+            /* Kolom statistik */
+            .row.mb-4>.col-md-3 {
+                width: 50% !important;
+                flex: 0 0 50% !important;
+                max-width: 50% !important;
+                min-width: 0 !important;
+                padding-left: 5px !important;
+                padding-right: 5px !important;
+            }
+
+            /* Card statistik */
+            .row.mb-4 .card {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+            }
+
+            /* Row dashboard */
+            .row-equal {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+
+            /* Semua col-md-8 dan col-md-4 */
+            .row-equal>.col-md-8,
+            .row-equal>.col-md-4 {
+                width: 100% !important;
+                flex: 0 0 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+                padding-left: 5px !important;
+                padding-right: 5px !important;
+            }
+
+            /* Card grafik / tabel */
+            .card-custom {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+            }
+
+            /* Header card */
+            .card-custom .card-header {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            /* Body card */
+            .card-custom .card-body {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+            }
+
+            /* Grafik */
+            .card-custom .card-body>div[style*="height:300px"] {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+            }
+
+            #salesChart {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+        }
+
+
+        /* =========================================================
+                       MOBILE KECIL
+                       575px ke bawah
+                       ========================================================= */
+
+        @media (max-width: 575.98px) {
+
+            body {
+                font-size: 11px;
+            }
+
+
+            /* Statistik tetap 2 kolom */
+            .row.mb-4>[class*="col-"] {
+                width: 50%;
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
+
+            .row.mb-4 .card {
+                min-height: 88px;
+            }
+
+            .row.mb-4 .card-body {
+                padding: 11px 10px;
+            }
+
+            .row.mb-4 h6 {
+                font-size: 11px;
+                margin-bottom: 6px;
+            }
+
+            .row.mb-4 h4 {
+                font-size: 14px;
+            }
+
+
+            /* Header */
+            .card-custom .card-header {
+                padding: 10px;
+            }
+
+            .card-custom .card-header>span {
+                font-size: 11px;
+            }
+
+            .card-custom .card-header a {
+                font-size: 9px !important;
+            }
+
+
+            /* Grafik */
+            .card-custom .card-body>div[style*="height:300px"] {
+                height: 210px !important;
+                min-height: 210px;
+            }
+
+
+            /* Table */
+            .table th,
+            .table td {
+                font-size: 10px;
+                padding: 7px 6px;
+            }
+
+            .table .badge {
+                font-size: 8px;
+            }
+        }
+
+
+        /* =========================================================
+                       MOBILE SANGAT KECIL
+                       400px ke bawah
+                       ========================================================= */
+
+        @media (max-width: 400px) {
+
+            .row.mb-4 .card {
+                min-height: 82px;
+            }
+
+            .row.mb-4 .card-body {
+                padding: 10px 8px;
+            }
+
+            .row.mb-4 h6 {
+                font-size: 10px;
+            }
+
+            .row.mb-4 h4 {
+                font-size: 13px;
+            }
+
+
+            /* Header */
+            .card-custom .card-header {
+                padding: 9px;
+            }
+
+            .card-custom .card-header>span {
+                font-size: 10px;
+            }
+
+
+            /* Grafik */
+            .card-custom .card-body>div[style*="height:300px"] {
+                height: 190px !important;
+                min-height: 190px;
+            }
+
+
+            /* Table */
+            .table th,
+            .table td {
+                font-size: 9px;
+                padding: 6px 5px;
+            }
+        }
+
+
+        /* =========================================================
+                       MOBILE EKSTRA KECIL
+                       360px ke bawah
+                       ========================================================= */
+
+        @media (max-width: 360px) {
+
+            .row.mb-4 {
+                margin-left: -4px;
+                margin-right: -4px;
+            }
+
+            .row.mb-4>[class*="col-"] {
+                padding-left: 4px;
+                padding-right: 4px;
+            }
+
+            .row.mb-4 .card-body {
+                padding: 9px 7px;
+            }
+
+            .row.mb-4 h6 {
+                font-size: 9px;
+            }
+
+            .row.mb-4 h4 {
+                font-size: 12px;
+            }
+
+
+            /* Header */
+            .card-custom .card-header {
+                padding: 8px;
+            }
+
+
+            /* Grafik */
+            .card-custom .card-body>div[style*="height:300px"] {
+                height: 175px !important;
+                min-height: 175px;
+            }
+
+
+            /* Table */
+            .table th,
+            .table td {
+                font-size: 9px;
+                padding: 5px 4px;
+            }
+        }
     </style>
+
 
     <!-- CARD ATAS -->
     <div class="row mb-4">

@@ -450,6 +450,7 @@
         }
 
         /* ================= AUTH BUTTONS ================= */
+        /* ================= AUTH BUTTONS ================= */
         #authButtons {
             width: 100%;
             display: flex;
@@ -467,6 +468,11 @@
             backdrop-filter: blur(4px);
             border: 1px solid rgba(255, 255, 255, 0.15);
             transition: .2s;
+        }
+
+        /* TEKS DAFTAR PUTIH DI MOBILE */
+        #authButtons .btn-register {
+            color: #fff !important;
         }
 
         #authButtons .btn:hover {

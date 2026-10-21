@@ -96,10 +96,10 @@ class PaymentController extends Controller
 
         try {
             // QRIS expired 10 menit, VA 30 menit
-            $expiredAt = $methodCode === 'qris' 
-                ? now()->addMinutes(10) 
+            $expiredAt = $methodCode === 'qris'
+                ? now()->addMinutes(10)
                 : now()->addMinutes(30);
-            
+
             $snapParams = $this->buildSnapParams($order, $user, $expiredAt);
 
             $snapToken = \Midtrans\Snap::getSnapToken($snapParams);
@@ -307,15 +307,15 @@ class PaymentController extends Controller
         if (str_contains($orderId, '-')) {
             $parts = explode('-', $orderId);
             $orderNumberParts = [];
-            
+
             for ($i = 0; $i < count($parts); $i++) {
                 $orderNumberParts[] = $parts[$i];
                 $testOrderNumber = implode('-', $orderNumberParts);
-                
+
                 $order = Order::where('order_number', $testOrderNumber)
                     ->with(['items.product', 'user', 'payment.paymentMethod'])
                     ->first();
-                
+
                 if ($order) {
                     return $order;
                 }
@@ -432,11 +432,11 @@ class PaymentController extends Controller
                 ],
             ],
 
-            'expiry' => [
-                'start_time' => now()->format('Y-m-d H:i:s O'),
-                'unit'       => 'minute',
-                'duration'   => 10,
-            ],
+        'expiry' => [
+        'start_time' => now()->format('Y-m-d H:i:s O'),
+        'unit'       => 'day',
+        'duration'   => 1,
+    ],
 
             'callbacks' => [
                 'finish' => config('app.url') . '/payment/finish',
@@ -554,7 +554,7 @@ class PaymentController extends Controller
     private function formatPayment(Order $order, Payment $payment): array
     {
         $isQris = $payment->paymentMethod?->code === 'qris';
-        
+
         return [
             'order_number'           => $order->order_number,
             'amount'                 => $payment->amount,

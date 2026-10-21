@@ -880,7 +880,7 @@
             </td>
 
             <td class="text-start">
-                ${item.stock ?? 0} Karung
+                ${item.stock ?? 0}
             </td>
 
             <td class="text-center">
@@ -956,10 +956,9 @@
                     <span style="font-size:12px; font-weight:500;">
                         Rp ${price}
                     </span>
-
-                    <span style="font-size:12px;">
-                        ${stock} Karung
-                    </span>
+<span style="font-size:12px; margin-left:8px;">
+    ${stock}
+</span>
 
                     <div class="cat-actions">
 

@@ -91,8 +91,8 @@
         }
 
         /* ==================================
-                                                                                                                                                               MODAL PENILAIAN
-                                                                                                                                                            ================================== */
+                                                                                                                                                                   MODAL PENILAIAN
+                                                                                                                                                                ================================== */
 
         #reviewModal .modal-content {
             border-radius: 0;
@@ -854,13 +854,13 @@
 ${
     pendingReviewOrderIds.includes(Number(order.id))
         ? `
-                                    <button
-                                        type="button"
-                                        class="btn btn-main btn-sm btn-review"
-                                        data-order-id="${order.id}">
-                                        Nilai
-                                    </button>
-                                    `
+                                        <button
+                                            type="button"
+                                            class="btn btn-main btn-sm btn-review"
+                                            data-order-id="${order.id}">
+                                            Nilai
+                                        </button>
+                                        `
         : ''
 }
 </div>
@@ -903,13 +903,6 @@ ${
                     x ${item.quantity}
                 </div>
 
-                <button
-                    type="button"
-                    class="btn btn-main btn-sm btn-review mt-2"
-                    data-order-item-id="${orderItemId}"
-                >
-                    Nilai
-                </button>
 
             </div>
 

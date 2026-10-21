@@ -314,6 +314,79 @@
             font-size: 12px;
             opacity: 0.8;
         }
+
+        .custom-pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .custom-pagination a,
+        .custom-pagination .dots {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 34px;
+            height: 34px;
+            padding: 4px 8px;
+            box-sizing: border-box;
+        }
+
+        .custom-pagination a.nav-text {
+            min-width: auto;
+            white-space: nowrap;
+            padding: 4px 10px;
+        }
+
+        /* =========================
+       MOBILE
+    ========================= */
+        @media (max-width: 576px) {
+
+            .custom-pagination {
+                gap: 4px;
+                margin-top: 16px;
+                padding: 0 2px;
+            }
+
+            .custom-pagination a,
+            .custom-pagination .dots {
+                min-width: 30px;
+                height: 30px;
+                padding: 3px 6px;
+                font-size: 12px;
+            }
+
+            .custom-pagination a.nav-text {
+                font-size: 11px;
+                padding: 3px 7px;
+            }
+        }
+
+        /* HP sangat kecil */
+        @media (max-width: 380px) {
+
+            .custom-pagination {
+                gap: 2px;
+            }
+
+            .custom-pagination a,
+            .custom-pagination .dots {
+                min-width: 28px;
+                height: 28px;
+                font-size: 11px;
+                padding: 2px 5px;
+            }
+
+            .custom-pagination a.nav-text {
+                font-size: 10px;
+                padding: 2px 5px;
+            }
+        }
     </style>
 
     <div class="d-flex flex-wrap align-items-center gap-2 mb-3">

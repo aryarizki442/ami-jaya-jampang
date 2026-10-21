@@ -269,6 +269,13 @@
         .notif-description-content p:last-child {
             margin-bottom: 0;
         }
+
+        @media (max-width: 768px) {
+            .notif-badge-unread {
+                font-size: 8px;
+                padding: 5px 12px;
+            }
+        }
     </style>
 
     <div class="notif-title mt-5">
@@ -629,23 +636,23 @@
 
 
                  ${order.shipping_address ? `
-                                                                                                                                                                                                                                                                                                                              <div class="modal-info-row">
-                                                                                                                                                                                                                                                                                                                             <span class="modal-info-label">
-                                                                                                                                                                                                                                                                                                                              Alamat Pengiriman
-                                                                                                                                                                                                                                                                                                                              </span>
-                                                                                                                                                                                                                                                                                                                            <span class="modal-info-value">
-                                                                                                                                                                                                                                                                                                                                 ${order.shipping_address}
-                                                                                                                                                                                                                                                                                                                                 </span>
-                                                                                                                                                                                                                                                                                                                              </div>
-                                                                                                                                                                                                                                                                                                                              ` : ''}
+                                                                                                                                                                                                                                                                                                                                              <div class="modal-info-row">
+                                                                                                                                                                                                                                                                                                                                             <span class="modal-info-label">
+                                                                                                                                                                                                                                                                                                                                              Alamat Pengiriman
+                                                                                                                                                                                                                                                                                                                                              </span>
+                                                                                                                                                                                                                                                                                                                                            <span class="modal-info-value">
+                                                                                                                                                                                                                                                                                                                                                 ${order.shipping_address}
+                                                                                                                                                                                                                                                                                                                                                 </span>
+                                                                                                                                                                                                                                                                                                                                              </div>
+                                                                                                                                                                                                                                                                                                                                              ` : ''}
 
 
                                 ${description ? `
-                                                                                                                                                                                                                                                                                                                              <div class="modal-divider"></div>
-                                                                                                                                                                                                                                                                                                                            <div>
-                                                                                                                                                                                                                                                                                                                            ${description}
-                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                               ` : ''}
+                                                                                                                                                                                                                                                                                                                                              <div class="modal-divider"></div>
+                                                                                                                                                                                                                                                                                                                                            <div>
+                                                                                                                                                                                                                                                                                                                                            ${description}
+                                                                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                                                                               ` : ''}
                     `;
 
             document.getElementById('modalBody').innerHTML = modalBody;
@@ -1186,18 +1193,18 @@
                                     ${
                                         item.unit
                                         ? `
-                                                                                                <div
-                                                                                                    class="
-                                                                                                        text-muted
-                                                                                                        small
-                                                                                                    "
-                                                                                                >
-                                                                                                    Satuan:
-                                                                                                    ${escapeHtml(
-                                                                                                        item.unit
-                                                                                                    )}
-                                                                                                </div>
-                                                                                            `
+                                                                                                                <div
+                                                                                                                    class="
+                                                                                                                        text-muted
+                                                                                                                        small
+                                                                                                                    "
+                                                                                                                >
+                                                                                                                    Satuan:
+                                                                                                                    ${escapeHtml(
+                                                                                                                        item.unit
+                                                                                                                    )}
+                                                                                                                </div>
+                                                                                                            `
                                         : ''
                                     }
 
@@ -1208,19 +1215,19 @@
                             ${
                                 productId
                                 ? `
-                                                                                        <a
-                                                                                            href="/product/${productId}"
+                                                                                                        <a
+                                                                                                            href="/product/${productId}"
 
-                                                                                            class="
-                                                                                                text-success
-                                                                                                fw-semibold
-                                                                                                small
-                                                                                                text-decoration-none
-                                                                                            "
-                                                                                        >
-                                                                                            Lihat Produk
-                                                                                        </a>
-                                                                                    `
+                                                                                                            class="
+                                                                                                                text-success
+                                                                                                                fw-semibold
+                                                                                                                small
+                                                                                                                text-decoration-none
+                                                                                                            "
+                                                                                                        >
+                                                                                                            Lihat Produk
+                                                                                                        </a>
+                                                                                                    `
                                 : ''
                             }
 

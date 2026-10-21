@@ -256,10 +256,18 @@
     </style>
     <nav class="navbar navbar-expand-lg navbar-bg fixed-top">
         <div class="container">
+
+            <!-- Arrow Kembali -->
+            <a href="javascript:history.back()" class="text-white d-flex align-items-center me-3"
+                style="text-decoration: none; font-size: 24px;">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+
             <!-- Logo -->
             <a class="navbar-brand d-flex align-items-center" href="#">
                 <img src="{{ asset('images/logo/logo-putih.png') }}" alt="Logo" class="img-fluid navbar-logo">
             </a>
+
         </div>
     </nav>
     <div class="container mt-5 pt-5">
@@ -336,6 +344,23 @@
                                 <div class="card border p-2 mb-2 text-start">
 
                                     <!-- Antar -->
+
+
+                                    @if ($totalQty < 15)
+                                        <small class="text-danger d-block mt-1">
+                                            Minimal pembelian 15 item untuk pengiriman antar.
+                                        </small>
+                                    @endif
+
+                                    <!-- Pickup -->
+                                    <div
+                                        class="form-check-pengiriman d-flex justify-content-between align-items-center mb-2">
+                                        <label class="form-check-label" for="pickup">
+                                            Pick Up (Pembeli Ambil Barang Ke Lokasi Penjual)
+                                        </label>
+                                        <input class="form-check-input ms-2" type="radio" name="shipping"
+                                            id="pickup" value="pickup" {{ $totalQty < 15 ? 'checked' : '' }}>
+                                    </div>
                                     <div
                                         class="form-check-pengiriman d-flex justify-content-between align-items-center mb-2">
                                         <label class="form-check-label  {{ $totalQty < 15 ? 'text-muted' : '' }}"
@@ -346,22 +371,6 @@
                                             id="antar" value="delivery"
                                             {{ $totalQty < 15 ? 'disabled' : 'checked' }}>
                                     </div>
-
-                                    @if ($totalQty < 15)
-                                        <small class="text-danger d-block mt-1">
-                                            Minimal pembelian 15 item untuk pengiriman antar.
-                                        </small>
-                                    @endif
-                                    <!-- Pickup -->
-                                    <div
-                                        class="form-check-pengiriman d-flex justify-content-between align-items-center mb-2">
-                                        <label class="form-check-label" for="pickup">
-                                            Pick Up (Pembeli Ambil Barang Ke Lokasi Penjual)
-                                        </label>
-                                        <input class="form-check-input ms-2" type="radio" name="shipping"
-                                            id="pickup" value="pickup" {{ $totalQty < 15 ? 'checked' : '' }}>
-                                    </div>
-
                                     <div class="d-flex flex-column gap-2 small mb-1">
                                         <div class="d-flex align-items-center gap-2">
                                             <span class="iconify" data-icon="bx:map" style="font-size: 20px;"></span>
